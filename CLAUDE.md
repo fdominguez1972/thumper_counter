@@ -71,6 +71,51 @@ thumper_counter/
 └── CLAUDE.md
 ```
 
+## Architecture Overview
+
+### Three-Tier Processing Pipeline
+The system uses asynchronous processing with clear separation:
+
+1. **API Layer (FastAPI)** - Accepts uploads, serves results
+   - Stores images with metadata
+   - Queues processing jobs
+   - Returns real-time status via WebSocket
+
+2. **Worker Layer (Celery)** - Executes ML pipeline
+   - Detection -> Classification -> Re-identification
+   - Each stage is a separate Celery task
+   - Results stored incrementally for fault tolerance
+
+3. **Data Layer** - Dual storage strategy
+   - PostgreSQL: Structured data (deer profiles, detections)
+   - Filesystem: Original images and crops
+   - Redis: Queue state and caching
+
+### ML Pipeline Flow
+```
+Image Upload -> Queue -> Detection (YOLOv8) -> Crop Bounding Boxes
+                             |
+                             v
+                    Classification (CNN) -> Sex determination
+                             |
+                             v
+                    Re-ID (ResNet50) -> Match to existing deer OR create new profile
+                             |
+                             v
+                    Update database with sighting
+```
+
+### Key Design Decisions
+
+**Why Celery?** Heavy ML processing must not block API responses. Celery provides retry logic, monitoring via Flower, and horizontal scaling.
+
+**Why separate detection/classification/re-id?** Each model has different resource requirements. Separation allows:
+- Independent model updates
+- Different batch sizes per stage
+- Better error isolation
+
+**Why feature vectors in DB?** Re-identification requires comparing new detections against ALL known deer. Storing embeddings in PostgreSQL with pgvector extension enables efficient similarity search.
+
 ## Spec-Kit Workflow
 
 ### WHY spec-kit?
@@ -82,8 +127,8 @@ thumper_counter/
 
 ### Our Approach
 1. **Define specs first** - Clear understanding before coding
-2. **Validate specs** - Ensure completeness and consistency  
-3. **Generate scaffolding** - Use claude-cli to create boilerplate
+2. **Validate specs** - Ensure completeness and consistency
+3. **Generate scaffolding** - Use claude-cli/scripts/generate.py to create boilerplate
 4. **Implement incrementally** - One component at a time
 5. **Test against specs** - Verify implementation matches design
 
@@ -107,33 +152,100 @@ thumper_counter/
 - **Locations**: 7 camera sites
 - **Database**: Deer profiles, detections, sightings
 
-## Commands & Conventions
+## Development Commands
 
-### Git
+### Project Initialization
 ```bash
-git init
-git add .
-git commit -m "Initial commit with spec-kit structure"
+# Initialize or update git repository
+./init-git.sh
+
+# Run project setup (creates .env, installs dependencies)
+./setup.sh
 ```
 
-### Docker
+### Spec-Kit Workflow
 ```bash
-# Use docker-compose (not docker compose)
-docker-compose up -d
-docker-compose logs -f
-docker-compose exec <service> <command>
+# Generate code from specifications
+python3 scripts/generate.py specs/system.spec "Create SQLAlchemy models"
+python3 scripts/generate.py specs/ml.spec "Implement YOLOv8 detection service"
+python3 scripts/generate.py specs/api.spec "Create FastAPI endpoints for /api/images"
+
+# View specifications
+cat specs/system.spec    # System architecture
+cat specs/ml.spec        # ML pipeline details
+cat specs/api.spec       # API endpoint contracts
+cat specs/ui.spec        # Frontend component specs
 ```
 
-### Python in containers
+### Docker Operations
+```bash
+# Use docker-compose (not 'docker compose')
+docker-compose up -d                           # Start all services
+docker-compose up -d backend worker            # Start specific services
+docker-compose logs -f                         # Follow all logs
+docker-compose logs -f worker                  # Follow worker logs
+docker-compose exec backend python3 script.py  # Run command in container
+docker-compose down                            # Stop all services
+docker-compose down -v                         # Stop and remove volumes
+
+# Check service status
+docker-compose ps
+
+# Rebuild after code changes
+docker-compose up -d --build
+```
+
+### Python/Development
 ```bash
 # ALWAYS use python3 (not python)
-docker exec <container> python3 script.py
+python3 scripts/generate.py <spec> <prompt>
+docker-compose exec backend python3 -m pytest
+docker-compose exec worker python3 -m celery inspect active
+
+# Install dependencies locally (for IDE support)
+pip install -r requirements.txt
 ```
 
-### File operations
+### Testing
 ```bash
-# Use Filesystem MCP for reliability
-# Avoid Python file operations that may not sync
+# Run tests in containers (when implemented)
+docker-compose exec backend pytest tests/
+docker-compose exec backend pytest tests/api/test_images.py -v
+docker-compose exec worker pytest tests/ml/ -v
+
+# Run specific test
+docker-compose exec backend pytest tests/api/test_deer.py::test_create_deer
+```
+
+### Database Management
+```bash
+# Access PostgreSQL
+docker-compose exec db psql -U deertrack deer_tracking
+
+# Run migrations (when implemented)
+docker-compose exec backend alembic upgrade head
+docker-compose exec backend alembic revision --autogenerate -m "description"
+
+# Database backup
+docker-compose exec db pg_dump -U deertrack deer_tracking > backup.sql
+```
+
+### Monitoring
+```bash
+# View Celery tasks (Flower UI at http://localhost:5555)
+# View API docs (Swagger at http://localhost:8000/docs)
+
+# Check Redis queue
+docker-compose exec redis redis-cli
+> LLEN celery
+> KEYS *
+```
+
+### Git Workflow
+```bash
+git add .
+git commit -m "feat: implement deer detection pipeline"
+git push origin main
 ```
 
 ## Development Standards
@@ -170,6 +282,218 @@ with ThreadPoolExecutor(max_workers=10) as executor:
 4. **Avoid past issues** - No filesystem sync problems
 5. **Build proficiency** - Master claude-cli integration
 
+## Common Development Patterns
+
+### Adding a New API Endpoint
+1. Define endpoint contract in `specs/api.spec`
+2. Generate boilerplate: `python3 scripts/generate.py specs/api.spec "Create endpoint /api/new"`
+3. Implement business logic in `src/backend/services/`
+4. Add SQLAlchemy queries in `src/backend/models/`
+5. Create tests in `tests/api/test_new.py`
+6. Update OpenAPI docs (auto-generated from FastAPI decorators)
+
+### Adding a New ML Model
+1. Define model specs in `specs/ml.spec`
+2. Create Celery task in `src/worker/tasks/`
+3. Add model loading in `src/worker/models/`
+4. Update pipeline flow if adding new stage
+5. Add GPU memory considerations to docker config
+6. Test with sample images before full dataset
+
+### Database Schema Changes
+1. Modify model in `src/backend/models/`
+2. Generate migration: `alembic revision --autogenerate -m "description"`
+3. Review generated migration for correctness
+4. Test on dev: `alembic upgrade head`
+5. Update specs to reflect schema changes
+6. Regenerate any affected API endpoints
+
+### Processing Large Image Batches
+1. Use Celery canvas for parallelization (group, chain, chord)
+2. Batch images in groups of 16 (BATCH_SIZE in .env)
+3. Monitor GPU memory via `docker stats`
+4. Use Flower UI to track progress: `http://localhost:5555`
+5. Implement checkpointing for long-running jobs
+
+## Critical Implementation Notes
+
+### GPU Access in Docker
+- Requires NVIDIA Container Toolkit installed
+- Docker Compose must include `runtime: nvidia`
+- CUDA version must match PyTorch requirements
+- Test GPU access: `docker-compose exec worker nvidia-smi`
+
+### Image Path Handling
+- Windows paths use backslashes: `I:\path\to\images`
+- Container paths use forward slashes: `/mnt/i/path/to/images`
+- Use `pathlib.Path` for cross-platform compatibility
+- Mount Windows drives in docker-compose: `/mnt/i:/mnt/i`
+
+### Model File Management
+- Models stored in `src/models/` directory
+- Download from Hugging Face on first run
+- Cache to avoid re-downloading (use volumes)
+- Large files tracked via Git LFS (when implemented)
+
+## Current Session State (Updated: 2025-11-05)
+
+### Completed Tasks
+
+1. **Database Models** [COMPLETED]
+   - Created SQLAlchemy models: Location, Image, Detection, Deer
+   - Implemented proper relationships and constraints
+   - Added utility methods (increment_image_count, etc.)
+   - Files: src/backend/models/*.py
+
+2. **Database Core** [COMPLETED]
+   - Database connection setup with pooling
+   - Connection testing and initialization
+   - Database info utilities
+   - File: src/backend/core/database.py
+
+3. **Location API** [COMPLETED]
+   - POST /api/locations - Create location
+   - GET /api/locations - List all locations
+   - GET /api/locations/{id} - Get specific location
+   - PUT /api/locations/{id} - Update location
+   - DELETE /api/locations/{id} - Delete location
+   - Files: src/backend/api/locations.py, src/backend/schemas/location.py
+
+4. **Image Upload API** [COMPLETED]
+   - POST /api/images - Batch upload with EXIF extraction
+   - GET /api/images - List with filters (location, status, date range, detections)
+   - GET /api/images/{id} - Get specific image
+   - Location name/ID lookup functionality
+   - Timestamp extraction from EXIF and filename
+   - Files: src/backend/api/images.py, src/backend/schemas/image.py
+
+5. **Celery Worker Setup** [COMPLETED]
+   - Celery app configuration with Redis backend
+   - Task routing and queuing setup
+   - Model loading infrastructure
+   - Detection task implementation (YOLOv8)
+   - Files: src/worker/celery_app.py, src/worker/tasks/*.py
+
+6. **ML Models** [COMPLETED]
+   - Copied YOLOv8 model from original project
+   - Created model testing script
+   - Verified detection on sample images
+   - Files: src/models/yolov8n_deer.pt, scripts/test_detection.py
+
+7. **Docker Infrastructure** [COMPLETED]
+   - Backend container with Pillow installed
+   - Worker container with CUDA support
+   - PostgreSQL database container
+   - Redis container
+   - All services operational
+
+### Current System Status
+
+**Running Services:**
+- Backend API: http://localhost:8001 [HEALTHY]
+- PostgreSQL: localhost:5432 [HEALTHY]
+- Redis: localhost:6379 [HEALTHY]
+- Worker: Running (processing images)
+
+**Recent Fixes:**
+- Fixed PIL import error by rebuilding backend with Pillow 12.0.0
+- Backend now successfully handles image uploads with EXIF extraction
+
+### Next Steps (Not Started)
+
+1. **Deer Profile API** - POST/GET/PUT/DELETE endpoints for deer profiles
+2. **Detection API** - Endpoints to retrieve and manage detections
+3. **Re-ID Model Integration** - ResNet50 for individual deer identification
+4. **Sex Classification Model** - CNN for buck/doe/fawn classification
+5. **Frontend Dashboard** - React application for viewing results
+6. **Batch Processing** - Scripts to process existing 40k+ images
+7. **Testing Suite** - pytest tests for all endpoints and services
+
+### Key Files and Locations
+
+**Backend API:**
+- src/backend/app/main.py - FastAPI application entry point
+- src/backend/api/locations.py - Location endpoints
+- src/backend/api/images.py - Image upload endpoints
+- src/backend/models/*.py - SQLAlchemy database models
+- src/backend/schemas/*.py - Pydantic validation schemas
+- src/backend/core/database.py - Database connection management
+
+**Worker:**
+- src/worker/celery_app.py - Celery configuration
+- src/worker/tasks/process_images.py - Image processing tasks
+- src/worker/tasks/detection.py - YOLOv8 detection task
+
+**Models:**
+- src/models/yolov8n_deer.pt - YOLOv8 detection model (copied from I:\deer_tracker)
+
+**Configuration:**
+- docker-compose.yml - Service orchestration
+- .env - Environment variables (DB credentials, paths, etc.)
+- requirements.txt - Python dependencies (includes Pillow 12.0.0)
+
+### Important Implementation Details
+
+**Image Upload Flow:**
+1. Client uploads image(s) via POST /api/images
+2. Backend validates file type and size (max 50MB)
+3. EXIF data extracted using PIL/Pillow
+4. Timestamp extracted from EXIF → filename → current time (fallback)
+5. Location looked up by name or UUID
+6. Image saved to /mnt/images/{location_name}/
+7. Database record created with metadata
+8. Optional: Queue for immediate processing (process_immediately=true)
+
+**EXIF Extraction Strategy:**
+- Uses PIL.Image._getexif() to read metadata
+- Converts binary values to strings for JSON storage
+- Graceful fallback if EXIF data unavailable
+
+**Timestamp Extraction Priority:**
+1. EXIF DateTimeOriginal (preferred - from camera)
+2. EXIF DateTime
+3. EXIF DateTimeDigitized
+4. Filename pattern: LOCATION_YYYYMMDD_HHMMSS.jpg
+5. Current UTC time (last resort)
+
+### Known Working Endpoints
+
+```bash
+# Health check
+curl http://localhost:8001/health
+
+# API info
+curl http://localhost:8001/
+
+# Create location
+curl -X POST http://localhost:8001/api/locations \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Sanctuary", "description": "Main feeding area"}'
+
+# Upload images
+curl -X POST http://localhost:8001/api/images \
+  -F "files=@image1.jpg" \
+  -F "files=@image2.jpg" \
+  -F "location_name=Sanctuary" \
+  -F "process_immediately=false"
+
+# List images
+curl "http://localhost:8001/api/images?location_id=UUID&status=completed&page_size=20"
+```
+
+### Database Schema
+
+**Tables Created:**
+- locations (id, name, description, coordinates, image_count, etc.)
+- images (id, filename, path, timestamp, location_id, exif_data, processing_status, etc.)
+- detections (id, image_id, bbox coordinates, confidence, class_id, etc.)
+- deer (id, name, sex, species, first_seen, last_seen, sighting_count, etc.)
+
+**Key Relationships:**
+- Location -> Images (one-to-many)
+- Image -> Detections (one-to-many)
+- Deer -> Detections (one-to-many via deer_id)
+
 ## Notes
 
 - Always explain WHY we're doing something, not just what
@@ -177,3 +501,4 @@ with ThreadPoolExecutor(max_workers=10) as executor:
 - Use ASCII-only output (critical requirement)
 - Be aware of filesystem sync issues from past sessions
 - Multi-threaded operations when beneficial
+- Verify file creation immediately with `ls` or `dir`

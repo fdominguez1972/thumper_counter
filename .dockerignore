@@ -1,0 +1,52 @@
+# Docker ignore file for Thumper Counter
+# Exclude files from Docker build context for faster builds
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Environment
+.env.local
+.env.*.local
+
+# Data (exclude large image directories from build)
+*.jpg
+*.jpeg
+*.png
+*.mp4
+
+# Node
+node_modules/
+npm-debug.log
+
+# Docker
+docker-compose.override.yml
