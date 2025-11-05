@@ -44,7 +44,8 @@ router = APIRouter(
 
 
 # Configuration
-IMAGE_STORAGE_PATH = os.getenv("IMAGE_PATH", "/mnt/images")
+IMAGE_STORAGE_PATH = os.getenv("IMAGE_PATH", "/mnt/images")  # Read-only source images
+UPLOAD_STORAGE_PATH = os.getenv("UPLOAD_PATH", "/mnt/uploads")  # Writable upload storage
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB per spec
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"}
 
@@ -257,9 +258,9 @@ async def upload_images(
             # Determine storage path
             # If location is specified, use location name as subfolder
             if location:
-                storage_dir = Path(IMAGE_STORAGE_PATH) / location.name
+                storage_dir = Path(UPLOAD_STORAGE_PATH) / location.name
             else:
-                storage_dir = Path(IMAGE_STORAGE_PATH) / "uploads"
+                storage_dir = Path(UPLOAD_STORAGE_PATH) / "uploads"
 
             # Create directory if it doesn't exist
             storage_dir.mkdir(parents=True, exist_ok=True)
