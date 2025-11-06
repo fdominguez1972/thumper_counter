@@ -35,6 +35,9 @@ from backend.schemas.image import (
     BatchUploadResponse,
 )
 
+# Import Celery task for detection processing (T007)
+from src.worker.tasks.detection import detect_deer_task
+
 
 # Create API router
 router = APIRouter(
@@ -288,6 +291,7 @@ async def upload_images(
                 print(f"[WARN] No timestamp in EXIF or filename, using current time for {original_filename}")
 
             # Create image record in database
+            # All images start as PENDING per spec (FR-004)
             image = Image(
                 id=image_id,
                 filename=original_filename,
@@ -295,7 +299,7 @@ async def upload_images(
                 timestamp=timestamp,
                 location_id=location.id if location else None,
                 exif_data=exif_data,
-                processing_status=ProcessingStatus.QUEUED if process_immediately else ProcessingStatus.PENDING
+                processing_status=ProcessingStatus.PENDING
             )
 
             db.add(image)
@@ -304,19 +308,12 @@ async def upload_images(
             if location:
                 location.increment_image_count()
 
-            # Calculate queue position (simplified - count queued images)
-            queue_position = None
-            if process_immediately:
-                queue_position = db.query(Image).filter(
-                    Image.processing_status == ProcessingStatus.QUEUED
-                ).count()
-
             # Prepare response
             uploaded_images.append(ImageUploadResponse(
                 id=image.id,
                 filename=image.filename,
                 processing_status=image.processing_status.value,
-                queue_position=queue_position,
+                queue_position=None,  # Removed: queue position not tracked in new design
                 timestamp=image.timestamp,
                 location_id=image.location_id
             ))
@@ -343,6 +340,19 @@ async def upload_images(
             detail="Failed to save images to database"
         )
 
+    # Queue images for immediate processing if requested (T007 - FR-002)
+    if process_immediately and uploaded_images:
+        print(f"[INFO] Queueing {len(uploaded_images)} images for immediate processing")
+        for img_response in uploaded_images:
+            try:
+                # Queue Celery task for detection
+                task = detect_deer_task.delay(str(img_response.id))
+                print(f"[OK] Queued detection task {task.id} for image {img_response.id}")
+            except Exception as e:
+                print(f"[ERROR] Failed to queue task for image {img_response.id}: {e}")
+                # Don't fail the upload if queueing fails - image is still saved
+                # User can trigger processing later via batch endpoint
+
     return BatchUploadResponse(
         total_uploaded=len(uploaded_images),
         total_failed=len(errors),
@@ -365,7 +375,7 @@ def list_images(
     status_filter: Optional[str] = Query(
         None,
         alias="status",
-        description="Filter by processing status (pending, queued, processing, completed, failed)"
+        description="Filter by processing status (pending, processing, completed, failed)"
     ),
     date_from: Optional[datetime] = Query(
         None,
