@@ -30,6 +30,21 @@ class DeerSex(enum.Enum):
     UNKNOWN = "unknown"    # Sex could not be determined
 
 
+# Aliases for API compatibility (Sprint 3)
+Sex = DeerSex  # API uses Sex, model uses DeerSex
+
+
+class DeerStatus(enum.Enum):
+    """
+    Status of deer (alive/deceased/unknown).
+
+    Used for population tracking and management.
+    """
+    ALIVE = "alive"
+    DECEASED = "deceased"
+    UNKNOWN = "unknown"
+
+
 class Deer(Base):
     """
     Individual deer profile with re-identification tracking.
@@ -78,11 +93,48 @@ class Deer(Base):
 
     # Classification
     sex = Column(
-        Enum(DeerSex),
+        Enum(DeerSex, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=DeerSex.UNKNOWN,
         index=True,
         comment="Sex classification from ML model"
+    )
+
+    # Additional management fields (Sprint 3)
+    status = Column(
+        Enum(DeerStatus, values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+        default=DeerStatus.ALIVE,
+        index=True,
+        comment="Current status (alive, deceased, unknown)"
+    )
+
+    species = Column(
+        String(100),
+        nullable=False,
+        default="white_tailed_deer",
+        comment="Species identifier (white_tailed_deer, mule_deer, etc.)"
+    )
+
+    notes = Column(
+        String(1000),
+        nullable=True,
+        comment="Additional notes and observations"
+    )
+
+    # Timestamps (Sprint 3)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,
+        comment="When this deer record was created"
+    )
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        onupdate=datetime.utcnow,
+        comment="When this deer record was last updated"
     )
 
     # Temporal tracking
@@ -103,7 +155,7 @@ class Deer(Base):
     # Re-identification features
     feature_vector = Column(
         ARRAY(Float),
-        nullable=False,
+        nullable=True,  # Sprint 3: Optional for manually created profiles
         comment="ML embedding for re-identification (ResNet50 output, 2048 dimensions)"
     )
 
@@ -342,5 +394,5 @@ class Deer(Base):
         ]
 
 
-# Export model and enum
-__all__ = ["Deer", "DeerSex"]
+# Export model and enums
+__all__ = ["Deer", "DeerSex", "Sex", "DeerStatus"]

@@ -20,7 +20,7 @@ from backend.core.database import (
     get_db_info,
     engine
 )
-from backend.api import locations, images, processing
+from backend.api import locations, images, processing, deer
 
 # Celery app for sending tasks from backend
 # WHY: Backend cannot import worker modules directly, use send_task() instead
@@ -120,6 +120,7 @@ app.add_middleware(
 app.include_router(locations.router)
 app.include_router(images.router)
 app.include_router(processing.router)
+app.include_router(deer.router)
 
 
 # Health check endpoint
