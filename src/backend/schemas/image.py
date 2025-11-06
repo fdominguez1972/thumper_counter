@@ -29,8 +29,8 @@ class ImageUploadResponse(BaseModel):
             "example": {
                 "id": "550e8400-e29b-41d4-a716-446655440000",
                 "filename": "SANCTUARY_00123.jpg",
-                "processing_status": "queued",
-                "queue_position": 42,
+                "processing_status": "pending",
+                "queue_position": None,
                 "timestamp": "2025-01-01T12:00:00Z",
                 "location_id": "550e8400-e29b-41d4-a716-446655440001"
             }
@@ -46,6 +46,10 @@ class ImageResponse(BaseModel):
     location_id: Optional[UUID]
     exif_data: Optional[dict]
     processing_status: str
+    error_message: Optional[str] = Field(
+        None,
+        description="Error message if processing failed (only present when status=failed)"
+    )
     created_at: datetime
     detection_count: Optional[int] = Field(
         None,
@@ -66,6 +70,7 @@ class ImageResponse(BaseModel):
                     "camera_model": "HC500"
                 },
                 "processing_status": "completed",
+                "error_message": None,
                 "created_at": "2025-01-01T12:01:00Z",
                 "detection_count": 3
             }
@@ -92,6 +97,7 @@ class ImageList(BaseModel):
                         "location_id": "550e8400-e29b-41d4-a716-446655440001",
                         "exif_data": {},
                         "processing_status": "completed",
+                        "error_message": None,
                         "created_at": "2025-01-01T12:01:00Z",
                         "detection_count": 3
                     }
@@ -118,8 +124,8 @@ class BatchUploadResponse(BaseModel):
                     {
                         "id": "550e8400-e29b-41d4-a716-446655440000",
                         "filename": "SANCTUARY_00123.jpg",
-                        "processing_status": "queued",
-                        "queue_position": 42,
+                        "processing_status": "pending",
+                        "queue_position": None,
                         "timestamp": "2025-01-01T12:00:00Z",
                         "location_id": "550e8400-e29b-41d4-a716-446655440001"
                     }

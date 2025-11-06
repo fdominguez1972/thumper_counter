@@ -22,8 +22,76 @@ Environment Variables:
 """
 
 import os
+import sys
+from pathlib import Path
 from celery import Celery
 from kombu import Queue
+
+
+# Model file validation (FR-011)
+def validate_model_files():
+    """
+    Validate that required ML model files exist and are valid.
+
+    This function is called at worker startup to ensure the worker doesn't
+    start without the required model files. This prevents confusing errors
+    later when tasks try to load models.
+
+    Raises:
+        SystemExit: If any required model file is missing or invalid
+
+    Requirements:
+        - FR-011: System MUST validate YOLOv8 model file exists at startup
+    """
+    # Define required model files
+    # Path is relative to project root when running in Docker
+    model_files = {
+        'yolov8n_deer.pt': 'src/models/yolov8n_deer.pt',
+    }
+
+    errors = []
+
+    for model_name, model_path in model_files.items():
+        full_path = Path(model_path)
+
+        # Check if file exists
+        if not full_path.exists():
+            errors.append(
+                f"[FAIL] Model file not found: {model_path}\n"
+                f"       Expected location: {full_path.absolute()}\n"
+                f"       Please copy model file from original project or download from source."
+            )
+            continue
+
+        # Check if file size is reasonable (corruption check)
+        # YOLOv8n model should be ~20-25MB
+        file_size_mb = full_path.stat().st_size / (1024 * 1024)
+        if file_size_mb < 20:
+            errors.append(
+                f"[FAIL] Model file appears corrupted: {model_path}\n"
+                f"       File size: {file_size_mb:.2f}MB (expected >20MB)\n"
+                f"       Please re-download or copy the model file."
+            )
+            continue
+
+        print(f"[OK] Model file validated: {model_name} ({file_size_mb:.2f}MB)")
+
+    # If any errors, print all and exit
+    if errors:
+        print("\n" + "=" * 80)
+        print("[FAIL] Worker startup failed: Required model files missing or invalid")
+        print("=" * 80)
+        for error in errors:
+            print(error)
+        print("=" * 80)
+        print("\n[INFO] Worker will not start. Please fix the above errors and try again.\n")
+        sys.exit(1)
+
+
+# Validate model files before starting worker
+print("[INFO] Validating model files...")
+validate_model_files()
+print("[OK] All model files validated successfully\n")
 
 
 # Redis connection configuration

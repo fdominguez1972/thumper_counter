@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Column, String, DateTime, JSON, Enum, ForeignKey, Index
+from sqlalchemy import Column, String, DateTime, JSON, Enum, ForeignKey, Index, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -21,11 +21,16 @@ class ProcessingStatus(enum.Enum):
     """
     Processing status for images as they move through the ML pipeline.
 
-    Flow: pending -> queued -> processing -> completed
-    Alternative: pending -> queued -> processing -> failed
+    Flow: pending -> processing -> completed
+    Alternative: pending -> processing -> failed
+
+    States:
+        PENDING: Image uploaded, not yet processed
+        PROCESSING: Currently being processed by worker
+        COMPLETED: Successfully processed with detections stored
+        FAILED: Processing failed (see error_message field)
     """
-    PENDING = "pending"          # Image uploaded, not yet queued
-    QUEUED = "queued"            # Submitted to Celery queue
+    PENDING = "pending"          # Image uploaded, not yet processed
     PROCESSING = "processing"    # Currently being processed by worker
     COMPLETED = "completed"      # Successfully processed
     FAILED = "failed"            # Processing failed
@@ -117,6 +122,12 @@ class Image(Base):
         comment="Current state in ML pipeline"
     )
 
+    error_message = Column(
+        Text,
+        nullable=True,
+        comment="Error message if processing failed (populated when status=FAILED)"
+    )
+
     # Relationships
     location = relationship(
         "Location",
@@ -160,6 +171,7 @@ class Image(Base):
             "location_id": str(self.location_id) if self.location_id else None,
             "exif_data": self.exif_data,
             "processing_status": self.processing_status.value,
+            "error_message": self.error_message,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
@@ -176,10 +188,6 @@ class Image(Base):
             ProcessingStatus.COMPLETED
         ]
 
-    def mark_queued(self) -> None:
-        """Mark image as queued for processing."""
-        self.processing_status = ProcessingStatus.QUEUED
-
     def mark_processing(self) -> None:
         """Mark image as currently being processed."""
         self.processing_status = ProcessingStatus.PROCESSING
@@ -188,9 +196,15 @@ class Image(Base):
         """Mark image as successfully processed."""
         self.processing_status = ProcessingStatus.COMPLETED
 
-    def mark_failed(self) -> None:
-        """Mark image as failed processing."""
+    def mark_failed(self, error_message: Optional[str] = None) -> None:
+        """
+        Mark image as failed processing.
+
+        Args:
+            error_message: Optional error message describing the failure
+        """
         self.processing_status = ProcessingStatus.FAILED
+        self.error_message = error_message
 
 
 # Export model and enum
