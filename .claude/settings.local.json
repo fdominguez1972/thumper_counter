@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test:*)",
+      "Bash(bash:*)",
+      "Bash(tree:*)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(python3:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(netstat:*)",
+      "Bash(ss:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose exec:*)",
+      "Bash(docker-compose stop:*)",
+      "Bash(curl:*)",
+      "Bash(docker-compose restart:*)",
+      "Bash(pip3 install:*)",
+      "Bash(tee:*)",
+      "Bash(mkdir:*)",
+      "Bash(./scripts/copy_models.sh:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(docker system:*)",
+      "Bash(docker image prune:*)",
+      "Bash(docker builder prune:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git remote set-url:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
