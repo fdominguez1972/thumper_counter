@@ -83,3 +83,6 @@ Desktop.ini
 tmp/
 temp/
 cache/
+
+# Claude Code local settings
+.claude/
