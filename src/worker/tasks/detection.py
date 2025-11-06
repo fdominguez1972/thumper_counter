@@ -24,6 +24,7 @@ Requirements Satisfied:
 
 import os
 import logging
+import time
 from pathlib import Path
 from typing import List, Dict
 from uuid import UUID
@@ -32,7 +33,7 @@ import torch
 from PIL import Image as PILImage
 from ultralytics import YOLO
 
-from src.worker.celery_app import app
+from worker.celery_app import app
 from backend.core.database import SessionLocal
 from backend.models.image import Image, ProcessingStatus
 from backend.models.detection import Detection
@@ -100,7 +101,7 @@ def get_detection_model():
     return _detection_model
 
 
-@app.task(bind=True, name='src.worker.tasks.detection.detect_deer_task')
+@app.task(bind=True, name='worker.tasks.detection.detect_deer_task')
 def detect_deer_task(self, image_id: str) -> Dict:
     """
     Detect deer in a single image using YOLOv8 (T008).
@@ -150,7 +151,7 @@ def detect_deer_task(self, image_id: str) -> Dict:
 
         # Log task start (T011 - FR-005: log with image_id)
         logger.info(f"[INFO] Starting detection for image {image_id} ({image.filename})")
-        task_start_time = self.request.started or 0
+        task_start_time = time.time()
 
         # Update status to PROCESSING (T008 - FR-004 state transition)
         image.mark_processing()
@@ -244,8 +245,8 @@ def detect_deer_task(self, image_id: str) -> Dict:
         db.commit()
 
         # Calculate task duration (T011)
-        task_end_time = self.request.ended or 0
-        duration = task_end_time - task_start_time if task_end_time and task_start_time else 0
+        task_end_time = time.time()
+        duration = task_end_time - task_start_time
 
         # Log completion (T011 - FR-005: log detection count and duration)
         avg_confidence = sum(

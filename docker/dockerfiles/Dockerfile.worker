@@ -28,9 +28,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY src/ /app/src/
 
-# Set Python path
-ENV PYTHONPATH=/app
+# Set Python path (must match backend for shared code)
+ENV PYTHONPATH=/app/src
 
-# Run Celery worker (when implemented)
-# For now, just keep container running
-CMD ["/bin/sh", "-c", "echo '[INFO] Worker container ready. Waiting for Celery tasks...' && tail -f /dev/null"]
+# Run Celery worker with model validation at startup (FR-011)
+CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info", "--concurrency=4"]

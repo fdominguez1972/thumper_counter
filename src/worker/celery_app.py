@@ -107,7 +107,8 @@ app = Celery(
     broker=REDIS_URL,
     backend=REDIS_URL,
     include=[
-        'src.worker.tasks.process_images',
+        'worker.tasks.process_images',
+        'worker.tasks.detection',
     ]
 )
 
@@ -127,7 +128,8 @@ app.conf.update(
 
     # Task routing
     task_routes={
-        'src.worker.tasks.process_images.*': {'queue': 'ml_processing'},
+        'worker.tasks.process_images.*': {'queue': 'ml_processing'},
+        'worker.tasks.detection.*': {'queue': 'ml_processing'},
     },
 
     # Queue definitions
@@ -183,15 +185,15 @@ app.conf.update(
 # Task annotations for specific behaviors
 # WHY: Different tasks have different resource requirements
 app.conf.task_annotations = {
-    'src.worker.tasks.process_images.detect_deer': {
+    'worker.tasks.process_images.detect_deer': {
         'rate_limit': '10/m',  # WHY: Prevent GPU overload
         'time_limit': 300,  # 5 minutes
     },
-    'src.worker.tasks.process_images.classify_deer': {
+    'worker.tasks.process_images.classify_deer': {
         'rate_limit': '20/m',  # WHY: Lighter than detection
         'time_limit': 180,  # 3 minutes
     },
-    'src.worker.tasks.process_images.reidentify_deer': {
+    'worker.tasks.process_images.reidentify_deer': {
         'rate_limit': '20/m',
         'time_limit': 180,  # 3 minutes
     },
@@ -199,7 +201,7 @@ app.conf.task_annotations = {
 
 
 # Autodiscover tasks
-app.autodiscover_tasks(['src.worker.tasks'])
+app.autodiscover_tasks(['worker.tasks'])
 
 
 @app.task(bind=True)

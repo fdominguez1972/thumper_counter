@@ -34,9 +34,16 @@ from backend.schemas.image import (
     ImageList,
     BatchUploadResponse,
 )
+from celery import Celery
 
-# Import Celery task for detection processing (T007)
-from src.worker.tasks.detection import detect_deer_task
+# Create minimal Celery app for task queueing (no worker dependencies)
+# WHY: Backend needs to queue tasks but cannot import worker modules (ultralytics/cv2)
+REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
+REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+REDIS_DB = int(os.getenv('REDIS_DB', 0))
+REDIS_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+
+celery_app = Celery('thumper_counter', broker=REDIS_URL, backend=REDIS_URL)
 
 
 # Create API router
@@ -343,10 +350,17 @@ async def upload_images(
     # Queue images for immediate processing if requested (T007 - FR-002)
     if process_immediately and uploaded_images:
         print(f"[INFO] Queueing {len(uploaded_images)} images for immediate processing")
+
+        # Queue tasks by name using send_task() to avoid importing worker dependencies
+        # WHY: Backend cannot import worker modules (ultralytics/cv2 require GPU libraries)
         for img_response in uploaded_images:
             try:
-                # Queue Celery task for detection
-                task = detect_deer_task.delay(str(img_response.id))
+                # Queue Celery task for detection by name (no import needed)
+                task = celery_app.send_task(
+                    'worker.tasks.detection.detect_deer_task',
+                    args=[str(img_response.id)],
+                    queue='ml_processing'  # Route to ML processing queue
+                )
                 print(f"[OK] Queued detection task {task.id} for image {img_response.id}")
             except Exception as e:
                 print(f"[ERROR] Failed to queue task for image {img_response.id}: {e}")

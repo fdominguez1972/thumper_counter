@@ -115,7 +115,7 @@ class Image(Base):
 
     # Processing status
     processing_status = Column(
-        Enum(ProcessingStatus),
+        Enum(ProcessingStatus, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=ProcessingStatus.PENDING,
         index=True,
