@@ -20,7 +20,23 @@ from backend.core.database import (
     get_db_info,
     engine
 )
-from backend.api import locations, images
+from backend.api import locations, images, processing
+
+# Celery app for sending tasks from backend
+# WHY: Backend cannot import worker modules directly, use send_task() instead
+import os
+from celery import Celery
+
+REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
+REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+REDIS_DB = int(os.getenv('REDIS_DB', 0))
+REDIS_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+
+celery_app = Celery(
+    'thumper_counter',
+    broker=REDIS_URL,
+    backend=REDIS_URL,
+)
 
 
 # Lifespan context manager for startup/shutdown events
@@ -103,6 +119,7 @@ app.add_middleware(
 # Include API routers
 app.include_router(locations.router)
 app.include_router(images.router)
+app.include_router(processing.router)
 
 
 # Health check endpoint
