@@ -25,6 +25,7 @@ Requirements Satisfied:
 import os
 import logging
 import time
+import threading
 from pathlib import Path
 from typing import List, Dict
 from uuid import UUID
@@ -58,13 +59,15 @@ YOLO_MODEL_PATH = MODEL_DIR / 'yolov8n_deer.pt'
 # Global model cache for worker process (T010)
 # WHY: Loading model on every task is expensive. Keep in memory across tasks.
 _detection_model = None
+_model_lock = threading.Lock()  # Thread-safe model loading (Sprint 3)
 
 
 def get_detection_model():
     """
-    Get or load YOLOv8 detection model (singleton pattern).
+    Get or load YOLOv8 detection model (singleton pattern with thread-safety).
 
     Returns model in GPU memory with optimizations enabled (T010).
+    Thread-safe for use with threads pool (Sprint 3).
 
     Returns:
         YOLO: Detection model ready for inference
@@ -75,28 +78,32 @@ def get_detection_model():
     """
     global _detection_model
 
+    # Double-checked locking pattern for thread-safe singleton
     if _detection_model is None:
-        try:
-            logger.info(f"[INFO] Loading YOLOv8 model from {YOLO_MODEL_PATH}")
+        with _model_lock:
+            # Check again inside lock (another thread may have loaded it)
+            if _detection_model is None:
+                try:
+                    logger.info(f"[INFO] Loading YOLOv8 model from {YOLO_MODEL_PATH}")
 
-            # Validate model file exists (already checked at startup by FR-011)
-            if not YOLO_MODEL_PATH.exists():
-                raise FileNotFoundError(
-                    f"Model file not found: {YOLO_MODEL_PATH}. "
-                    f"Worker should have failed startup validation."
-                )
+                    # Validate model file exists (already checked at startup by FR-011)
+                    if not YOLO_MODEL_PATH.exists():
+                        raise FileNotFoundError(
+                            f"Model file not found: {YOLO_MODEL_PATH}. "
+                            f"Worker should have failed startup validation."
+                        )
 
-            # Load model
-            _detection_model = YOLO(str(YOLO_MODEL_PATH))
+                    # Load model
+                    _detection_model = YOLO(str(YOLO_MODEL_PATH))
 
-            # Move to GPU if available (T010)
-            _detection_model.to(DEVICE)
+                    # Move to GPU if available (T010)
+                    _detection_model.to(DEVICE)
 
-            logger.info(f"[OK] YOLOv8 model loaded on {DEVICE}")
+                    logger.info(f"[OK] YOLOv8 model loaded on {DEVICE}")
 
-        except Exception as e:
-            logger.error(f"[FAIL] Failed to load detection model: {e}")
-            raise RuntimeError(f"Model loading failed: {e}")
+                except Exception as e:
+                    logger.error(f"[FAIL] Failed to load detection model: {e}")
+                    raise RuntimeError(f"Model loading failed: {e}")
 
     return _detection_model
 

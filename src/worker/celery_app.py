@@ -94,6 +94,13 @@ validate_model_files()
 print("[OK] All model files validated successfully\n")
 
 
+# NOTE: With threads pool, we DON'T preload the model
+# WHY: Threads pool uses threading instead of fork(), so CUDA works without preloading
+# Each thread will load its own model instance on-demand (thread-safe)
+print("[INFO] Using threads pool - models will be loaded on-demand per thread")
+print()
+
+
 # Redis connection configuration
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))

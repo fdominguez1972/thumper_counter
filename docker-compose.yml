@@ -117,9 +117,8 @@ services:
       CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.7}
       REID_THRESHOLD: ${REID_THRESHOLD:-0.85}
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
-      # Disable CUDA for now (multiprocessing issue with fork)
-      # TODO: Fix for GPU by using Celery solo/threads pool or spawn multiprocessing
-      CUDA_VISIBLE_DEVICES: ""
+      # GPU enabled via model preloading in celery_app.py (Sprint 3)
+      # Model is loaded before worker forks, avoiding CUDA fork() issues
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
