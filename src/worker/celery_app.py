@@ -116,6 +116,7 @@ app = Celery(
     include=[
         'worker.tasks.process_images',
         'worker.tasks.detection',
+        'worker.tasks.reidentification',  # Sprint 5: Re-ID task
     ]
 )
 
