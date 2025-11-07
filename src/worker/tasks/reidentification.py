@@ -224,14 +224,17 @@ def find_matching_deer(db, feature_vector: np.ndarray, sex: str) -> Optional[Tup
 
         # Query for nearest neighbor using cosine distance
         # Only search deer with feature vectors and matching sex
+        # Convert numpy array to list for pgvector
+        feature_list = feature_vector.tolist() if hasattr(feature_vector, 'tolist') else list(feature_vector)
+
         result = (
             db.query(
                 Deer,
-                (1 - Deer.feature_vector.cosine_distance(feature_vector)).label('similarity')
+                (1 - Deer.feature_vector.cosine_distance(feature_list)).label('similarity')
             )
             .filter(Deer.feature_vector.isnot(None))
             .filter(Deer.sex == deer_sex)
-            .order_by(Deer.feature_vector.cosine_distance(feature_vector))
+            .order_by(Deer.feature_vector.cosine_distance(feature_list))
             .limit(1)
             .first()
         )

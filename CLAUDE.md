@@ -664,11 +664,54 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - Branch: 003-re-identification (current, Sprint 5)
 - Remotes: origin (GitHub), ubuntu (local)
 
-## SESSION STATUS - Updated November 7, 2025
+## SESSION STATUS - Updated November 6, 2025
 
-### Current Sprint: 4 of 6 - IN PROGRESS
-**Phase:** Sprint 4 - Multi-Class Model Training (Sex/Age Classification)
-**Branch:** 002-batch-processing
+### Current Sprint: 5 of 6 - COMPLETE
+**Phase:** Sprint 5 Complete - Re-Identification with ResNet50
+**Branch:** 003-re-identification
+
+### Sprint 5 Completed (Nov 6, 2025)
+- [OK] pgvector extension enabled in PostgreSQL (ankane/pgvector:v0.5.1)
+- [OK] Deer model updated with vector(512) column for embeddings
+- [OK] ResNet50 feature extraction implemented (512-dim embeddings)
+- [OK] Thread-safe model loading (singleton with double-checked locking)
+- [OK] Cosine similarity search with pgvector HNSW index
+- [OK] Sex-based filtering for improved matching accuracy
+- [OK] Automatic deer profile creation when no match found
+- [OK] Re-identification pipeline tested successfully
+- [OK] Database migration documented (migrations/005_migrate_to_pgvector.sql)
+
+### Sprint 5 Technical Details
+**Re-Identification Architecture:**
+- Model: ResNet50 pretrained on ImageNet
+- Output: 512-dim embeddings (reduced from 2048 via linear layer)
+- Normalization: L2 normalization for cosine similarity
+- Similarity metric: Cosine distance (1 - cosine similarity)
+- Matching threshold: 0.85 (conservative to avoid false matches)
+- Search: pgvector HNSW index for O(log N) query performance
+- Sex filtering: Match only within same sex category
+
+**Performance (First Test):**
+- Feature extraction: 0.88s total
+- ResNet50 model loading: ~2-3s (first time, then cached)
+- Feature vector: 512 dimensions, L2 normalized
+- Database: Created first deer profile successfully
+- GPU: CUDA enabled for ResNet50 inference
+
+**Key Files:**
+- Task: src/worker/tasks/reidentification.py (556 lines)
+- Model: ResNet50 (torchvision.models.resnet50)
+- Migration: migrations/005_migrate_to_pgvector.sql
+- Test script: scripts/test_reidentification.py
+
+### Sprint 4 Completed (Nov 6, 2025)
+- [OK] Multi-class deer model trained (YOLOv8n, 5 classes)
+- [OK] Model evaluation: mAP50=0.711, mAP50-95=0.461
+- [OK] Classes: doe/fawn/mature/mid/young
+- [OK] Sex mapping: doe=female, fawn=unknown, mature/mid/young=male
+- [OK] Real-world validation: 90.5% doe, 4.8% fawn, 4.8% young (21 images)
+- [OK] Model integrated into detection pipeline
+- [OK] Documentation: docs/SPRINT_4_SUMMARY.md
 
 ### Sprint 3 Completed (Nov 6, 2025)
 - [OK] GPU acceleration enabled (10x faster: 0.04s vs 0.4s per image)
