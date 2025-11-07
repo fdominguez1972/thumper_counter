@@ -242,10 +242,31 @@ docker-compose exec redis redis-cli
 ```
 
 ### Git Workflow
+
+**Branching Strategy (Starting Sprint 5):**
+- One branch per sprint: 00X-feature-name
+- Branch from: previous sprint branch or main
+- Merge/close: at end of each sprint
+- Example: 003-re-identification (Sprint 5)
+
+**Completed Branches:**
+- 002-batch-processing (Sprints 3-4: GPU, batch processing, multi-class)
+
+**Common Commands:**
 ```bash
+# Create new sprint branch
+git checkout -b 00X-feature-name
+
+# Commit changes
 git add .
-git commit -m "feat: implement deer detection pipeline"
-git push origin main
+git commit -m "feat: implement feature"
+
+# Push to both remotes
+git push origin branch-name
+git push ubuntu branch-name
+
+# Switch branches
+git checkout branch-name
 ```
 
 ## Development Standards
@@ -640,7 +661,7 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - Project: /mnt/i/projects/thumper_counter
 - Images: /mnt/i/Hopkins_Ranch_Trail_Cam_Pics
 - Models: src/models/yolov8n_deer.pt (22MB)
-- Branch: 002-batch-processing (current)
+- Branch: 003-re-identification (current, Sprint 5)
 - Remotes: origin (GitHub), ubuntu (local)
 
 ## SESSION STATUS - Updated November 7, 2025
@@ -780,6 +801,6 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - Project: /mnt/i/projects/thumper_counter
 - Images: /mnt/i/Hopkins_Ranch_Trail_Cam_Pics
 - Models: src/models/yolov8n_deer.pt (22MB)
-- Branch: 002-batch-processing (current)
+- Branch: 003-re-identification (current, Sprint 5)
 - Remotes: origin (GitHub), ubuntu (local)
 - Add to memory
