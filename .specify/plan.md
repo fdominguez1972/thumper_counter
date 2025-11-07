@@ -1,35 +1,37 @@
 # Thumper Counter Development Plan
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Created:** 2025-11-05
-**Updated:** 2025-11-05 (Phase 1 MVP Complete)
+**Updated:** 2025-11-07 (Sprint 3 Complete, Sprint 4 In Progress)
 **Status:** ACTIVE
-**Sprint:** Sprint 2 Complete, Sprint 3 Current
+**Sprint:** Sprint 3 Complete, Sprint 4 Current (Multi-Class Training)
 
 ## Executive Summary
 
-Project is 55% complete with Phase 1 MVP detection pipeline operational. YOLOv8 detection successfully integrated with end-to-end testing complete (87% confidence detection in 0.4s). Remaining work focuses on GPU enablement, batch processing, deer management API, and frontend UI. Target completion: 3 weeks.
+Project is 65% complete with Sprint 3 achievements: GPU acceleration (10x faster), batch processing API, and deer management endpoints. Sprint 4 in progress: Training YOLOv8 multi-class model (15,574 images) for sex/age classification (doe, fawn, mature/mid/young bucks). Training estimated 3-5 hours on RTX 4080 Super. Target completion: 2 weeks.
 
 ## Project Metrics
 
 ### Completion Status
-- **Overall:** 55% complete (+15% from last update)
+- **Overall:** 65% complete (+10% from last update)
 - **Database:** 100% ✅
-- **API:** 50% ✅ (+10%)
-- **ML Pipeline:** 60% ✅ (+30%)
+- **API:** 70% ✅ (+20%)
+- **ML Pipeline:** 75% ✅ (+15% - training in progress)
 - **Frontend:** 0% ❌
-- **Testing:** 10% ⚠️ (+5%)
-- **Documentation:** 95% ✅ (+25%)
+- **Testing:** 10% ⚠️
+- **Documentation:** 95% ✅
 
 ### Lines of Code
-- **Written:** ~5,200 lines (+1,700 this sprint)
-- **Remaining:** ~3,800 lines estimated
+- **Written:** ~6,500 lines (+1,300 Sprint 3)
+- **Remaining:** ~2,500 lines estimated
 - **Tests Needed:** ~2,000 lines
 
-### Sprint 2 Achievements
-- Detection pipeline: +850 lines
-- API enhancements: +420 lines
-- Documentation: +430 lines
-- **Total:** 1,700 lines added
+### Sprint 3 Achievements (Nov 6)
+- GPU acceleration: +200 lines
+- Batch processing API: +150 lines
+- Deer management CRUD: +450 lines
+- Database enhancements: +100 lines
+- Bug fixes and optimizations: +400 lines
+- **Total:** 1,300 lines added
 
 ## Sprint Plan
 
@@ -88,40 +90,41 @@ NOT COMPLETED (moved to Sprint 3):
 - SQLAlchemy enum uppercase vs lowercase → Added values_callable
 - CUDA fork multiprocessing → Temporarily disabled, CPU mode working
 
-### Sprint 3 (Current) - GPU & Batch Processing [Nov 6-9]
+### Sprint 3 (Complete) - GPU & Batch Processing [Nov 6] ✅
 **Focus:** Enable GPU support and batch processing infrastructure
 
-**High Priority:**
-- ⬜ Enable GPU support (2 hours)
-  - Fix CUDA multiprocessing with solo/threads pool or preload model
-  - Test GPU detection performance
-  - Target: 8x speedup (0.4s → 0.05s per image)
+**Completed:**
+- ✅ Enable GPU support (4 hours actual vs 2 estimated)
+  - Fixed CUDA fork issue with threads pool (concurrency=1)
+  - Implemented thread-safe model loading (double-checked locking)
+  - **Achievement:** 10x speedup (0.4s → 0.04s per image GPU inference)
+  - Real-world throughput: 1.2 images/sec (DB writes are bottleneck)
 
-- ⬜ Create batch processing endpoint (3 hours)
-  - POST /api/processing/batch
-  - Query pending images with filters
+- ✅ Create batch processing endpoint (2 hours)
+  - POST /api/processing/batch (limit 1-10000 images)
+  - Query pending images with location filter
   - Queue multiple images to Celery
-  - spec: api.spec#Batch-Processing
+  - Successfully tested with 1000+ image batches
 
-- ⬜ Add progress monitoring endpoint (2 hours)
+- ✅ Add progress monitoring endpoint (1 hour)
   - GET /api/processing/status
-  - Return: total, pending, processing, completed, failed counts
-  - Real-time statistics
-  - spec: api.spec#Processing-Status
+  - Returns: total, pending, processing, completed, failed, completion_rate
+  - Real-time statistics from database
 
-**Medium Priority:**
-- ⬜ Process initial batch (1000 images) (1 hour)
-  - Test batch processing endpoint
-  - Verify GPU performance
-  - Monitor for errors
+- ✅ Process initial batches (ongoing)
+  - Processed 11,211 images successfully (31.8% of 35,251 total)
+  - 22,867 deer detections found (54% detection rate)
+  - 99.95% success rate (only 6 failures, all resolved)
+  - Average confidence: 75.9%
 
-- ⬜ Deer management endpoints (/api/deer) (3 hours)
+- ✅ Deer management endpoints (/api/deer) (3 hours)
+  - Full CRUD API with filtering, pagination, sorting
   - POST /api/deer - Create deer profile
-  - GET /api/deer - List deer
-  - GET /api/deer/{id} - Get deer details
-  - PUT /api/deer/{id} - Update deer
+  - GET /api/deer - List with filters (sex, species, status)
+  - GET /api/deer/{id} - Get details with sighting count
+  - PUT /api/deer/{id} - Update profile
   - DELETE /api/deer/{id} - Remove deer
-  - spec: api.spec#Deer-Resource
+  - Manual deer profile creation working
 
 **Sprint 3 Tasks:**
 ```yaml
@@ -152,38 +155,83 @@ MEDIUM PRIORITY:
     validation: Performance targets met
 ```
 
-### Sprint 4 - Detection Queries & Re-ID [Nov 10-13]
-⬜ Detection query endpoints (/api/detections)
-⬜ Basic re-identification (color/size features)
-⬜ Link detections to deer profiles
-⬜ Processing statistics dashboard
-⬜ WebSocket for real-time updates (optional)
+### Sprint 4 (Current) - Multi-Class Model Training [Nov 7-10] 🔄
+**Focus:** Train YOLOv8 model for sex/age classification (doe, fawn, mature/mid/young buck)
+
+**In Progress:**
+- 🔄 Train multi-class YOLOv8 model (3-5 hours training, setup complete)
+  - **Dataset:** Roboflow Whitetail Deer v46 (15,574 images)
+  - **Classes:** 11 total (5 deer: doe, fawn, mature, mid, young + 6 other animals)
+  - **Configuration:** YOLOv8n, batch=32, epochs=200, patience=20 (early stopping)
+  - **GPU:** RTX 4080 Super (16GB VRAM)
+  - **Status:** Training started Nov 7, 03:06 UTC
+  - **Output:** src/models/runs/deer_multiclass/weights/best.pt
+
+**Completed Setup:**
+- ✅ Dataset verification and analysis
+  - 13,615 training images
+  - 1,612 validation images
+  - 347 test images
+  - Balanced distribution across deer classes
+
+- ✅ Training infrastructure
+  - Created data.yaml configuration
+  - Mounted dataset in Docker worker container
+  - GPU training script with monitoring
+  - Memory test passed (batch 32 uses <4GB of 16GB available)
+
+**Pending (After Training):**
+- ⬜ Evaluate model performance on test set (1 hour)
+  - Calculate mAP50, mAP50-95 per class
+  - Confusion matrix for deer classes
+  - Compare against single-class detection
+
+- ⬜ Update detection task for multi-class (2 hours)
+  - Replace yolov8n_deer.pt with deer_multiclass/best.pt
+  - Parse class IDs and map to sex/age
+  - Update Detection.classification field
+  - Backward compatibility with existing detections
+
+- ⬜ Test new classification pipeline (1 hour)
+  - Process sample images from each location
+  - Verify sex/age classification accuracy
+  - Compare confidence scores
+
+- ⬜ Update database schema if needed (1 hour)
+  - Add sex/age fields to Detection model
+  - Migration script for existing detections
+  - Update API responses
 
 **Sprint 4 Tasks:**
 ```yaml
-HIGH PRIORITY:
-  - task: Detection query endpoints
-    effort: 2 hours
-    spec: api.spec#Detection-Resource
+COMPLETED:
+  ✅ Dataset selection and verification
+     actual: 2 hours
+     dataset: Roboflow v46, 15,574 images, 11 classes
 
-  - task: Basic re-ID with features
-    effort: 4 hours
-    spec: ml.spec#Stage-4
-    approach: Size + color histogram matching
+  ✅ Training infrastructure setup
+     actual: 3 hours
+     challenges: Docker volume mounts, path configuration
+     result: Training running on GPU
 
-  - task: Link detections to deer
-    effort: 2 hours
-    manual assignment + auto-suggestion
+IN PROGRESS:
+  🔄 Model training
+     effort: 3-5 hours (GPU time)
+     status: Running (started Nov 7, 03:06)
+     monitoring: /app/training_output.log
 
-MEDIUM PRIORITY:
-  - task: Processing statistics
-    effort: 2 hours
-    metrics: avg confidence, detections/day, top locations
+PENDING:
+  ⬜ Model evaluation
+     effort: 1 hour
+     depends: Training completion
 
-  - task: WebSocket implementation (optional)
-    effort: 3 hours
-    spec: api.spec#WebSocket-Endpoints
-    use-case: Real-time progress updates
+  ⬜ Update detection pipeline
+     effort: 2 hours
+     changes: Model swap, class parsing, field mapping
+
+  ⬜ Integration testing
+     effort: 1 hour
+     validation: End-to-end classification
 ```
 
 ### Sprint 5 - Frontend MVP [Nov 14-17]

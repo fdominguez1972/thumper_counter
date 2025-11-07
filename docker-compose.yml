@@ -125,6 +125,7 @@ services:
       - /mnt/i/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
       - ./data/uploads:/mnt/uploads
       - ./src/models:/app/models
+      - /mnt/i/deer_tracker/models:/mnt/training_data:ro
     depends_on:
       db:
         condition: service_healthy

@@ -503,10 +503,10 @@ curl "http://localhost:8001/api/images?location_id=UUID&status=completed&page_si
 - Multi-threaded operations when beneficial
 - Verify file creation immediately with `ls` or `dir`
 
-## SESSION STATUS - Updated November 6, 2025
+## SESSION STATUS - Updated November 7, 2025
 
-### Current Sprint: 3 of 6 - COMPLETE
-**Phase:** Sprint 3 Complete - GPU + Batch Processing + Deer Management
+### Current Sprint: 4 of 6 - IN PROGRESS
+**Phase:** Sprint 4 - Multi-Class Model Training (Sex/Age Classification)
 **Branch:** 002-batch-processing
 
 ### Sprint 3 Completed (Nov 6, 2025)
@@ -536,11 +536,38 @@ curl "http://localhost:8001/api/images?location_id=UUID&status=completed&page_si
 - Full CRUD API with filtering, pagination, sorting
 - Manual deer profile creation (name, sex, species, notes, status)
 
-### Next Session (Sprint 4)
-1. Sex classification model (buck/doe/fawn CNN)
-2. Re-identification model (ResNet50)
-3. Automatic deer profile creation
-4. Link detections to deer via re-ID
+### Sprint 4 In Progress (Nov 7, 2025)
+**Focus:** Multi-class YOLOv8 model training for sex/age classification
+
+**Completed:**
+- [OK] Dataset selection: Roboflow Whitetail Deer v46 (15,574 images, 11 classes)
+- [OK] Dataset verification: 5 deer classes (doe, fawn, mature, mid, young)
+- [OK] Training infrastructure: Docker volume mount for /mnt/training_data
+- [OK] Configuration: YOLOv8n, batch=32, epochs=200, patience=20
+- [OK] GPU memory test: Batch 32 fits comfortably (uses ~4GB of 16GB available)
+- [OK] Training started: Nov 7, 03:06 UTC
+
+**Training Status:**
+- Model: YOLOv8n (3M parameters)
+- Dataset: 13,615 train / 1,612 val / 347 test images
+- GPU: RTX 4080 Super (16GB VRAM)
+- ETA: 3-5 hours
+- Output: src/models/runs/deer_multiclass/weights/best.pt
+- Monitoring: docker-compose exec -T worker tail -f /app/training_output.log
+
+**Class Mapping (Post-Processing):**
+- Class 3 (doe) -> Female
+- Class 4 (fawn) -> Unknown sex (too young)
+- Class 5 (mature) -> Male (mature buck)
+- Class 6 (mid) -> Male (mid-age buck)
+- Class 10 (young) -> Male (young buck)
+
+**Next Steps (After Training):**
+1. Evaluate model on test set (mAP50, confusion matrix)
+2. Update detection task to use new multi-class model
+3. Parse class IDs and populate Detection.classification field
+4. Test end-to-end sex/age classification pipeline
+5. Reprocess existing detections with new model (optional)
 
 ### Quick Commands
 ```bash
@@ -589,10 +616,10 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - Branch: 002-batch-processing (current)
 - Remotes: origin (GitHub), ubuntu (local)
 
-## SESSION STATUS - Updated November 6, 2025
+## SESSION STATUS - Updated November 7, 2025
 
-### Current Sprint: 3 of 6 - COMPLETE
-**Phase:** Sprint 3 Complete - GPU + Batch Processing + Deer Management
+### Current Sprint: 4 of 6 - IN PROGRESS
+**Phase:** Sprint 4 - Multi-Class Model Training (Sex/Age Classification)
 **Branch:** 002-batch-processing
 
 ### Sprint 3 Completed (Nov 6, 2025)
@@ -622,11 +649,38 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - Full CRUD API with filtering, pagination, sorting
 - Manual deer profile creation (name, sex, species, notes, status)
 
-### Next Session (Sprint 4)
-1. Sex classification model (buck/doe/fawn CNN)
-2. Re-identification model (ResNet50)
-3. Automatic deer profile creation
-4. Link detections to deer via re-ID
+### Sprint 4 In Progress (Nov 7, 2025)
+**Focus:** Multi-class YOLOv8 model training for sex/age classification
+
+**Completed:**
+- [OK] Dataset selection: Roboflow Whitetail Deer v46 (15,574 images, 11 classes)
+- [OK] Dataset verification: 5 deer classes (doe, fawn, mature, mid, young)
+- [OK] Training infrastructure: Docker volume mount for /mnt/training_data
+- [OK] Configuration: YOLOv8n, batch=32, epochs=200, patience=20
+- [OK] GPU memory test: Batch 32 fits comfortably (uses ~4GB of 16GB available)
+- [OK] Training started: Nov 7, 03:06 UTC
+
+**Training Status:**
+- Model: YOLOv8n (3M parameters)
+- Dataset: 13,615 train / 1,612 val / 347 test images
+- GPU: RTX 4080 Super (16GB VRAM)
+- ETA: 3-5 hours
+- Output: src/models/runs/deer_multiclass/weights/best.pt
+- Monitoring: docker-compose exec -T worker tail -f /app/training_output.log
+
+**Class Mapping (Post-Processing):**
+- Class 3 (doe) -> Female
+- Class 4 (fawn) -> Unknown sex (too young)
+- Class 5 (mature) -> Male (mature buck)
+- Class 6 (mid) -> Male (mid-age buck)
+- Class 10 (young) -> Male (young buck)
+
+**Next Steps (After Training):**
+1. Evaluate model on test set (mAP50, confusion matrix)
+2. Update detection task to use new multi-class model
+3. Parse class IDs and populate Detection.classification field
+4. Test end-to-end sex/age classification pipeline
+5. Reprocess existing detections with new model (optional)
 
 ### Quick Commands
 ```bash
