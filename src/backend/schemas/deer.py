@@ -18,7 +18,6 @@ from backend.models.deer import DeerSex as Sex, DeerStatus
 class DeerBase(BaseModel):
     """Base deer schema with common fields."""
 
-    name: str = Field(..., min_length=1, max_length=100, description="Deer identifier/name")
     sex: Sex = Field(..., description="Biological sex (male, female, unknown)")
     species: str = Field(
         default="white_tailed_deer",
@@ -33,7 +32,7 @@ class DeerBase(BaseModel):
 class DeerCreate(DeerBase):
     """Schema for creating a new deer profile."""
 
-    pass
+    name: str = Field(..., min_length=1, max_length=100, description="Deer identifier/name")
 
 
 class DeerUpdate(BaseModel):
@@ -50,12 +49,17 @@ class DeerResponse(DeerBase):
     """Schema for deer profile response."""
 
     id: UUID
+    name: Optional[str] = Field(None, max_length=100, description="Deer identifier/name (optional)")
     status: DeerStatus
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Average confidence score (0.0-1.0)")
     first_seen: datetime
     last_seen: datetime
     sighting_count: int
     created_at: datetime
     updated_at: Optional[datetime] = None
+    best_photo_id: Optional[UUID] = Field(None, description="Image ID of best photo")
+    thumbnail_url: Optional[str] = Field(None, description="URL to thumbnail image")
+    photo_url: Optional[str] = Field(None, description="URL to full-resolution photo")
 
     class Config:
         from_attributes = True

@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, List
 
-from sqlalchemy import Column, String, Float, Integer, DateTime, Enum, Index
+from sqlalchemy import Column, String, Float, Integer, DateTime, Enum, Index, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
@@ -175,11 +175,25 @@ class Deer(Base):
         comment="Total number of detections matched to this deer"
     )
 
+    # Best photo reference (Sprint 7: UI image display)
+    best_photo_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("images.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="Reference to the best quality photo of this deer"
+    )
+
     # Relationships
     detections = relationship(
         "Detection",
         back_populates="deer",
         lazy="dynamic"
+    )
+
+    best_photo = relationship(
+        "Image",
+        foreign_keys=[best_photo_id],
+        lazy="joined"
     )
 
     # Indexes for common queries

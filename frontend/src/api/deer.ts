@@ -12,6 +12,9 @@ export interface Deer {
   last_seen: string;
   confidence: number;
   sighting_count: number;
+  best_photo_id: string | null;
+  thumbnail_url: string | null;
+  photo_url: string | null;
 }
 
 export interface DeerListResponse {

@@ -4,7 +4,7 @@ import { getDeerList } from '../api/deer'
 export default function Dashboard() {
   const { data: deerData, isLoading } = useQuery({
     queryKey: ['deer', 'list'],
-    queryFn: () => getDeerList({ page_size: 100 }),
+    queryFn: () => getDeerList({ page_size: 100, min_sightings: 1 }),
   })
 
   if (isLoading) {
@@ -34,25 +34,25 @@ export default function Dashboard() {
         <StatCard
           title="Total Deer"
           value={stats.totalDeer}
-          icon="🦌"
+          icon="D"
           color="blue"
         />
         <StatCard
           title="Total Sightings"
           value={stats.totalSightings}
-          icon="👁️"
+          icon="S"
           color="green"
         />
         <StatCard
           title="Bucks"
           value={stats.bucks}
-          icon="🦌"
+          icon="B"
           color="amber"
         />
         <StatCard
           title="Does"
           value={stats.does}
-          icon="🦌"
+          icon="F"
           color="pink"
         />
       </div>

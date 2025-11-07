@@ -13,6 +13,7 @@ export default function DeerGallery() {
       page_size: 100,
       sex: sexFilter !== 'all' ? sexFilter : undefined,
       sort_by: sortBy,
+      min_sightings: 1,  // Only show deer with at least 1 sighting
     }),
   })
 
@@ -24,12 +25,15 @@ export default function DeerGallery() {
     )
   }
 
+  // Filter out deer with 0 sightings (additional client-side filter as backup)
+  const filteredDeer = data?.deer.filter(deer => deer.sighting_count > 0) || []
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Deer Gallery</h2>
         <div className="text-sm text-gray-600">
-          {data?.total || 0} deer total
+          {filteredDeer.length} deer with sightings
         </div>
       </div>
 
@@ -72,12 +76,12 @@ export default function DeerGallery() {
 
       {/* Deer Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {data?.deer.map((deer) => (
+        {filteredDeer.map((deer) => (
           <DeerCard key={deer.id} deer={deer} />
         ))}
       </div>
 
-      {data?.deer.length === 0 && (
+      {filteredDeer.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           No deer found matching your filters
         </div>
@@ -99,10 +103,10 @@ function DeerCard({ deer }: DeerCardProps) {
   }
 
   const sexIcons = {
-    buck: '🦌',
-    doe: '🦌',
-    fawn: '🦌',
-    unknown: '❓',
+    buck: 'B',
+    doe: 'D',
+    fawn: 'F',
+    unknown: '?',
   }
 
   return (
@@ -110,10 +114,29 @@ function DeerCard({ deer }: DeerCardProps) {
       to={`/deer/${deer.id}`}
       className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden"
     >
-      {/* Placeholder image */}
-      <div className="h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
-        <span className="text-6xl">{sexIcons[deer.sex]}</span>
-      </div>
+      {/* Deer photo or placeholder */}
+      {deer.thumbnail_url ? (
+        <div className="h-48 overflow-hidden bg-gray-100">
+          <img
+            src={deer.thumbnail_url}
+            alt={deer.name || 'Deer'}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to icon if image fails to load
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.parentElement!.innerHTML = `
+                <div class="h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+                  <span class="text-6xl">${sexIcons[deer.sex]}</span>
+                </div>
+              `;
+            }}
+          />
+        </div>
+      ) : (
+        <div className="h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+          <span className="text-6xl">{sexIcons[deer.sex]}</span>
+        </div>
+      )}
 
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">

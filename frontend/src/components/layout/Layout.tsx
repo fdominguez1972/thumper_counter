@@ -6,9 +6,9 @@ interface LayoutProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: '📊' },
-  { name: 'Deer Gallery', href: '/deer', icon: '🦌' },
-  { name: 'Images', href: '/images', icon: '📷' },
+  { name: 'Dashboard', href: '/dashboard', icon: '[D]' },
+  { name: 'Deer Gallery', href: '/deer', icon: '[G]' },
+  { name: 'Images', href: '/images', icon: '[I]' },
 ]
 
 export default function Layout({ children }: LayoutProps) {

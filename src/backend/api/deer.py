@@ -159,8 +159,30 @@ async def list_deer(
     # Calculate total pages
     pages = (total + page_size - 1) // page_size
 
+    # Add photo URLs to each deer
+    deer_with_photos = []
+    for deer in deer_list:
+        deer_dict = {
+            "id": deer.id,
+            "name": deer.name,
+            "sex": deer.sex,
+            "species": deer.species,
+            "notes": deer.notes,
+            "status": deer.status,
+            "confidence": deer.confidence,
+            "first_seen": deer.first_seen,
+            "last_seen": deer.last_seen,
+            "sighting_count": deer.sighting_count,
+            "created_at": deer.created_at,
+            "updated_at": deer.updated_at,
+            "best_photo_id": deer.best_photo_id,
+            "thumbnail_url": f"/api/static/thumbnails/{deer.best_photo_id}" if deer.best_photo_id else None,
+            "photo_url": f"/api/static/images/{deer.best_photo_id}" if deer.best_photo_id else None,
+        }
+        deer_with_photos.append(deer_dict)
+
     return {
-        "deer": deer_list,
+        "deer": deer_with_photos,
         "total": total,
         "page": page,
         "page_size": page_size,
