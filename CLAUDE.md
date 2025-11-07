@@ -536,7 +536,7 @@ curl "http://localhost:8001/api/images?location_id=UUID&status=completed&page_si
 - Full CRUD API with filtering, pagination, sorting
 - Manual deer profile creation (name, sex, species, notes, status)
 
-### Sprint 4 In Progress (Nov 7, 2025)
+### Sprint 4 Complete (Nov 6-7, 2025)
 **Focus:** Multi-class YOLOv8 model training for sex/age classification
 
 **Completed:**
@@ -547,27 +547,54 @@ curl "http://localhost:8001/api/images?location_id=UUID&status=completed&page_si
 - [OK] GPU memory test: Batch 32 fits comfortably (uses ~4GB of 16GB available)
 - [OK] Training started: Nov 7, 03:06 UTC
 
-**Training Status:**
-- Model: YOLOv8n (3M parameters)
-- Dataset: 13,615 train / 1,612 val / 347 test images
-- GPU: RTX 4080 Super (16GB VRAM)
-- ETA: 3-5 hours
-- Output: src/models/runs/deer_multiclass/weights/best.pt
-- Monitoring: docker-compose exec -T worker tail -f /app/training_output.log
+**Training Results:**
+```
+Overall (Test Set - 347 images):
+  mAP50:     0.804
+  mAP50-95:  0.620
+  Precision: 0.896
+  Recall:    0.701
 
-**Class Mapping (Post-Processing):**
+Deer Classes (mAP50):
+  doe (female):    0.769
+  fawn (unknown):  0.796
+  mature (male):   0.673
+  mid (male):      0.581
+  young (male):    0.676
+```
+
+**Pipeline Verification (Real-World):**
+```
+Recent 21 detections:
+  doe (female):   19 detections (90.5%)
+  fawn (unknown):  1 detection  (4.8%)
+  young (male):    1 detection  (4.8%)
+
+Average Confidence:
+  doe:   0.72
+  fawn:  0.51
+  young: 0.51
+```
+
+**Class Mapping:**
 - Class 3 (doe) -> Female
 - Class 4 (fawn) -> Unknown sex (too young)
 - Class 5 (mature) -> Male (mature buck)
 - Class 6 (mid) -> Male (mid-age buck)
 - Class 10 (young) -> Male (young buck)
 
-**Next Steps (After Training):**
-1. Evaluate model on test set (mAP50, confusion matrix)
-2. Update detection task to use new multi-class model
-3. Parse class IDs and populate Detection.classification field
-4. Test end-to-end sex/age classification pipeline
-5. Reprocess existing detections with new model (optional)
+**Key Files:**
+- Model: src/models/runs/deer_multiclass/weights/best.pt
+- Dataset config: src/models/training_data/deer_multiclass.yaml
+- Training script: scripts/train_deer_multiclass.py
+- Evaluation script: scripts/evaluate_multiclass_model.py
+- Summary doc: docs/SPRINT_4_SUMMARY.md
+
+**Next Sprint (5 of 6):**
+1. Re-identification engine (ResNet50 feature extraction)
+2. Automatic deer profile creation
+3. Sex/age aggregation logic
+4. Vector similarity search (pgvector)
 
 ### Quick Commands
 ```bash
@@ -649,7 +676,7 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - Full CRUD API with filtering, pagination, sorting
 - Manual deer profile creation (name, sex, species, notes, status)
 
-### Sprint 4 In Progress (Nov 7, 2025)
+### Sprint 4 Complete (Nov 6-7, 2025)
 **Focus:** Multi-class YOLOv8 model training for sex/age classification
 
 **Completed:**
@@ -660,27 +687,54 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - [OK] GPU memory test: Batch 32 fits comfortably (uses ~4GB of 16GB available)
 - [OK] Training started: Nov 7, 03:06 UTC
 
-**Training Status:**
-- Model: YOLOv8n (3M parameters)
-- Dataset: 13,615 train / 1,612 val / 347 test images
-- GPU: RTX 4080 Super (16GB VRAM)
-- ETA: 3-5 hours
-- Output: src/models/runs/deer_multiclass/weights/best.pt
-- Monitoring: docker-compose exec -T worker tail -f /app/training_output.log
+**Training Results:**
+```
+Overall (Test Set - 347 images):
+  mAP50:     0.804
+  mAP50-95:  0.620
+  Precision: 0.896
+  Recall:    0.701
 
-**Class Mapping (Post-Processing):**
+Deer Classes (mAP50):
+  doe (female):    0.769
+  fawn (unknown):  0.796
+  mature (male):   0.673
+  mid (male):      0.581
+  young (male):    0.676
+```
+
+**Pipeline Verification (Real-World):**
+```
+Recent 21 detections:
+  doe (female):   19 detections (90.5%)
+  fawn (unknown):  1 detection  (4.8%)
+  young (male):    1 detection  (4.8%)
+
+Average Confidence:
+  doe:   0.72
+  fawn:  0.51
+  young: 0.51
+```
+
+**Class Mapping:**
 - Class 3 (doe) -> Female
 - Class 4 (fawn) -> Unknown sex (too young)
 - Class 5 (mature) -> Male (mature buck)
 - Class 6 (mid) -> Male (mid-age buck)
 - Class 10 (young) -> Male (young buck)
 
-**Next Steps (After Training):**
-1. Evaluate model on test set (mAP50, confusion matrix)
-2. Update detection task to use new multi-class model
-3. Parse class IDs and populate Detection.classification field
-4. Test end-to-end sex/age classification pipeline
-5. Reprocess existing detections with new model (optional)
+**Key Files:**
+- Model: src/models/runs/deer_multiclass/weights/best.pt
+- Dataset config: src/models/training_data/deer_multiclass.yaml
+- Training script: scripts/train_deer_multiclass.py
+- Evaluation script: scripts/evaluate_multiclass_model.py
+- Summary doc: docs/SPRINT_4_SUMMARY.md
+
+**Next Sprint (5 of 6):**
+1. Re-identification engine (ResNet50 feature extraction)
+2. Automatic deer profile creation
+3. Sex/age aggregation logic
+4. Vector similarity search (pgvector)
 
 ### Quick Commands
 ```bash
@@ -728,3 +782,4 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - Models: src/models/yolov8n_deer.pt (22MB)
 - Branch: 002-batch-processing (current)
 - Remotes: origin (GitHub), ubuntu (local)
+- Add to memory

@@ -51,9 +51,28 @@ IOU_THRESHOLD = float(os.getenv('DETECTION_IOU', 0.45))
 MAX_DETECTIONS = int(os.getenv('MAX_DETECTIONS', 20))
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Model paths
+# Model paths (Sprint 4: Multi-class model for sex/age classification)
 MODEL_DIR = Path(os.getenv('MODEL_DIR', 'src/models'))
-YOLO_MODEL_PATH = MODEL_DIR / 'yolov8n_deer.pt'
+YOLO_MODEL_PATH = MODEL_DIR / 'runs' / 'deer_multiclass' / 'weights' / 'best.pt'
+
+# Class mapping from multi-class model (Sprint 4)
+# Model has 11 classes, we care about deer classes for sex/age
+CLASS_NAMES = {
+    0: "UTV",
+    1: "cow",
+    2: "coyote",
+    3: "doe",        # Female deer
+    4: "fawn",       # Baby deer (sex unknown)
+    5: "mature",     # Mature buck (large antlers)
+    6: "mid",        # Mid-age buck (medium antlers)
+    7: "person",
+    8: "raccoon",
+    9: "turkey",
+    10: "young"      # Young buck (small/spike antlers)
+}
+
+# Deer-specific classes for filtering
+DEER_CLASSES = {3, 4, 5, 6, 10}  # doe, fawn, mature, mid, young
 
 
 # Global model cache for worker process (T010)
@@ -210,7 +229,7 @@ def detect_deer_task(self, image_id: str) -> Dict:
             boxes = result.boxes
 
             if boxes is not None and len(boxes) > 0:
-                logger.info(f"[INFO] Found {len(boxes)} detections in {image.filename}")
+                logger.info(f"[INFO] Found {len(boxes)} total detections in {image.filename}")
 
                 # Create Detection record for each bbox (T008 - FR-003)
                 for i, box in enumerate(boxes):
@@ -230,12 +249,21 @@ def detect_deer_task(self, image_id: str) -> Dict:
                     confidence = float(box.conf[0])
                     class_id = int(box.cls[0])
 
-                    # Create Detection record
+                    # Get class name from model (Sprint 4: Multi-class classification)
+                    class_name = CLASS_NAMES.get(class_id, "unknown")
+
+                    # Only create Detection records for deer (Sprint 4)
+                    # Skip non-deer detections (UTV, person, etc.)
+                    if class_id not in DEER_CLASSES:
+                        logger.debug(f"[INFO] Skipping non-deer detection: {class_name}")
+                        continue
+
+                    # Create Detection record with classification
                     detection = Detection(
                         image_id=image.id,
                         bbox=bbox_dict,
                         confidence=confidence,
-                        classification="unknown",  # Will be set by classification stage
+                        classification=class_name,  # Sprint 4: Set sex/age classification
                         deer_id=None  # Will be set by re-ID stage
                     )
 
@@ -243,9 +271,9 @@ def detect_deer_task(self, image_id: str) -> Dict:
                     detection_count += 1
                     detections_created.append(str(detection.id))
 
-                logger.info(f"[OK] Created {detection_count} Detection records for {image_id}")
+                logger.info(f"[OK] Created {detection_count} deer Detection records for {image_id}")
             else:
-                logger.info(f"[INFO] No detections found in {image.filename}")
+                logger.info(f"[INFO] No deer detections found in {image.filename}")
 
         # Update image status to COMPLETED (T008 - FR-004 state transition)
         image.mark_completed()

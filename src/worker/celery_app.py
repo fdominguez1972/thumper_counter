@@ -43,10 +43,10 @@ def validate_model_files():
     Requirements:
         - FR-011: System MUST validate YOLOv8 model file exists at startup
     """
-    # Define required model files
+    # Define required model files (Sprint 4: Multi-class model)
     # Path is relative to project root when running in Docker
     model_files = {
-        'yolov8n_deer.pt': 'src/models/yolov8n_deer.pt',
+        'deer_multiclass/best.pt': 'src/models/runs/deer_multiclass/weights/best.pt',
     }
 
     errors = []
@@ -64,13 +64,13 @@ def validate_model_files():
             continue
 
         # Check if file size is reasonable (corruption check)
-        # YOLOv8n model should be ~20-25MB
+        # Multi-class YOLOv8n model should be ~6MB
         file_size_mb = full_path.stat().st_size / (1024 * 1024)
-        if file_size_mb < 20:
+        if file_size_mb < 5:
             errors.append(
                 f"[FAIL] Model file appears corrupted: {model_path}\n"
-                f"       File size: {file_size_mb:.2f}MB (expected >20MB)\n"
-                f"       Please re-download or copy the model file."
+                f"       File size: {file_size_mb:.2f}MB (expected >5MB)\n"
+                f"       Please re-train the model."
             )
             continue
 
