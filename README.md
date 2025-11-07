@@ -2,26 +2,30 @@
 
 **Automated trail camera analysis system for wildlife monitoring at Hopkins Ranch**
 
-[![Phase](https://img.shields.io/badge/Phase-1%20MVP%20Complete-success)](https://github.com/fdominguez1972/thumper_counter)
-[![Pipeline](https://img.shields.io/badge/Detection-87%25%20Confidence-blue)](https://github.com/fdominguez1972/thumper_counter)
+[![Phase](https://img.shields.io/badge/Project-75%25%20Complete-success)](https://github.com/fdominguez1972/thumper_counter)
+[![Pipeline](https://img.shields.io/badge/Detection-76%25%20Confidence-blue)](https://github.com/fdominguez1972/thumper_counter)
+[![Processing](https://img.shields.io/badge/Images-11.2K%20%2F%2035.2K-orange)](https://github.com/fdominguez1972/thumper_counter)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)](https://github.com/fdominguez1972/thumper_counter)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python)](https://github.com/fdominguez1972/thumper_counter)
 
-> **Status:** Phase 1 MVP complete (55% overall). YOLOv8 detection pipeline operational with end-to-end database integration. Currently detecting deer at 87% confidence in 0.4s per image (CPU mode).
+> **Status:** Sprints 1-7 complete (75% overall). Full ML pipeline operational: GPU-accelerated multi-class detection (0.04s/image), automatic re-identification, React dashboard. Processing: 11,222 of 35,251 images (31.8%), 31,092 detections, 714 deer profiles created.
 
 ## Overview
 
 Thumper Counter automatically processes trail camera images to detect, classify, and track individual deer across time. Built using a spec-driven methodology with Docker containerization and ML pipeline optimization.
 
 **Current Capabilities:**
-- ✅ Upload images via REST API with EXIF extraction
-- ✅ YOLOv8 deer detection with bounding boxes
-- ✅ Database storage with processing status tracking
-- ✅ Celery task queue with Redis backend
-- ⏳ Batch processing (Phase 2)
-- ⏳ Sex classification (Phase 3)
-- ⏳ Individual re-identification (Phase 3)
-- ⏳ React frontend dashboard (Phase 4)
+- ✅ Upload images via REST API with EXIF/filename timestamp extraction
+- ✅ GPU-accelerated YOLOv8 multi-class detection (doe, fawn, buck variants)
+- ✅ Sex/age classification with 76% average confidence
+- ✅ Automatic individual re-identification (ResNet50 + pgvector)
+- ✅ Database storage with PostgreSQL + pgvector extension
+- ✅ Celery task queue with Redis backend (GPU-enabled)
+- ✅ Batch processing API with progress monitoring
+- ✅ React frontend dashboard (image gallery, deer profiles)
+- ✅ Timeline and movement analytics APIs
+- ⏳ Automated testing suite (in progress)
+- ⏳ Production monitoring/alerting (planned)
 
 **Dataset:** 35,234+ images from 7 camera locations at Hopkins Ranch, Texas
 
@@ -167,19 +171,21 @@ See [NEXT_STEPS.md](NEXT_STEPS.md) for detailed development instructions includi
 - Batch processing implementation
 - Testing procedures
 
-### Current Sprint (Sprint 3)
+### Current Sprint (Sprint 8)
 
-**Focus:** GPU enablement + Batch processing
+**Focus:** Batch processing backlog completion + Polish
 
 **High Priority Tasks:**
-1. Enable GPU support (fix CUDA multiprocessing)
-2. Create batch processing endpoint (POST /api/processing/batch)
-3. Add progress monitoring (GET /api/processing/status)
+1. Process remaining 24,029 pending images (68.2% of dataset)
+2. Validate deer re-identification accuracy (714 profiles created)
+3. Add automated API testing suite (pytest)
+4. Update stale documentation
 
-**Performance Targets:**
-- Detection speed: 0.05s per image (GPU, 8x improvement)
-- Throughput: 1200 images/minute
-- Batch: Process 1000 images in <1 minute
+**Current Performance:**
+- Detection speed: 0.04s per image (GPU-accelerated)
+- Re-ID speed: 2s per detection (ResNet50 feature extraction)
+- Throughput: ~1.2 images/second (DB writes are bottleneck)
+- GPU: RTX 4080 Super (16GB VRAM)
 
 ### Testing
 
@@ -223,17 +229,20 @@ Full API documentation available at: http://localhost:8001/docs
 
 ## Performance Metrics
 
-### Current (Phase 1 - CPU Mode)
-- **Detection Speed:** 0.4s per image
-- **Throughput:** ~150 images/minute
-- **Accuracy:** 87% average confidence
-- **Database:** 35,234+ images ready for processing
+### Current (GPU Mode - Operational)
+- **Detection Speed:** 0.04s per image (GPU inference)
+- **Re-ID Speed:** 2s per detection (ResNet50 embeddings)
+- **Throughput:** ~1.2 images/second (end-to-end with DB writes)
+- **Accuracy:** 76% average confidence (31,092 detections)
+- **Database:** 11,222 processed, 24,029 pending
+- **Deer Profiles:** 714 created via automatic re-identification
+- **GPU:** RTX 4080 Super (16GB VRAM, ~4GB used)
 
-### Target (Phase 2 - GPU Mode)
-- **Detection Speed:** 0.05s per image (8x faster)
-- **Throughput:** ~1200 images/minute
-- **Batch Processing:** 35k images in ~30 minutes
-- **With 4 workers:** ~7-8 minutes
+### Bottleneck Analysis
+- GPU inference: 0.04s (2% of total time)
+- Re-ID inference: 2s (80% of total time)
+- Database writes: 0.4s (18% of total time)
+- Primary bottleneck: Re-ID feature extraction (CPU-bound)
 
 ## Troubleshooting
 

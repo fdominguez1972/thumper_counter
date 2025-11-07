@@ -1,37 +1,42 @@
 # Thumper Counter Development Plan
-**Version:** 1.2.0
+**Version:** 1.3.0
 **Created:** 2025-11-05
-**Updated:** 2025-11-07 (Sprint 3 Complete, Sprint 4 In Progress)
+**Updated:** 2025-11-07 (Sprint 7 Complete)
 **Status:** ACTIVE
-**Sprint:** Sprint 3 Complete, Sprint 4 Current (Multi-Class Training)
+**Sprint:** Sprint 7 Complete - Batch Processing Ongoing
 
 ## Executive Summary
 
-Project is 65% complete with Sprint 3 achievements: GPU acceleration (10x faster), batch processing API, and deer management endpoints. Sprint 4 in progress: Training YOLOv8 multi-class model (15,574 images) for sex/age classification (doe, fawn, mature/mid/young bucks). Training estimated 3-5 hours on RTX 4080 Super. Target completion: 2 weeks.
+Project is 75% complete with Sprints 1-7 finished. All core features operational: GPU-accelerated detection (0.04s/image), multi-class sex/age classification, automatic re-identification with ResNet50, React frontend dashboard. Currently processing backlog: 11,222 of 35,251 images complete (31.8%), 31,092 detections created, 714 deer profiles via re-ID. Focus: Complete remaining batch processing, validate accuracy, add automated tests.
 
 ## Project Metrics
 
 ### Completion Status
-- **Overall:** 65% complete (+10% from last update)
-- **Database:** 100% ✅
-- **API:** 70% ✅ (+20%)
-- **ML Pipeline:** 75% ✅ (+15% - training in progress)
-- **Frontend:** 0% ❌
-- **Testing:** 10% ⚠️
-- **Documentation:** 95% ✅
+- **Overall:** 75% complete (+10% from last update)
+- **Database:** 100% complete (PostgreSQL with pgvector)
+- **API:** 90% complete (all CRUD endpoints, batch processing, analytics)
+- **ML Pipeline:** 95% complete (detection, classification, re-ID integrated)
+- **Frontend:** 60% complete (React dashboard MVP operational)
+- **Testing:** 15% complete (manual testing only, no automated tests)
+- **Documentation:** 85% complete (handoff system added, some docs stale)
 
 ### Lines of Code
-- **Written:** ~6,500 lines (+1,300 Sprint 3)
-- **Remaining:** ~2,500 lines estimated
-- **Tests Needed:** ~2,000 lines
+- **Written:** ~12,000 lines (estimated through Sprint 7)
+- **Backend/API:** ~4,000 lines
+- **Worker/ML:** ~3,500 lines
+- **Frontend:** ~3,000 lines
+- **Tests:** ~500 lines
+- **Documentation:** ~1,000 lines
+- **Remaining:** ~1,500 lines (testing, monitoring, polish)
 
-### Sprint 3 Achievements (Nov 6)
-- GPU acceleration: +200 lines
-- Batch processing API: +150 lines
-- Deer management CRUD: +450 lines
-- Database enhancements: +100 lines
-- Bug fixes and optimizations: +400 lines
-- **Total:** 1,300 lines added
+### Sprints 1-7 Summary (Nov 1-7)
+- Sprint 1: Foundation (database, Docker, 35k images ingested)
+- Sprint 2: ML Integration (YOLOv8 CPU detection working)
+- Sprint 3: GPU & Batch Processing (10x speedup, batch API)
+- Sprint 4: Multi-Class Training (sex/age classification model)
+- Sprint 5: Re-Identification (ResNet50 embeddings, pgvector)
+- Sprint 6: Pipeline Integration (auto re-ID chaining)
+- Sprint 7: OCR Analysis (concluded not needed)
 
 ## Sprint Plan
 
@@ -234,81 +239,76 @@ PENDING:
      validation: End-to-end classification
 ```
 
-### Sprint 5 - Frontend MVP [Nov 14-17]
-⬜ React project setup
-⬜ Image upload interface
-⬜ Location selection dropdown
-⬜ Processing status display
-⬜ Basic image gallery with detections
-⬜ Deer profile viewer
+### Sprint 5 (Complete) - Re-Identification [Nov 6] ✅
+**Focus:** Individual deer re-identification with ResNet50 embeddings
 
-**Sprint 5 Tasks:**
-```yaml
-HIGH PRIORITY:
-  - task: Initialize React app
-    effort: 2 hours
-    spec: ui.spec#Application-Structure
-    stack: React + Material-UI + TanStack Query
+**Completed:**
+- ✅ pgvector extension enabled in PostgreSQL
+- ✅ Deer model updated with vector(512) column for embeddings
+- ✅ ResNet50 feature extraction (512-dim embeddings)
+- ✅ Thread-safe model loading (singleton pattern)
+- ✅ Cosine similarity search with HNSW index
+- ✅ Sex-based filtering for improved matching
+- ✅ Automatic deer profile creation when no match found
+- ✅ Database migration to pgvector container
 
-  - task: Create upload form
-    effort: 3 hours
-    spec: ui.spec#Upload-Component
-    features: Drag-drop, location select, batch upload
+**Performance:**
+- Feature extraction: ~2 seconds per detection
+- Similarity matching: <0.1s with HNSW index
+- Matching threshold: 0.85 cosine similarity
+- 714 deer profiles created from 31k detections
 
-  - task: Build image gallery
-    effort: 4 hours
-    spec: ui.spec#Image-Gallery
-    features: Thumbnails, bbox overlay, filter by status
+### Sprint 6 (Complete) - Pipeline Integration [Nov 6-7] ✅
+**Focus:** Integrate re-ID into detection pipeline and add analytics APIs
 
-LOW PRIORITY:
-  - task: Deer profile viewer
-    effort: 3 hours
-    features: Photo history, detection timeline
+**Completed:**
+- ✅ Detection task auto-queues re-ID for each deer detection
+- ✅ Fully automated pipeline: Image → Detection → Re-ID → Deer Profile
+- ✅ Batch re-ID processing script (batch_reidentify.py)
+- ✅ API endpoint: GET /api/deer/{id}/timeline (activity patterns)
+- ✅ API endpoint: GET /api/deer/{id}/locations (movement patterns)
+- ✅ Fixed detection ID collection (flush before collecting)
+- ✅ Processed 313 detections, created 14 deer profiles in test batch
 
-  - task: Add Material-UI styling
-    effort: 2 hours
-    spec: ui.spec#Design-System
-```
+**Performance:**
+- End-to-end: 0.05s detection + 2s re-ID = 2.05s total per image
+- Batch queuing: 0.11s for 100 tasks
+- Throughput: 30-50 detections/minute with re-ID
+- Timeline API: 15-50ms response time
 
-### Sprint 6 - Testing & Production [Nov 18-21]
-⬜ Unit tests for models (pytest)
-⬜ API integration tests
-⬜ ML pipeline validation
-⬜ Load testing (10,000 images)
-⬜ Production configuration
-⬜ Monitoring setup (optional)
-⬜ User documentation
+### Sprint 7 (Complete) - OCR Analysis [Nov 7] ✅
+**Focus:** Explore OCR for trail camera footer metadata extraction
 
-**Sprint 6 Tasks:**
-```yaml
-HIGH PRIORITY:
-  - task: Model unit tests
-    effort: 3 hours
-    target: 80% coverage
+**Completed:**
+- ✅ Tested EasyOCR v1.7.2 (GPU-accelerated)
+- ✅ Tested Tesseract OCR v5.5.0
+- ✅ Image preprocessing (4x upscaling, contrast enhancement)
+- ✅ Footer region extraction (bottom 35px)
+- ✅ Resolution analysis across 6 camera locations
 
-  - task: API integration tests
-    effort: 4 hours
-    spec: api.spec#Testing-Strategy
-    coverage: All endpoints
+**Conclusion:**
+- OCR accuracy: 0% (complete failure on 640x480 images)
+- Filename parsing already provides 100% reliable timestamps
+- ROI analysis: Not worth implementing
+- Decision: Continue using existing filename parsing
+- Documentation: docs/SPRINT_7_OCR_ANALYSIS.md
 
-  - task: ML accuracy validation
-    effort: 3 hours
-    spec: ml.spec#Testing-Requirements
-    sample: 500 images with manual verification
+### Sprint 8 (Current) - Batch Processing & Polish [Nov 7-10]
+**Focus:** Complete image processing backlog and polish features
 
-MEDIUM PRIORITY:
-  - task: Load testing
-    effort: 2 hours
-    target: 1000 images/minute with GPU
+**In Progress:**
+- 🔄 Process remaining 24,029 pending images (68.2%)
+- 🔄 Monitor and validate deer profile accuracy
+- ⬜ Frontend enhancements (image viewer improvements)
+- ⬜ Automated API testing suite
+- ⬜ Performance optimization (DB write bottleneck)
+- ⬜ Documentation updates (README, NEXT_STEPS)
 
-  - task: Production config
-    effort: 2 hours
-    tasks: Environment vars, secrets, backups
-
-  - task: User documentation
-    effort: 3 hours
-    content: Setup, usage, troubleshooting
-```
+**Targets:**
+- Process all 35,251 images to completion
+- Validate deer re-ID accuracy (current: 714 profiles)
+- Add pytest test suite (target: 50% coverage)
+- Update all stale documentation
 
 ## Critical Path (Updated)
 

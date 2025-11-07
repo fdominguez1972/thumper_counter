@@ -1,7 +1,7 @@
 # Next Steps for Thumper Counter
-**Last Updated:** 2025-11-05 (after MVP detection pipeline completion)
-**Branch:** 001-detection-pipeline
-**Status:** Phase 1 MVP Complete - Ready for Phase 2
+**Last Updated:** 2025-11-07 (Sprints 1-7 complete)
+**Branch:** main
+**Status:** Sprint 8 - Batch Processing Backlog + Polish
 
 ## Quick Start (Next Session)
 
@@ -37,28 +37,28 @@ docker-compose exec db psql -U deertrack deer_tracking -c \
 
 ## What Was Just Completed
 
-### Phase 1 MVP - Detection Pipeline ✅
-- [x] Image upload via POST /api/images
-- [x] EXIF metadata extraction
-- [x] Celery task queueing to ml_processing queue
-- [x] YOLOv8 detection with CPU inference
-- [x] Detection records stored in database
-- [x] Processing status tracking (pending -> processing -> completed)
-- [x] End-to-end test: 1 deer detected at 87% confidence in 0.4s
+### Sprint 7 - OCR Analysis ✅
+- [x] Tested EasyOCR and Tesseract for trail camera footer extraction
+- [x] Image preprocessing and resolution analysis
+- [x] Concluded OCR not viable (0% accuracy on 640x480 images)
+- [x] Documented decision to continue with filename parsing (100% reliable)
+- [x] Documentation: docs/SPRINT_7_OCR_ANALYSIS.md
 
-**Files Modified:**
-- src/backend/api/images.py (Celery send_task integration)
-- src/backend/models/image.py (Enum values fix)
-- src/worker/tasks/detection.py (Detection implementation)
-- src/worker/celery_app.py (Task registration)
-- docker/dockerfiles/Dockerfile.worker (PYTHONPATH fix)
-- docker-compose.yml (CUDA disabled for CPU mode)
+### Sprints 1-6 Summary ✅
+**Sprint 1:** Foundation (database, Docker, image ingestion)
+**Sprint 2:** ML Integration (YOLOv8 detection pipeline)
+**Sprint 3:** GPU & Batch Processing (10x speedup, batch API)
+**Sprint 4:** Multi-Class Training (sex/age classification model)
+**Sprint 5:** Re-Identification (ResNet50 embeddings, pgvector)
+**Sprint 6:** Pipeline Integration (auto re-ID, analytics APIs)
 
-**Test Results:**
-- Upload: Working
-- Queue: Working (Redis ml_processing queue)
-- Detection: Working (YOLOv8 CPU mode)
-- Database: Working (status updates, detection records)
+**Current System State:**
+- Images processed: 11,222 of 35,251 (31.8%)
+- Detections created: 31,092 (avg confidence 76%)
+- Deer profiles: 714 (via automatic re-ID)
+- GPU: Enabled (RTX 4080 Super)
+- Frontend: React dashboard operational
+- All services: Running and healthy
 
 ## Session Summary (Documentation & Cleanup)
 
@@ -218,121 +218,103 @@ c4f1e8b - docs: add comprehensive next steps guide
 
 ## What to Do Next
 
-### Immediate Priority: Enable GPU Support
+### Immediate Priority: Complete Batch Processing
 
-**Issue:** CUDA disabled due to fork() multiprocessing incompatibility
-**Error:** "Cannot re-initialize CUDA in forked subprocess"
+**Status:** 11,222 of 35,251 images processed (31.8%)
+**Remaining:** 24,029 images pending
 
-**Solution Options:**
-
-#### Option 1: Switch to Celery Solo Pool (Easiest)
-```bash
-# Edit docker-compose.yml worker environment
-CELERY_POOL: solo
-
-# Or edit Dockerfile.worker CMD
-CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info", "--pool=solo"]
-```
-Pros: Simple, no code changes
-Cons: No parallelism (1 task at a time)
-
-#### Option 2: Use Threads Pool
-```bash
-CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info", "--pool=threads", "--concurrency=2"]
-```
-Pros: Parallel tasks, CUDA compatible
-Cons: GIL limitations for CPU-bound work
-
-#### Option 3: Preload Model at Startup (Recommended)
-Move model loading to worker startup (before fork), cache in shared memory.
-
-```python
-# In celery_app.py after validate_model_files()
-from worker.tasks.detection import get_detection_model
-
-# Load model BEFORE worker forks
-print("[INFO] Pre-loading YOLOv8 model...")
-_global_model = get_detection_model()
-print("[OK] Model loaded in main process")
-```
-
-Then update docker-compose.yml to enable CUDA:
-```yaml
-# Remove CUDA_VISIBLE_DEVICES: "" line
-# Add GPU runtime if available
-runtime: nvidia
-```
-
-### Phase 2: Batch Processing
-
-**Goal:** Process existing 35,234 images in database
-
-**Tasks:**
-1. Create batch processing endpoint
-   ```python
-   # POST /api/processing/batch
-   # Query parameters:
-   # - location_id (optional)
-   # - status=pending (filter)
-   # - limit=1000 (batch size)
+**Action Items:**
+1. **Continue batch processing** - Run additional batch jobs to process remaining images
+   ```bash
+   curl -X POST http://localhost:8001/api/processing/batch \
+     -H "Content-Type: application/json" \
+     -d '{"limit": 5000}'
    ```
 
-2. Create batch Celery task
-   ```python
-   # src/worker/tasks/batch.py
-   @app.task(name='worker.tasks.batch.process_batch')
-   def process_batch(image_ids: List[str]) -> Dict:
-       """Process multiple images in sequence"""
+2. **Monitor progress** - Check processing status regularly
+   ```bash
+   curl http://localhost:8001/api/processing/status
    ```
 
-3. Add progress monitoring
-   ```python
-   # GET /api/processing/status
-   # Returns: total, pending, processing, completed, failed
-   ```
+3. **Validate deer profiles** - Review re-ID accuracy
+   - 714 deer profiles from 31,092 detections
+   - Ratio: 1 deer per 43.5 detections
+   - Verify this matches expected unique deer count
 
-**Estimated Time:** 3-4 hours
+### GPU Already Enabled ✅
 
-### Phase 3: Deer Management API
+GPU support was successfully enabled in Sprint 3 using threads pool with concurrency=1:
+- Worker: Celery with --pool=threads --concurrency=1
+- Model loading: Thread-safe singleton pattern
+- Performance: 0.04s per image (10x faster than CPU)
+- No further GPU work needed
 
-**Tasks:**
-1. Deer CRUD endpoints (POST/GET/PUT/DELETE /api/deer)
-2. Detection query endpoints (GET /api/detections)
-3. Link detections to deer profiles (manual assignment for now)
+### Sprint 8 Tasks: Polish & Testing
 
-**Estimated Time:** 4-5 hours
+**Goal:** Complete remaining work for production readiness
 
-### Phase 4: Basic Re-ID
+**High Priority (Must Do):**
+1. **Automated Testing** - Add pytest test suite (4-6 hours)
+   - API endpoint tests (test all CRUD operations)
+   - Model inference tests (detection, re-ID)
+   - Database integration tests
+   - Target: 50% code coverage
 
-**Tasks:**
-1. Extract simple features (bounding box size, color histogram)
-2. Implement similarity matching
-3. Auto-assign deer IDs based on similarity
+2. **Frontend Enhancements** - Improve React dashboard (3-4 hours)
+   - Image zoom/pan functionality
+   - Deer profile photo gallery
+   - Detection filtering by confidence
+   - Timeline visualization
 
-**Estimated Time:** 6-8 hours
+3. **Documentation** - Keep docs current (1-2 hours)
+   - Regular handoff documents after each session
+   - Update README badges with live data
+   - Keep NEXT_STEPS aligned with actual status
+
+**Medium Priority (Should Do):**
+1. **Performance Optimization** - Address DB write bottleneck (2-3 hours)
+   - Batch database commits
+   - Connection pooling tuning
+   - Index optimization
+
+2. **Monitoring** - Add observability (3-4 hours)
+   - Prometheus metrics export
+   - Grafana dashboards
+   - Error rate alerting
+
+**Low Priority (Nice to Have):**
+1. User authentication for frontend
+2. Export functionality (CSV, JSON)
+3. Backup automation scripts
 
 ## Known Issues & Fixes Needed
 
-### Critical
-- [ ] **GPU Support Disabled** (see solutions above)
-  - Current: CPU only (0.4s per image)
-  - Target: GPU enabled (~0.05s per image = 8x faster)
+### High Priority
+- [ ] **No Automated Tests**
+  - Impact: Cannot verify regression bugs
+  - Solution: Add pytest test suite (4-6 hours)
+  - Target: 50% code coverage minimum
 
-### Important
-- [ ] **Detection UUID Not Stored in Response**
-  - Line: src/worker/tasks/detection.py:236
-  - Issue: `detections_created.append(str(detection.id))` but detection.id is None
-  - Fix: Commit detection first, then append ID
+- [ ] **Database Write Bottleneck**
+  - Impact: Limits throughput to 1.2 images/sec despite 0.04s GPU inference
+  - Current: Each detection commits individually (slow)
+  - Solution: Batch commits or optimize connection pooling
 
-### Minor
-- [ ] **Model Path Hardcoded**
-  - Line: src/worker/tasks/detection.py:54
-  - Current: `YOLO_MODEL_PATH = MODEL_DIR / 'yolov8n_deer.pt'`
-  - Better: Load from environment variable
+### Medium Priority
+- [ ] **Re-ID Performance**
+  - Impact: 2s per detection (80% of total processing time)
+  - Current: ResNet50 running on CPU
+  - Solution: Enable GPU inference for ResNet50
 
-- [ ] **No Error Rate Tracking**
-  - Add Prometheus metrics for monitoring
-  - Track: success rate, avg processing time, GPU memory
+- [ ] **No Monitoring/Alerting**
+  - Impact: Cannot detect failures or performance degradation
+  - Solution: Add Prometheus metrics + Grafana dashboards
+
+### Low Priority
+- [ ] **Frontend Lacks Polish**
+  - Missing: Image zoom, deer photo galleries, advanced filtering
+  - Impact: Usability could be improved
+  - Solution: Frontend enhancement sprint (3-4 hours)
 
 ## File Locations (Key Files)
 

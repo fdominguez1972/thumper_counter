@@ -135,6 +135,23 @@ This constitution establishes the fundamental principles, governance, and non-ne
 2. **API:** OpenAPI specification maintained
 3. **User:** README for each component
 4. **Specs:** Living documents updated with changes
+5. **Session Handoffs:** Mandatory handoff document for each development session
+
+### Session Handoff Requirements
+1. **Timing:** Create handoff document at end of each development session
+2. **Template:** Use docs/SESSION_HANDOFF_TEMPLATE.md as base
+3. **Naming:** SESSION_YYYYMMDD_HANDOFF.md (use session end date)
+4. **Content Requirements:**
+   - Executive summary (2-3 sentences)
+   - Work completed with time tracking
+   - Issues resolved and discovered
+   - Database and performance metrics
+   - Git status with commit list
+   - Service health verification
+   - Next session priorities (High/Medium/Low)
+   - How to resume instructions
+5. **Stale Document Cleanup:** Archive handoffs older than 30 days to docs/archive/
+6. **Living Documents Update:** README, NEXT_STEPS, plan.md must stay current
 
 ## Article V: Operational Requirements
 
