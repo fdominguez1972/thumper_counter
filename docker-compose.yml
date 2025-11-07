@@ -159,6 +159,25 @@ services:
     networks:
       - thumper_network
 
+  # Frontend (React Dashboard)
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/dockerfiles/Dockerfile.frontend.dev
+    container_name: thumper_frontend
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=http://localhost:8001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Prevent overwriting node_modules
+    depends_on:
+      - backend
+    networks:
+      - thumper_network
+
 volumes:
   postgres_data:
     name: thumper_postgres_data
