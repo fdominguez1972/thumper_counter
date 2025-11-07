@@ -661,16 +661,25 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - Project: /mnt/i/projects/thumper_counter
 - Images: /mnt/i/Hopkins_Ranch_Trail_Cam_Pics
 - Models: src/models/yolov8n_deer.pt (22MB)
-- Branch: 003-re-identification (current, Sprint 5)
+- Branch: 004-pipeline-integration (current, Sprint 6)
 - Remotes: origin (GitHub), ubuntu (local)
 
 ## SESSION STATUS - Updated November 6, 2025
 
-### Current Sprint: 5 of 6 - COMPLETE
-**Phase:** Sprint 5 Complete - Re-Identification with ResNet50
-**Branch:** 003-re-identification
+### Current Sprint: 6 of 6 - IN PROGRESS
+**Phase:** Sprint 6 - Pipeline Integration & Optimization
+**Branch:** 004-pipeline-integration
+
+### Sprint 6 Goals
+- [TODO] Integrate re-ID into detection pipeline (automatic chaining)
+- [TODO] Batch re-ID processing for existing detections
+- [TODO] Performance optimization (batch embeddings, caching)
+- [TODO] API enhancements (deer timeline, matching visualization)
+- [TODO] Production readiness (error handling, monitoring)
+- [TODO] Documentation and deployment guide
 
 ### Sprint 5 Completed (Nov 6, 2025)
+**Branch:** 003-re-identification
 - [OK] pgvector extension enabled in PostgreSQL (ankane/pgvector:v0.5.1)
 - [OK] Deer model updated with vector(512) column for embeddings
 - [OK] ResNet50 feature extraction implemented (512-dim embeddings)
