@@ -135,6 +135,7 @@ services:
       - thumper_network
     # GPU support for ML processing (RTX 4080 Super with 16GB VRAM)
     runtime: nvidia
+    shm_size: '8gb'  # Shared memory for DataLoader workers
     deploy:
       resources:
         reservations:
