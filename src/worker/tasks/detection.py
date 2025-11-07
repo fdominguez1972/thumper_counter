@@ -245,6 +245,30 @@ def detect_deer_task(self, image_id: str) -> Dict:
             logger.error(f"[FAIL] Image not found in database: {image_id}")
             return {"status": "error", "error": "Image not found"}
 
+        # Check if already processed (deduplication - Sprint 9 fix)
+        if image.processing_status == ProcessingStatus.COMPLETED:
+            logger.info(f"[SKIP] Image already processed: {image_id} ({image.filename})")
+            return {
+                "status": "skipped",
+                "reason": "already_processed",
+                "image_id": image_id,
+                "detection_count": 0,
+                "detections": [],
+                "reid_tasks": []
+            }
+
+        # Check if currently being processed by another worker
+        if image.processing_status == ProcessingStatus.PROCESSING:
+            logger.warning(f"[SKIP] Image already being processed: {image_id} ({image.filename})")
+            return {
+                "status": "skipped",
+                "reason": "already_processing",
+                "image_id": image_id,
+                "detection_count": 0,
+                "detections": [],
+                "reid_tasks": []
+            }
+
         # Log task start (T011 - FR-005: log with image_id)
         logger.info(f"[INFO] Starting detection for image {image_id} ({image.filename})")
         task_start_time = time.time()
