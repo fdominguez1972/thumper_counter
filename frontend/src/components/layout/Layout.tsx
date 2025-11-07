@@ -1,75 +1,160 @@
-import { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { ReactNode, useState } from 'react';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
+import {
+  AppBar,
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import {
+  Menu as MenuIcon,
+  Dashboard as DashboardIcon,
+  Pets as PetsIcon,
+  PhotoLibrary as PhotoLibraryIcon,
+  CloudUpload as UploadIcon,
+  LocationOn as LocationIcon,
+} from '@mui/icons-material';
 
 interface LayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
+const DRAWER_WIDTH = 240;
+
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: '[D]' },
-  { name: 'Deer Gallery', href: '/deer', icon: '[G]' },
-  { name: 'Images', href: '/images', icon: '[I]' },
-]
+  { name: 'Dashboard', href: '/dashboard', icon: <DashboardIcon /> },
+  { name: 'Deer Gallery', href: '/deer', icon: <PetsIcon /> },
+  { name: 'Images', href: '/images', icon: <PhotoLibraryIcon /> },
+  { name: 'Upload', href: '/upload', icon: <UploadIcon /> },
+  { name: 'Locations', href: '/locations', icon: <LocationIcon /> },
+];
 
 export default function Layout({ children }: LayoutProps) {
-  const location = useLocation()
+  const location = useLocation();
+  const theme = useTheme();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const drawer = (
+    <Box>
+      <Toolbar>
+        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 600 }}>
+          Thumper Counter
+        </Typography>
+      </Toolbar>
+      <List>
+        {navigation.map((item) => {
+          const isActive = location.pathname === item.href ||
+            (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
+
+          return (
+            <ListItem key={item.name} disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to={item.href}
+                selected={isActive}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: theme.palette.primary.light,
+                    color: theme.palette.primary.contrastText,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.main,
+                    },
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: isActive ? theme.palette.primary.contrastText : 'inherit' }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.name} />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
+    </Box>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-gray-900">
-                Thumper Counter
-              </h1>
-              <span className="ml-3 text-sm text-gray-500">
-                Deer Tracking Dashboard
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Hopkins Ranch
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
+    <Box sx={{ display: 'flex' }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          ml: { md: `${DRAWER_WIDTH}px` },
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { md: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            Deer Tracking Dashboard
+          </Typography>
+          <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
+            Hopkins Ranch
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <nav className="w-64 bg-white shadow-sm min-h-[calc(100vh-88px)]">
-          <div className="p-4">
-            <div className="space-y-1">
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href ||
-                  (item.href !== '/dashboard' && location.pathname.startsWith(item.href))
+      <Box
+        component="nav"
+        sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
+      >
+        {/* Mobile drawer */}
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: 'block', md: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH },
+          }}
+        >
+          {drawer}
+        </Drawer>
 
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="mr-3 text-xl">{item.icon}</span>
-                    {item.name}
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        </nav>
+        {/* Desktop drawer */}
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
+      </Box>
 
-        {/* Main content */}
-        <main className="flex-1 p-8">
-          {children}
-        </main>
-      </div>
-    </div>
-  )
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          mt: 8,
+        }}
+      >
+        {children}
+      </Box>
+    </Box>
+  );
 }

@@ -61,6 +61,7 @@ export const getDeerList = async (params?: {
   page_size?: number;
   sex?: string;
   sort_by?: string;
+  min_sightings?: number;
 }): Promise<DeerListResponse> => {
   const response = await apiClient.get('/deer', { params });
   return response.data;
