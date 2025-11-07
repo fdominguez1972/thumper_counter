@@ -25,6 +25,7 @@ ultralytics>=8.0.0                # YOLOv8 for detection
 pillow>=10.0.0                    # Image processing (needed for EXIF extraction)
 opencv-python>=4.8.0              # OpenCV for image processing
 numpy>=1.24.0                     # Numerical computing
+easyocr>=1.7.0                    # OCR for trail camera footer extraction (Sprint 7)
 
 # Utilities
 python-dotenv>=1.0.0              # Environment variable loading
