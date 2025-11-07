@@ -74,6 +74,9 @@ CLASS_NAMES = {
 # Deer-specific classes for filtering
 DEER_CLASSES = {3, 4, 5, 6, 10}  # doe, fawn, mature, mid, young
 
+# Deduplication settings (Sprint 8)
+DEDUP_IOU_THRESHOLD = float(os.getenv('DEDUP_IOU_THRESHOLD', 0.5))  # 50% overlap = duplicate
+
 
 # Global model cache for worker process (T010)
 # WHY: Loading model on every task is expensive. Keep in memory across tasks.
@@ -125,6 +128,73 @@ def get_detection_model():
                     raise RuntimeError(f"Model loading failed: {e}")
 
     return _detection_model
+
+
+def deduplicate_within_image(db, image_id: UUID) -> int:
+    """
+    Mark duplicate detections within a single image.
+
+    When YOLOv8 detects the same deer multiple times with overlapping bboxes,
+    keep only the highest confidence detection and mark others as duplicates.
+
+    Args:
+        db: Database session
+        image_id: UUID of image to deduplicate
+
+    Returns:
+        int: Number of detections marked as duplicates
+
+    Algorithm:
+        1. Get all detections for image, sorted by confidence descending
+        2. For each detection, check IoU with higher-confidence detections
+        3. If IoU > threshold, mark as duplicate
+        4. Skip re-ID processing for duplicates
+    """
+    # Get all detections for this image, sorted by confidence descending
+    detections = (
+        db.query(Detection)
+        .filter(Detection.image_id == image_id)
+        .order_by(Detection.confidence.desc())
+        .all()
+    )
+
+    if len(detections) <= 1:
+        return 0  # No duplicates possible with 0 or 1 detection
+
+    duplicate_count = 0
+
+    # Keep track of non-duplicate (keeper) detections
+    keepers = []
+
+    for detection in detections:
+        # Check if this detection overlaps significantly with any keeper
+        is_duplicate = False
+
+        for keeper in keepers:
+            iou = detection.iou(keeper)
+
+            if iou > DEDUP_IOU_THRESHOLD:
+                # Significant overlap with higher-confidence detection
+                detection.is_duplicate = True
+                is_duplicate = True
+                duplicate_count += 1
+                logger.debug(
+                    f"[DEDUP] Marking detection {detection.id} as duplicate "
+                    f"(IoU={iou:.3f} with {keeper.id})"
+                )
+                break
+
+        if not is_duplicate:
+            # This is a unique detection, add to keepers
+            keepers.append(detection)
+
+    if duplicate_count > 0:
+        logger.info(
+            f"[DEDUP] Marked {duplicate_count} of {len(detections)} detections "
+            f"as duplicates (kept {len(keepers)} unique)"
+        )
+
+    return duplicate_count
 
 
 @app.task(bind=True, name='worker.tasks.detection.detect_deer_task')
@@ -270,12 +340,20 @@ def detect_deer_task(self, image_id: str) -> Dict:
                     db.add(detection)
                     detection_count += 1
 
-                # Flush to get detection IDs for re-ID chaining
+                # Flush to assign IDs to detections
                 db.flush()
 
-                # Collect detection IDs after flush
+                # Deduplicate within-image detections (Sprint 8: Deduplication)
+                # Mark overlapping detections as duplicates, keep highest confidence
+                if detection_count > 1:
+                    logger.info(f"[INFO] Checking for duplicate detections (found {detection_count})")
+                    deduplicate_within_image(db, image.id)
+                    db.flush()  # Flush duplicate flags
+
+                # Collect non-duplicate detection IDs for re-ID processing
+                # Skip duplicates to avoid creating redundant deer profiles
                 for detection in db.query(Detection).filter(Detection.image_id == image.id).all():
-                    if str(detection.id) not in detections_created:
+                    if not detection.is_duplicate and str(detection.id) not in detections_created:
                         detections_created.append(str(detection.id))
 
                 logger.info(f"[OK] Created {detection_count} deer Detection records for {image_id}")

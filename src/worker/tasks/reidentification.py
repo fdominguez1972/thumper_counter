@@ -19,10 +19,11 @@ import os
 import logging
 import time
 import threading
+import uuid
 from pathlib import Path
 from typing import Optional, Dict, List, Tuple
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import torch
 import torch.nn as nn
@@ -46,6 +47,7 @@ logger = logging.getLogger(__name__)
 REID_THRESHOLD = float(os.getenv('REID_THRESHOLD', 0.85))
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MIN_CROP_SIZE = 50  # Minimum width/height for valid crop
+BURST_WINDOW = 5  # Seconds - group photos within this window as same event
 
 
 # Global model cache (thread-safe singleton)
@@ -258,16 +260,102 @@ def find_matching_deer(db, feature_vector: np.ndarray, sex: str) -> Optional[Tup
         return None
 
 
+def get_burst_detections(db, detection: Detection) -> List[Detection]:
+    """
+    Find all detections in the same photo burst/event.
+
+    A burst is defined as photos taken within BURST_WINDOW seconds
+    at the same camera location. This handles cases where cameras
+    take multiple photos within the same second or a few seconds apart.
+
+    Args:
+        db: Database session
+        detection: Detection to find burst companions for
+
+    Returns:
+        List[Detection]: All non-duplicate detections in the same burst,
+                         including the input detection
+    """
+    # Get the image for this detection
+    image = db.query(Image).filter(Image.id == detection.image_id).first()
+    if not image or not image.timestamp or not image.location_id:
+        # Can't group without timestamp and location
+        return [detection]
+
+    # Calculate time window
+    time_start = image.timestamp - timedelta(seconds=BURST_WINDOW)
+    time_end = image.timestamp + timedelta(seconds=BURST_WINDOW)
+
+    # Find all images within burst window at same location
+    burst_images = (
+        db.query(Image)
+        .filter(Image.location_id == image.location_id)
+        .filter(Image.timestamp >= time_start)
+        .filter(Image.timestamp <= time_end)
+        .all()
+    )
+
+    # Collect all non-duplicate detections from burst images
+    burst_detections = []
+    for img in burst_images:
+        for det in img.detections:
+            # Only include non-duplicate detections
+            if not det.is_duplicate:
+                burst_detections.append(det)
+
+    logger.debug(
+        f"[BURST] Found {len(burst_detections)} detections in burst "
+        f"({len(burst_images)} images within {BURST_WINDOW}s)"
+    )
+
+    return burst_detections
+
+
+def check_burst_for_existing_deer(db, burst_detections: List[Detection]) -> Optional[UUID]:
+    """
+    Check if any detection in burst already has an assigned deer_id.
+
+    If multiple deer_ids exist, returns the one with highest confidence.
+
+    Args:
+        db: Database session
+        burst_detections: List of detections in the burst
+
+    Returns:
+        UUID: Existing deer_id if found, None otherwise
+    """
+    # Find detections with deer_id assigned
+    assigned = [det for det in burst_detections if det.deer_id is not None]
+
+    if not assigned:
+        return None
+
+    # If multiple deer_ids, use the one with highest confidence
+    # (This handles edge case where re-ID ran on some but not all)
+    best_detection = max(assigned, key=lambda d: d.confidence)
+
+    logger.info(
+        f"[BURST] Found existing deer_id in burst: {best_detection.deer_id} "
+        f"(from {len(assigned)} of {len(burst_detections)} detections)"
+    )
+
+    return best_detection.deer_id
+
+
 @app.task(bind=True, name='worker.tasks.reidentification.reidentify_deer_task')
 def reidentify_deer_task(self, detection_id: str) -> Dict:
     """
-    Re-identify individual deer from detection.
+    Re-identify individual deer from detection with burst grouping.
 
     This task implements the final stage of the ML pipeline:
-    1. Extract deer crop from image
-    2. Generate feature vector with ResNet50
-    3. Search for matching deer profile
-    4. Either link to existing deer or create new profile
+    1. Check if detection is in a photo burst (5-second window)
+    2. If burst exists and any detection has deer_id, reuse it
+    3. Otherwise: Extract crop, generate features, search for match
+    4. Link all burst detections to same deer (assign burst_group_id)
+    5. Either link to existing deer or create new profile
+
+    Burst grouping prevents creating separate deer profiles for the
+    same animal photographed multiple times within seconds.
 
     Args:
         self: Celery task instance (bound)
@@ -296,6 +384,40 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
         logger.info(f"[INFO] Starting re-ID for detection {detection_id}")
         task_start_time = time.time()
 
+        # Sprint 8: Find all detections in same photo burst
+        burst_detections = get_burst_detections(db, detection)
+
+        # Check if any detection in burst already has deer_id assigned
+        existing_deer_id = check_burst_for_existing_deer(db, burst_detections)
+
+        if existing_deer_id:
+            # Reuse existing deer_id from burst companion
+            # Generate burst_group_id and link all detections
+            burst_group_id = uuid.uuid4()
+
+            for det in burst_detections:
+                if det.deer_id is None:
+                    det.deer_id = existing_deer_id
+                det.burst_group_id = burst_group_id
+
+            db.commit()
+
+            duration = time.time() - task_start_time
+            logger.info(
+                f"[OK] Re-ID complete (BURST_LINK): detection={detection_id}, "
+                f"deer={existing_deer_id}, burst_size={len(burst_detections)}, "
+                f"duration={duration:.2f}s"
+            )
+
+            return {
+                "status": "burst_linked",
+                "detection_id": detection_id,
+                "deer_id": str(existing_deer_id),
+                "burst_group_id": str(burst_group_id),
+                "burst_size": len(burst_detections),
+                "duration": duration
+            }
+
         # Load image
         image = db.query(Image).filter(Image.id == detection.image_id).first()
         if not image:
@@ -321,10 +443,17 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
         # Search for matching deer
         match_result = find_matching_deer(db, feature_vector, detection.classification)
 
+        # Generate burst_group_id for all detections in this burst
+        burst_group_id = uuid.uuid4()
+
         if match_result:
             # Match found - link to existing deer
             deer, similarity = match_result
-            detection.deer_id = deer.id
+
+            # Link all burst detections to matched deer
+            for det in burst_detections:
+                det.deer_id = deer.id
+                det.burst_group_id = burst_group_id
 
             # Update deer sighting
             deer.update_sighting(image.timestamp, detection.confidence)
@@ -334,13 +463,16 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
             duration = time.time() - task_start_time
             logger.info(
                 f"[OK] Re-ID complete (MATCH): detection={detection_id}, "
-                f"deer={deer.id}, similarity={similarity:.3f}, duration={duration:.2f}s"
+                f"deer={deer.id}, similarity={similarity:.3f}, "
+                f"burst_size={len(burst_detections)}, duration={duration:.2f}s"
             )
 
             return {
                 "status": "matched",
                 "detection_id": detection_id,
                 "deer_id": str(deer.id),
+                "burst_group_id": str(burst_group_id),
+                "burst_size": len(burst_detections),
                 "similarity": float(similarity),
                 "duration": duration
             }
@@ -360,19 +492,26 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
             db.add(new_deer)
             db.flush()  # Get ID before linking
 
-            detection.deer_id = new_deer.id
+            # Link all burst detections to new deer
+            for det in burst_detections:
+                det.deer_id = new_deer.id
+                det.burst_group_id = burst_group_id
+
             db.commit()
 
             duration = time.time() - task_start_time
             logger.info(
                 f"[OK] Re-ID complete (NEW): detection={detection_id}, "
-                f"deer={new_deer.id}, duration={duration:.2f}s"
+                f"deer={new_deer.id}, burst_size={len(burst_detections)}, "
+                f"duration={duration:.2f}s"
             )
 
             return {
                 "status": "new_profile",
                 "detection_id": detection_id,
                 "deer_id": str(new_deer.id),
+                "burst_group_id": str(burst_group_id),
+                "burst_size": len(burst_detections),
                 "duration": duration
             }
 
