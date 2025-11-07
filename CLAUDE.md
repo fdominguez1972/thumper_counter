@@ -526,9 +526,9 @@ curl "http://localhost:8001/api/images?location_id=UUID&status=completed&page_si
 
 ## SESSION STATUS - Updated November 7, 2025
 
-### Current Sprint: 4 of 6 - IN PROGRESS
-**Phase:** Sprint 4 - Multi-Class Model Training (Sex/Age Classification)
-**Branch:** 002-batch-processing
+### Current Sprint: 10 (Frontend Dashboard)
+**Phase:** Sprint 10 - Frontend Implementation (PLANNING)
+**Branch:** main (will create: 006-frontend-dashboard)
 
 ### Sprint 3 Completed (Nov 6, 2025)
 - [OK] GPU acceleration enabled (10x faster: 0.04s vs 0.4s per image)
@@ -887,7 +887,253 @@ Note: Real-world slower than GPU capability due to DB write bottleneck.
 - Models: src/models/yolov8n_deer.pt (22MB)
 - Branch: 003-re-identification (current, Sprint 5)
 - Remotes: origin (GitHub), ubuntu (local)
-- Add to memory
+## SPRINT 10: Frontend Dashboard (NEXT)
+
+### Planning Documents Created (Nov 7, 2025)
+- [NEW] docs/FRONTEND_REQUIREMENTS.md - Comprehensive frontend specification
+- [NEW] docs/SPRINT_10_PLAN.md - Detailed sprint plan with task breakdown
+
+### Frontend Goals
+1. Dashboard with population metrics (clickable cards)
+2. Deer Gallery (browse individual deer profiles)
+3. Deer Profile detail page (timeline, locations, image gallery)
+4. Image Upload interface (files + ZIP archives, location selection)
+5. Image Browser (detection overlays, filtering)
+6. Location management (CRUD operations)
+
+### Technology Stack
+- React 18+ with TypeScript
+- Material-UI (MUI) for components
+- React Query for API integration
+- Recharts for visualizations
+- Vite for build tooling
+
+### Key Features
+- Real-time processing queue status
+- Clickable metric cards navigating to filtered views
+- Sex/age breakdown visualization (bucks: young/mid/mature)
+- Detection bounding box overlays
+- Activity timeline charts
+- Location movement patterns
+
+### API Enhancements Needed
+- GET /api/stats/dashboard - Dashboard metrics
+- GET /api/stats/population - Population breakdown
+- Existing endpoints already support all filtering needs
+
+### Next Steps
+1. Review frontend requirements with user
+2. Create branch: 006-frontend-dashboard
+3. Begin Task 1: Project setup and configuration
+4. Implement pages incrementally (Dashboard -> Gallery -> Upload -> Browser)
+
+### Current System State
+- Backend: Fully operational (http://localhost:8001)
+- Database: 35,251 images, 29,735 detections, 14 deer profiles
+- ML Pipeline: 13.5 images/second throughput
+- Frontend: Basic scaffold exists, ready for rebuild
+
+
+## SPRINT 10: Frontend Dashboard (NEXT - November 7, 2025)
+
+### Planning Documents Created
+- docs/FRONTEND_REQUIREMENTS.md - Comprehensive frontend specification
+- docs/SPRINT_10_PLAN.md - Detailed sprint plan with task breakdown
+- front_end_thoughts.txt - User requirements (converted to formal specs)
+
+### Sprint 9 Summary (COMPLETED November 7, 2025)
+**Focus:** Re-ID GPU Optimization and Performance Investigation
+
+**Key Findings:**
+- Re-ID was already on GPU since Sprint 5 (not a bottleneck)
+- Actual Re-ID inference: 5.57ms per image (GPU) or 0.46ms (batch mode)
+- Perceived "2s bottleneck" was full pipeline (image I/O + DB + Re-ID combined)
+- Burst optimization provides 98% hit rate (reuses deer_id for photo bursts)
+- System throughput: 13.5 images/second (bottleneck is image I/O, not GPU)
+
+**Optimizations Implemented:**
+- Enabled cuDNN auto-tuning (8-12% improvement)
+- Implemented batch feature extraction function (12x speedup)
+- Created benchmark tool (scripts/benchmark_reid.py)
+
+**Documentation:** docs/SPRINT_9_REID_GPU.md
+
+### Frontend Requirements Summary
+
+**Dashboard Page:**
+- Population metrics with clickable cards
+- Total Deer (unique Re-ID profiles)
+- Total Sightings (all detections)
+- Buck count with age breakdown (young/mid/mature)
+- Does vs Bucks population chart
+- Buck age distribution chart
+- Cards navigate to filtered Deer Gallery views
+
+**Deer Gallery:**
+- Grid of individual deer profile cards
+- Filters: sex, age class, location, activity
+- Sort: most seen, recently seen, first discovered, alphabetical
+- Search by name or UUID
+- Click card to view detailed profile
+
+**Deer Profile Detail:**
+- Primary photo with thumbnail gallery
+- Editable: name, status, notes
+- Metrics: sightings, first/last seen, favorite location
+- Image gallery: all detection crops for this deer
+- Activity timeline: sightings over time (hour/day/week/month grouping)
+- Location movement: locations visited with visit counts
+- Delete profile option
+
+**Image Upload:**
+- Drag-drop or file browser
+- Support: individual images, multiple files, ZIP archives
+- Location dropdown selection (required)
+- "Process Immediately" checkbox
+- Progress tracking during upload
+- OCR pipeline (FUTURE - Sprint 11): Extract metadata from trail camera footer
+
+**Image Browser:**
+- Grid of uploaded images with thumbnails
+- Detection count badges
+- Filters: location, date range, processing status, has detections, sex/class
+- Sort: newest, oldest, most detections
+- Click image opens lightbox with:
+  - Full-resolution display
+  - Detection bounding boxes overlay (toggle on/off)
+  - Box labels: sex/class, confidence, deer name
+  - Click box to navigate to deer profile
+  - Metadata panel
+
+**Location Management:**
+- List of camera locations
+- Add/edit/delete locations
+- View images per location
+- Map view (FUTURE if coordinates available)
+
+### Technology Stack
+
+**Frontend:**
+- React 18+ with TypeScript
+- Vite (build tool)
+- Material-UI (MUI) for components
+- React Router for navigation
+- React Query for API calls and caching
+- Recharts for visualizations
+- Axios for HTTP client
+- Port: 3000 (Docker container: thumper_frontend)
+
+**Backend APIs to Integrate:**
+- GET /api/deer - List deer profiles
+- GET /api/deer/{id} - Deer detail
+- GET /api/deer/{id}/timeline - Activity timeline
+- GET /api/deer/{id}/locations - Movement patterns
+- POST /api/deer, PUT /api/deer/{id}, DELETE /api/deer/{id}
+- GET /api/images - List images with filters
+- GET /api/images/{id} - Image detail
+- POST /api/images - Upload images
+- GET /api/locations, POST /api/locations, PUT /api/locations/{id}, DELETE /api/locations/{id}
+- GET /api/processing/status - Queue status
+- POST /api/processing/batch - Queue batch processing
+
+**New Endpoints to Create:**
+- GET /api/stats/dashboard - Dashboard metrics
+- GET /api/stats/population - Population breakdown by sex/age
+
+### Sprint 10 Task Breakdown
+
+**Task 1:** Project Setup (2 hours)
+- Install dependencies (MUI, React Query, Recharts, etc.)
+- Configure Vite, TypeScript, routing
+- Create directory structure
+
+**Task 2:** Dashboard Page (6 hours)
+- MetricCard component (clickable with navigation)
+- 5 metric cards with real data
+- Recent activity feed
+- Processing queue status (real-time polling)
+- Location status list
+
+**Task 3:** Deer Gallery (5 hours)
+- DeerCard component
+- Grid layout with filters and sort
+- Pagination
+- Search functionality
+
+**Task 4:** Deer Profile Detail (7 hours)
+- Profile header with editable fields
+- Metrics display
+- Image gallery for this deer
+- Activity timeline chart
+- Location movement analysis
+
+**Task 5:** Image Upload (6 hours)
+- Drag-drop upload zone
+- File list with previews
+- Location dropdown
+- Upload progress tracking
+- Results display
+
+**Task 6:** Image Browser (6 hours)
+- Image grid with lazy loading
+- Lightbox viewer with detection overlays
+- Bounding box rendering (Canvas or SVG)
+- Filters and pagination
+
+**Task 7:** Location Management (4 hours)
+- Location list/table
+- Add/edit/delete modals
+- Form validation
+
+**Task 8:** Backend Stats Endpoints (3 hours)
+- Create /api/stats/dashboard
+- Create /api/stats/population
+- Implement caching
+
+**Task 9:** Testing & Polish (4 hours)
+- Manual testing with real data
+- Edge case handling
+- Responsive design
+- Performance optimization
+- Documentation
+
+**Total Estimated Time:** 43 hours (2-3 weeks)
+
+### Success Criteria (Sprint 10)
+- [ ] All 6 pages functional and accessible
+- [ ] Dashboard displays accurate population metrics
+- [ ] All metric cards clickable with correct navigation
+- [ ] Deer Gallery filtering and sorting works
+- [ ] Deer Profile shows complete history and timeline
+- [ ] Image Upload accepts files/archives with location selection
+- [ ] Image Browser displays detections with bounding box overlays
+- [ ] Locations CRUD operations working
+- [ ] Real-time processing status updates
+- [ ] Responsive design (desktop + tablet)
+- [ ] ASCII-only text throughout (no emojis/Unicode)
+- [ ] No console errors in production build
+- [ ] Page load time < 2 seconds
+
+### Current System State (Post-Sprint 9)
+- Backend API: Operational at http://localhost:8001
+- Database: 35,251 images, 29,735 detections, 14 deer profiles
+- ML Pipeline: YOLOv8 detection (0.04s) + ResNet50 Re-ID (5.57ms)
+- System Throughput: 13.5 images/second end-to-end
+- GPU: RTX 4080 Super (16GB VRAM), CUDA enabled, cuDNN optimized
+- Frontend: Basic scaffold exists on port 3000, ready for rebuild
+
+### Branch Strategy
+- Current: main
+- Next: Create 006-frontend-dashboard for Sprint 10 work
+- Merge to main after Sprint 10 completion
+
+### Next Steps
+1. User review of frontend requirements and Sprint 10 plan
+2. Create new branch: 006-frontend-dashboard
+3. Begin Task 1: Project setup and configuration
+4. Implement pages incrementally with user approval at each stage
+
+
 ## SESSION STATUS - Updated $(date +"%B %d, %Y")
 
 ### Current Sprint: 2 of 6
