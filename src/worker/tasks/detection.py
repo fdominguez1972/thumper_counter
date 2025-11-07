@@ -269,7 +269,14 @@ def detect_deer_task(self, image_id: str) -> Dict:
 
                     db.add(detection)
                     detection_count += 1
-                    detections_created.append(str(detection.id))
+
+                # Flush to get detection IDs for re-ID chaining
+                db.flush()
+
+                # Collect detection IDs after flush
+                for detection in db.query(Detection).filter(Detection.image_id == image.id).all():
+                    if str(detection.id) not in detections_created:
+                        detections_created.append(str(detection.id))
 
                 logger.info(f"[OK] Created {detection_count} deer Detection records for {image_id}")
             else:
@@ -278,6 +285,19 @@ def detect_deer_task(self, image_id: str) -> Dict:
         # Update image status to COMPLETED (T008 - FR-004 state transition)
         image.mark_completed()
         db.commit()
+
+        # Sprint 6: Queue re-identification tasks for each detection
+        # Chain re-ID after successful detection to build deer profiles
+        reid_task_ids = []
+        if detection_count > 0:
+            from worker.tasks.reidentification import reidentify_deer_task
+
+            for detection_id in detections_created:
+                # Queue re-ID task asynchronously
+                result = reidentify_deer_task.delay(detection_id)
+                reid_task_ids.append(result.id)
+
+            logger.info(f"[OK] Queued {len(reid_task_ids)} re-ID tasks for image {image_id}")
 
         # Calculate task duration (T011)
         task_end_time = time.time()
@@ -300,6 +320,7 @@ def detect_deer_task(self, image_id: str) -> Dict:
             "image_id": image_id,
             "detection_count": detection_count,
             "detections": detections_created,
+            "reid_tasks": reid_task_ids,  # Sprint 6: Re-ID task IDs for monitoring
             "avg_confidence": avg_confidence,
             "duration": duration
         }
