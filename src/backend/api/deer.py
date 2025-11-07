@@ -314,3 +314,186 @@ async def delete_deer(
     db.commit()
 
     return None
+
+
+@router.get("/{deer_id}/timeline", response_model=dict, status_code=status.HTTP_200_OK)
+def get_deer_timeline(
+    deer_id: UUID,
+    db: Session = Depends(get_db),
+    group_by: str = Query("day", regex="^(hour|day|week|month)$"),
+) -> dict:
+    """
+    Get sighting timeline for a deer (Sprint 6).
+
+    Returns sightings grouped by time period with counts and confidence averages.
+    Useful for understanding deer activity patterns over time.
+
+    Parameters:
+        deer_id: UUID of the deer
+        group_by: Time grouping (hour, day, week, month) - default: day
+
+    Raises:
+        404: Deer not found
+        400: Invalid group_by parameter
+
+    Returns:
+        dict: Timeline data with sightings grouped by time period
+
+    Example Response:
+        {
+            "deer_id": "uuid...",
+            "group_by": "day",
+            "total_sightings": 15,
+            "date_range": {"first": "2024-01-01", "last": "2024-01-15"},
+            "timeline": [
+                {"period": "2024-01-01", "count": 3, "avg_confidence": 0.85},
+                {"period": "2024-01-02", "count": 5, "avg_confidence": 0.82},
+                ...
+            ]
+        }
+    """
+    # Verify deer exists
+    deer = db.query(Deer).filter(Deer.id == deer_id).first()
+    if not deer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Deer with ID {deer_id} not found",
+        )
+
+    # Determine date truncation based on group_by
+    if group_by == "hour":
+        date_trunc = func.date_trunc('hour', Image.timestamp)
+    elif group_by == "day":
+        date_trunc = func.date_trunc('day', Image.timestamp)
+    elif group_by == "week":
+        date_trunc = func.date_trunc('week', Image.timestamp)
+    elif group_by == "month":
+        date_trunc = func.date_trunc('month', Image.timestamp)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid group_by parameter: {group_by}. Must be hour, day, week, or month.",
+        )
+
+    # Query sightings grouped by time period
+    timeline_data = (
+        db.query(
+            date_trunc.label('period'),
+            func.count(Detection.id).label('count'),
+            func.avg(Detection.confidence).label('avg_confidence')
+        )
+        .join(Image, Detection.image_id == Image.id)
+        .filter(Detection.deer_id == deer_id)
+        .group_by('period')
+        .order_by('period')
+        .all()
+    )
+
+    # Format response
+    timeline = [
+        {
+            "period": row.period.isoformat() if row.period else None,
+            "count": row.count,
+            "avg_confidence": round(float(row.avg_confidence), 3) if row.avg_confidence else 0.0
+        }
+        for row in timeline_data
+    ]
+
+    return {
+        "deer_id": str(deer_id),
+        "group_by": group_by,
+        "total_sightings": deer.sighting_count,
+        "date_range": {
+            "first": deer.first_seen.isoformat() if deer.first_seen else None,
+            "last": deer.last_seen.isoformat() if deer.last_seen else None,
+        },
+        "timeline": timeline
+    }
+
+
+@router.get("/{deer_id}/locations", response_model=dict, status_code=status.HTTP_200_OK)
+def get_deer_locations(
+    deer_id: UUID,
+    db: Session = Depends(get_db),
+) -> dict:
+    """
+    Get location patterns for a deer (Sprint 6).
+
+    Returns locations where this deer has been spotted with sighting counts
+    and date ranges. Useful for understanding deer movement patterns and
+    territory.
+
+    Parameters:
+        deer_id: UUID of the deer
+
+    Raises:
+        404: Deer not found
+
+    Returns:
+        dict: Location data with sighting counts
+
+    Example Response:
+        {
+            "deer_id": "uuid...",
+            "total_sightings": 15,
+            "unique_locations": 3,
+            "locations": [
+                {
+                    "location_id": "uuid...",
+                    "location_name": "Sanctuary",
+                    "sighting_count": 10,
+                    "first_seen": "2024-01-01T00:00:00",
+                    "last_seen": "2024-01-15T00:00:00",
+                    "avg_confidence": 0.85
+                },
+                ...
+            ]
+        }
+    """
+    from backend.models.location import Location
+
+    # Verify deer exists
+    deer = db.query(Deer).filter(Deer.id == deer_id).first()
+    if not deer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Deer with ID {deer_id} not found",
+        )
+
+    # Query locations with sighting stats
+    location_data = (
+        db.query(
+            Location.id.label('location_id'),
+            Location.name.label('location_name'),
+            func.count(Detection.id).label('sighting_count'),
+            func.min(Image.timestamp).label('first_seen'),
+            func.max(Image.timestamp).label('last_seen'),
+            func.avg(Detection.confidence).label('avg_confidence')
+        )
+        .join(Image, Detection.image_id == Image.id)
+        .join(Location, Image.location_id == Location.id)
+        .filter(Detection.deer_id == deer_id)
+        .group_by(Location.id, Location.name)
+        .order_by(desc(func.count(Detection.id)))
+        .all()
+    )
+
+    # Format response
+    locations = [
+        {
+            "location_id": str(row.location_id),
+            "location_name": row.location_name,
+            "sighting_count": row.sighting_count,
+            "first_seen": row.first_seen.isoformat() if row.first_seen else None,
+            "last_seen": row.last_seen.isoformat() if row.last_seen else None,
+            "avg_confidence": round(float(row.avg_confidence), 3) if row.avg_confidence else 0.0
+        }
+        for row in location_data
+    ]
+
+    return {
+        "deer_id": str(deer_id),
+        "total_sightings": deer.sighting_count,
+        "unique_locations": len(locations),
+        "locations": locations
+    }
