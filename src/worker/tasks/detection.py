@@ -301,7 +301,10 @@ def detect_deer_task(self, image_id: str) -> Dict:
             if boxes is not None and len(boxes) > 0:
                 logger.info(f"[INFO] Found {len(boxes)} total detections in {image.filename}")
 
-                # Create Detection record for each bbox (T008 - FR-003)
+                # Sprint 8: Batch create Detection records for better performance
+                # WHY: bulk_save_objects is faster than individual db.add() calls
+                detections_to_create = []
+
                 for i, box in enumerate(boxes):
                     # Get bbox coordinates (x1, y1, x2, y2 format from YOLO)
                     xyxy = box.xyxy[0].cpu().numpy()  # [x1, y1, x2, y2]
@@ -328,7 +331,7 @@ def detect_deer_task(self, image_id: str) -> Dict:
                         logger.debug(f"[INFO] Skipping non-deer detection: {class_name}")
                         continue
 
-                    # Create Detection record with classification
+                    # Create Detection object (don't add yet)
                     detection = Detection(
                         image_id=image.id,
                         bbox=bbox_dict,
@@ -337,11 +340,13 @@ def detect_deer_task(self, image_id: str) -> Dict:
                         deer_id=None  # Will be set by re-ID stage
                     )
 
-                    db.add(detection)
+                    detections_to_create.append(detection)
                     detection_count += 1
 
-                # Flush to assign IDs to detections
-                db.flush()
+                # Bulk insert all detections in one operation (Sprint 8 optimization)
+                if detections_to_create:
+                    db.bulk_save_objects(detections_to_create, return_defaults=True)
+                    db.flush()  # Assign IDs to all detections
 
                 # Deduplicate within-image detections (Sprint 8: Deduplication)
                 # Mark overlapping detections as duplicates, keep highest confidence
