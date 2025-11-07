@@ -3,7 +3,7 @@ services:
   # Note: Using existing database container on host
   # If you want a separate database, change port mapping to "5433:5432"
   db:
-    image: postgres:15-alpine
+    image: ankane/pgvector:v0.5.1
     container_name: thumper_db
     restart: unless-stopped
     environment:

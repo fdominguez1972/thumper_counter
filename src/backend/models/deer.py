@@ -11,8 +11,9 @@ from datetime import datetime
 from typing import Optional, List
 
 from sqlalchemy import Column, String, Float, Integer, DateTime, Enum, Index
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 
 from backend.core.database import Base
 
@@ -152,11 +153,11 @@ class Deer(Base):
         comment="Timestamp of most recent detection"
     )
 
-    # Re-identification features
+    # Re-identification features (Sprint 5: Using pgvector for efficient similarity search)
     feature_vector = Column(
-        ARRAY(Float),
-        nullable=True,  # Sprint 3: Optional for manually created profiles
-        comment="ML embedding for re-identification (ResNet50 output, 2048 dimensions)"
+        Vector(512),  # ResNet50 outputs 512-dim embeddings
+        nullable=True,  # Optional for manually created profiles
+        comment="ML embedding for re-identification (ResNet50 output, 512 dimensions)"
     )
 
     confidence = Column(
@@ -185,6 +186,9 @@ class Deer(Base):
     __table_args__ = (
         Index("ix_deer_last_seen_sex", "last_seen", "sex"),
         Index("ix_deer_sighting_count", "sighting_count"),
+        # HNSW index for fast vector similarity search (Sprint 5)
+        # Uses cosine distance for re-identification matching
+        Index("ix_deer_feature_vector_hnsw", "feature_vector", postgresql_using="hnsw", postgresql_ops={"feature_vector": "vector_cosine_ops"}),
         {"comment": "Individual deer profiles with re-identification tracking"}
     )
 
