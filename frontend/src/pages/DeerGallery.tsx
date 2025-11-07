@@ -1,11 +1,27 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
-import { getDeerList, Deer } from '../api/deer'
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  CardMedia,
+  Chip,
+  CircularProgress,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import { getDeerList, Deer } from '../api/deer';
 
 export default function DeerGallery() {
-  const [sexFilter, setSexFilter] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<string>('last_seen')
+  const [sexFilter, setSexFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('last_seen');
 
   const { data, isLoading } = useQuery({
     queryKey: ['deer', 'list', sexFilter, sortBy],
@@ -13,158 +29,196 @@ export default function DeerGallery() {
       page_size: 100,
       sex: sexFilter !== 'all' ? sexFilter : undefined,
       sort_by: sortBy,
-      min_sightings: 1,  // Only show deer with at least 1 sighting
+      min_sightings: 1,
     }),
-  })
+  });
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading deer...</div>
-      </div>
-    )
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  // Filter out deer with 0 sightings (additional client-side filter as backup)
-  const filteredDeer = data?.deer.filter(deer => deer.sighting_count > 0) || []
+  const filteredDeer = data?.deer.filter(deer => deer.sighting_count > 0) || [];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Deer Gallery</h2>
-        <div className="text-sm text-gray-600">
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+          Deer Gallery
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
           {filteredDeer.length} deer with sightings
-        </div>
-      </div>
+        </Typography>
+      </Box>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="flex flex-wrap gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Filter by Sex
-            </label>
-            <select
-              value={sexFilter}
-              onChange={(e) => setSexFilter(e.target.value)}
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-            >
-              <option value="all">All</option>
-              <option value="buck">Bucks</option>
-              <option value="doe">Does</option>
-              <option value="fawn">Fawns</option>
-              <option value="unknown">Unknown</option>
-            </select>
-          </div>
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Filter by Sex</InputLabel>
+                <Select
+                  value={sexFilter}
+                  label="Filter by Sex"
+                  onChange={(e) => setSexFilter(e.target.value)}
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="buck">Bucks</MenuItem>
+                  <MenuItem value="doe">Does</MenuItem>
+                  <MenuItem value="fawn">Fawns</MenuItem>
+                  <MenuItem value="unknown">Unknown</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Sort By
-            </label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-            >
-              <option value="last_seen">Last Seen</option>
-              <option value="first_seen">First Seen</option>
-              <option value="sighting_count">Sighting Count</option>
-            </select>
-          </div>
-        </div>
-      </div>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Sort By</InputLabel>
+                <Select
+                  value={sortBy}
+                  label="Sort By"
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <MenuItem value="last_seen">Last Seen</MenuItem>
+                  <MenuItem value="first_seen">First Seen</MenuItem>
+                  <MenuItem value="sighting_count">Sighting Count</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
       {/* Deer Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <Grid container spacing={3}>
         {filteredDeer.map((deer) => (
-          <DeerCard key={deer.id} deer={deer} />
+          <Grid item xs={12} sm={6} md={4} lg={3} key={deer.id}>
+            <DeerCard deer={deer} />
+          </Grid>
         ))}
-      </div>
+      </Grid>
 
       {filteredDeer.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          No deer found matching your filters
-        </div>
+        <Box sx={{ textAlign: 'center', py: 6 }}>
+          <Typography variant="body1" color="text.secondary">
+            No deer found matching your filters
+          </Typography>
+        </Box>
       )}
-    </div>
-  )
+    </Box>
+  );
 }
 
 interface DeerCardProps {
-  deer: Deer
+  deer: Deer;
 }
 
 function DeerCard({ deer }: DeerCardProps) {
-  const sexColors = {
-    buck: 'bg-amber-100 text-amber-800',
-    doe: 'bg-pink-100 text-pink-800',
-    fawn: 'bg-blue-100 text-blue-800',
-    unknown: 'bg-gray-100 text-gray-800',
-  }
+  const navigate = useNavigate();
+  const theme = useTheme();
 
-  const sexIcons = {
+  const sexColors: Record<string, { bg: string; color: string }> = {
+    buck: { bg: theme.palette.info.light, color: theme.palette.info.dark },
+    doe: { bg: theme.palette.secondary.light, color: theme.palette.secondary.dark },
+    fawn: { bg: theme.palette.warning.light, color: theme.palette.warning.dark },
+    unknown: { bg: theme.palette.grey[200], color: theme.palette.grey[700] },
+  };
+
+  const sexIcons: Record<string, string> = {
     buck: 'B',
     doe: 'D',
     fawn: 'F',
     unknown: '?',
-  }
+  };
+
+  const color = sexColors[deer.sex] || sexColors.unknown;
 
   return (
-    <Link
-      to={`/deer/${deer.id}`}
-      className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden"
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'all 0.2s',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: 4,
+        },
+      }}
     >
-      {/* Deer photo or placeholder */}
-      {deer.thumbnail_url ? (
-        <div className="h-48 overflow-hidden bg-gray-100">
-          <img
-            src={deer.thumbnail_url}
+      <CardActionArea onClick={() => navigate(`/deer/${deer.id}`)} sx={{ flexGrow: 1 }}>
+        {deer.thumbnail_url ? (
+          <CardMedia
+            component="img"
+            height="192"
+            image={deer.thumbnail_url}
             alt={deer.name || 'Deer'}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // Fallback to icon if image fails to load
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.parentElement!.innerHTML = `
-                <div class="h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
-                  <span class="text-6xl">${sexIcons[deer.sex]}</span>
-                </div>
-              `;
-            }}
+            sx={{ height: 192, objectFit: 'cover' }}
           />
-        </div>
-      ) : (
-        <div className="h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
-          <span className="text-6xl">{sexIcons[deer.sex]}</span>
-        </div>
-      )}
+        ) : (
+          <Box
+            sx={{
+              height: 192,
+              background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.dark} 100%)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography variant="h1" sx={{ fontSize: 72, color: 'white' }}>
+              {sexIcons[deer.sex]}
+            </Typography>
+          </Box>
+        )}
 
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="text-lg font-semibold text-gray-900 truncate">
-            {deer.name || `Deer ${deer.id.slice(0, 8)}`}
-          </h3>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${sexColors[deer.sex]}`}>
-            {deer.sex}
-          </span>
-        </div>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Typography variant="h6" noWrap sx={{ flexGrow: 1, mr: 1 }}>
+              {deer.name || `Deer ${deer.id.slice(0, 8)}`}
+            </Typography>
+            <Chip
+              label={deer.sex}
+              size="small"
+              sx={{
+                bgcolor: color.bg,
+                color: color.color,
+                fontWeight: 600,
+              }}
+            />
+          </Box>
 
-        <div className="space-y-1 text-sm text-gray-600">
-          <div className="flex justify-between">
-            <span>Sightings:</span>
-            <span className="font-medium">{deer.sighting_count}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Confidence:</span>
-            <span className="font-medium">{(deer.confidence * 100).toFixed(1)}%</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Last seen:</span>
-            <span className="font-medium">
-              {new Date(deer.last_seen).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  )
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="text.secondary">
+                Sightings:
+              </Typography>
+              <Typography variant="body2" fontWeight={500}>
+                {deer.sighting_count}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="text.secondary">
+                Confidence:
+              </Typography>
+              <Typography variant="body2" fontWeight={500}>
+                {(deer.confidence * 100).toFixed(1)}%
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="text.secondary">
+                Last seen:
+              </Typography>
+              <Typography variant="body2" fontWeight={500}>
+                {new Date(deer.last_seen).toLocaleDateString()}
+              </Typography>
+            </Box>
+          </Box>
+        </CardContent>
+      </CardActionArea>
+    </Card>
+  );
 }
