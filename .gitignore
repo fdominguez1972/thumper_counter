@@ -66,6 +66,9 @@ data/
 *.mp4
 *.avi
 
+# CIFS mount point for original trail camera images
+cifs/
+
 # Database
 *.db
 *.sqlite

@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, Dict, Tuple
 
-from sqlalchemy import Column, String, Float, DateTime, JSON, ForeignKey, Index
+from sqlalchemy import Column, String, Float, DateTime, JSON, ForeignKey, Index, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -88,6 +88,22 @@ class Detection(Base):
         nullable=False,
         default="unknown",
         comment="Sex classification (buck/doe/fawn/unknown)"
+    )
+
+    # Deduplication fields
+    is_duplicate = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        index=True,
+        comment="True if this detection overlaps significantly with another in same image"
+    )
+
+    burst_group_id = Column(
+        UUID(as_uuid=True),
+        nullable=True,
+        index=True,
+        comment="Groups detections from same photo burst/event (same timestamp + location)"
     )
 
     # Metadata
