@@ -67,7 +67,7 @@ services:
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
       CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.7}
-      REID_THRESHOLD: ${REID_THRESHOLD:-0.85}
+      REID_THRESHOLD: 0.55  # Lowered from 0.85 to improve deer consolidation
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
     ports:
       - "8001:8000"  # Using port 8001 to avoid conflict
@@ -116,7 +116,7 @@ services:
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
       CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.7}
-      REID_THRESHOLD: ${REID_THRESHOLD:-0.85}
+      REID_THRESHOLD: 0.55  # Lowered from 0.85 to improve deer consolidation
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
       # GPU enabled via model preloading in celery_app.py (Sprint 3)
       # Model is loaded before worker forks, avoiding CUDA fork() issues

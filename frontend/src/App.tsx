@@ -8,6 +8,7 @@ import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import DeerGallery from './pages/DeerGallery';
 import DeerDetail from './pages/DeerDetail';
+import DeerImages from './pages/DeerImages';
 import Images from './pages/Images';
 import Upload from './pages/Upload';
 import Locations from './pages/Locations';
@@ -24,6 +25,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/deer" element={<DeerGallery />} />
               <Route path="/deer/:id" element={<DeerDetail />} />
+              <Route path="/deer/:id/images" element={<DeerImages />} />
               <Route path="/images" element={<Images />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/locations" element={<Locations />} />

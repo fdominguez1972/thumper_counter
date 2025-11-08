@@ -76,15 +76,49 @@ export default function DeerDetail() {
 
   return (
     <Box>
+      {/* Back Button */}
+      <Button
+        startIcon={<ArrowBackIcon />}
+        onClick={() => navigate('/deer')}
+        sx={{ mb: 2 }}
+      >
+        Back to gallery
+      </Button>
+
+      {/* Hero Image */}
+      <Card sx={{ mb: 3, overflow: 'hidden' }}>
+        {deer.photo_url ? (
+          <Box
+            component="img"
+            src={deer.photo_url}
+            alt={deer.name || 'Deer'}
+            sx={{
+              width: '100%',
+              maxHeight: { xs: 300, sm: 400, md: 500 },
+              objectFit: 'cover',
+              display: 'block',
+            }}
+          />
+        ) : (
+          <Box
+            sx={{
+              width: '100%',
+              height: { xs: 300, sm: 400, md: 500 },
+              background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.dark} 100%)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography variant="h1" sx={{ fontSize: { xs: 80, sm: 120, md: 160 }, color: 'white', opacity: 0.5 }}>
+              {deer.sex === 'buck' ? 'B' : deer.sex === 'doe' ? 'D' : deer.sex === 'fawn' ? 'F' : '?'}
+            </Typography>
+          </Box>
+        )}
+      </Card>
+
       {/* Header */}
       <Box sx={{ mb: 3 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/deer')}
-          sx={{ mb: 2 }}
-        >
-          Back to gallery
-        </Button>
         <Box>
           <Typography variant="h3" sx={{ fontWeight: 600, mb: 1 }}>
             {deer.name || `Deer ${deer.id.slice(0, 8)}`}
@@ -111,6 +145,8 @@ export default function DeerDetail() {
           <StatCard
             label="Total Sightings"
             value={deer.sighting_count}
+            onClick={() => navigate(`/deer/${id}/images`)}
+            clickable
           />
         </Grid>
         <Grid item xs={6} md={3}>
@@ -230,11 +266,23 @@ export default function DeerDetail() {
 interface StatCardProps {
   label: string;
   value: string | number;
+  onClick?: () => void;
+  clickable?: boolean;
 }
 
-function StatCard({ label, value }: StatCardProps) {
+function StatCard({ label, value, onClick, clickable }: StatCardProps) {
   return (
-    <Card>
+    <Card
+      sx={{
+        cursor: clickable ? 'pointer' : 'default',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        '&:hover': clickable ? {
+          transform: 'translateY(-4px)',
+          boxShadow: 4,
+        } : {},
+      }}
+      onClick={onClick}
+    >
       <CardContent>
         <Typography variant="body2" color="text.secondary" gutterBottom>
           {label}

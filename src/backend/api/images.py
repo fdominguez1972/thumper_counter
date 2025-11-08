@@ -403,6 +403,10 @@ def list_images(
         None,
         description="Filter by whether images have detections (true/false)"
     ),
+    classification: Optional[str] = Query(
+        None,
+        description="Filter by detection classification (buck/doe/fawn/unknown/cattle/pig). Uses corrected_classification if available, otherwise ML classification."
+    ),
     page_size: int = Query(
         20,
         ge=1,
@@ -425,6 +429,7 @@ def list_images(
         date_from: Filter by minimum timestamp
         date_to: Filter by maximum timestamp
         has_detections: Filter by detection presence
+        classification: Filter by detection classification
         page_size: Number of results per page
         skip: Number of results to skip
         db: Database session
@@ -479,6 +484,29 @@ def list_images(
             else:
                 # Has no detections (left outer join with filter)
                 query = query.outerjoin(Detection).filter(Detection.id.is_(None))
+
+        # Apply classification filter
+        if classification:
+            from backend.models.detection import Detection
+            from sqlalchemy import or_, func, exists, select
+
+            # Validate classification value
+            valid_classes = ["buck", "doe", "fawn", "unknown", "cattle", "pig", "raccoon"]
+            if classification.lower() not in valid_classes:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid classification: {classification}. Valid values: {', '.join(valid_classes)}"
+                )
+
+            # Use EXISTS subquery to avoid DISTINCT issues with JSON columns
+            # This filters images that have at least one detection with matching classification
+            classification_subquery = (
+                select(1)
+                .select_from(Detection)
+                .where(Detection.image_id == Image.id)
+                .where(func.coalesce(Detection.corrected_classification, Detection.classification) == classification.lower())
+            )
+            query = query.filter(exists(classification_subquery))
 
         # Get total count before pagination
         total = query.count()

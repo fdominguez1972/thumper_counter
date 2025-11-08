@@ -241,7 +241,26 @@ async def get_deer(
         # Attach to response (handled by Pydantic model)
         deer.detection_history = [d[0] for d in detections]
 
-    return deer
+    # Construct response with photo URLs
+    deer_dict = {
+        "id": deer.id,
+        "name": deer.name,
+        "sex": deer.sex,
+        "species": deer.species,
+        "notes": deer.notes,
+        "status": deer.status,
+        "confidence": deer.confidence,
+        "first_seen": deer.first_seen,
+        "last_seen": deer.last_seen,
+        "sighting_count": deer.sighting_count,
+        "created_at": deer.created_at,
+        "updated_at": deer.updated_at,
+        "best_photo_id": deer.best_photo_id,
+        "thumbnail_url": f"/api/static/thumbnails/{deer.best_photo_id}" if deer.best_photo_id else None,
+        "photo_url": f"/api/static/images/{deer.best_photo_id}" if deer.best_photo_id else None,
+    }
+
+    return deer_dict
 
 
 @router.put("/{deer_id}", response_model=DeerResponse)
@@ -518,4 +537,206 @@ def get_deer_locations(
         "total_sightings": deer.sighting_count,
         "unique_locations": len(locations),
         "locations": locations
+    }
+
+
+@router.get("/{deer_id}/images", response_model=dict, status_code=status.HTTP_200_OK)
+def get_deer_images(
+    deer_id: UUID,
+    db: Session = Depends(get_db),
+) -> dict:
+    """
+    Get all images containing this deer.
+
+    Returns images with their metadata sorted by timestamp (most recent first).
+    Useful for browsing all sightings of a specific deer.
+
+    Parameters:
+        deer_id: UUID of the deer
+
+    Raises:
+        404: Deer not found
+
+    Returns:
+        dict: Images data with timestamps and locations
+
+    Example Response:
+        {
+            "deer_id": "uuid...",
+            "deer_name": "Wendy",
+            "total_images": 174,
+            "images": [
+                {
+                    "id": "uuid...",
+                    "filename": "CAM1_20220626_123456.jpg",
+                    "timestamp": "2022-06-26T12:34:56",
+                    "location_name": "Sanctuary",
+                    "confidence": 0.85
+                },
+                ...
+            ]
+        }
+    """
+    from backend.models.location import Location
+
+    # Verify deer exists
+    deer = db.query(Deer).filter(Deer.id == deer_id).first()
+    if not deer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Deer with ID {deer_id} not found",
+        )
+
+    # Query all images for this deer via detections with detection details
+    images_data = (
+        db.query(
+            Image.id,
+            Image.filename,
+            Image.timestamp,
+            Location.name.label('location_name'),
+            Detection.id.label('detection_id'),
+            Detection.confidence,
+            Detection.classification,
+            Detection.is_reviewed,
+            Detection.is_valid,
+            Detection.corrected_classification,
+            Detection.correction_notes
+        )
+        .join(Detection, Image.id == Detection.image_id)
+        .join(Location, Image.location_id == Location.id)
+        .filter(Detection.deer_id == deer_id)
+        .order_by(desc(Image.timestamp))
+        .all()
+    )
+
+    # Format response with detection details
+    images = [
+        {
+            "id": str(row.id),
+            "filename": row.filename,
+            "timestamp": row.timestamp.isoformat() if row.timestamp else None,
+            "location_name": row.location_name,
+            "detection_id": str(row.detection_id),
+            "confidence": round(float(row.confidence), 3) if row.confidence else 0.0,
+            "classification": row.classification,
+            "is_reviewed": row.is_reviewed,
+            "is_valid": row.is_valid,
+            "corrected_classification": row.corrected_classification,
+            "correction_notes": row.correction_notes,
+        }
+        for row in images_data
+    ]
+
+    return {
+        "deer_id": str(deer_id),
+        "deer_name": deer.name,
+        "total_images": len(images),
+        "images": images
+    }
+
+
+@router.get(
+    "/stats/species",
+    summary="Get species population statistics",
+    description="Get counts of detections by species including deer and non-deer animals"
+)
+def get_species_stats(
+    location_id: Optional[UUID] = Query(None, description="Filter by location"),
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    Get population breakdown by species.
+
+    Returns counts for:
+    - Deer (buck/doe/fawn/unknown combined)
+    - Feral Hogs (pigs)
+    - Cattle
+    - Raccoons
+    - Other/Unknown
+
+    Uses corrected_classification if available, otherwise ML classification.
+
+    Args:
+        location_id: Optional location UUID to filter results
+        db: Database session
+
+    Returns:
+        dict: Species counts with breakdown
+
+    Example Response:
+        {
+            "total_detections": 12450,
+            "deer": {
+                "total": 12000,
+                "buck": 3500,
+                "doe": 7200,
+                "fawn": 800,
+                "unknown": 500
+            },
+            "non_deer": {
+                "total": 450,
+                "feral_hogs": 200,
+                "cattle": 150,
+                "raccoons": 100
+            }
+        }
+    """
+    from backend.models.detection import Detection
+    from backend.models.image import Image
+    from sqlalchemy import func, case
+
+    # Base query
+    query = db.query(Detection)
+
+    # Join with images if filtering by location
+    if location_id:
+        query = query.join(Image).filter(Image.location_id == location_id)
+
+    # Get classification (prefer corrected over ML)
+    classification_col = func.coalesce(
+        Detection.corrected_classification,
+        Detection.classification
+    )
+
+    # Count by classification
+    counts = {}
+    for classification, count in (
+        query
+        .with_entities(classification_col, func.count(Detection.id))
+        .group_by(classification_col)
+        .all()
+    ):
+        if classification:
+            counts[classification.lower()] = count
+
+    # Build response
+    deer_classes = {"buck", "doe", "fawn", "unknown"}
+    deer_breakdown = {}
+    deer_total = 0
+
+    for deer_class in deer_classes:
+        count = counts.get(deer_class, 0)
+        deer_breakdown[deer_class] = count
+        deer_total += count
+
+    non_deer_breakdown = {
+        "feral_hogs": counts.get("pig", 0),
+        "cattle": counts.get("cattle", 0),
+        "raccoons": counts.get("raccoon", 0),
+    }
+    non_deer_total = sum(non_deer_breakdown.values())
+
+    total_detections = deer_total + non_deer_total
+
+    return {
+        "total_detections": total_detections,
+        "deer": {
+            "total": deer_total,
+            **deer_breakdown
+        },
+        "non_deer": {
+            "total": non_deer_total,
+            **non_deer_breakdown
+        },
+        "location_filter": str(location_id) if location_id else None
     }
