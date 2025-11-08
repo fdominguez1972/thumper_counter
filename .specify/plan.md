@@ -1,42 +1,43 @@
 # Thumper Counter Development Plan
-**Version:** 1.3.0
+**Version:** 1.4.0
 **Created:** 2025-11-05
-**Updated:** 2025-11-07 (Sprint 7 Complete)
+**Updated:** 2025-11-08 (Sprint 8 Complete)
 **Status:** ACTIVE
-**Sprint:** Sprint 7 Complete - Batch Processing Ongoing
+**Sprint:** Sprint 8 Complete - Detection Correction & Multi-Species
 
 ## Executive Summary
 
-Project is 75% complete with Sprints 1-7 finished. All core features operational: GPU-accelerated detection (0.04s/image), multi-class sex/age classification, automatic re-identification with ResNet50, React frontend dashboard. Currently processing backlog: 11,222 of 35,251 images complete (31.8%), 31,092 detections created, 714 deer profiles via re-ID. Focus: Complete remaining batch processing, validate accuracy, add automated tests.
+Project is 85% complete with Sprints 1-8 finished. All core features operational: GPU-accelerated detection (0.04s/image), multi-class sex/age classification, automatic re-identification with ResNet50, React frontend dashboard with correction UI. Detection correction system implemented (single and batch editing up to 1000 images). Multi-species support added (deer, cattle, pig, raccoon). Currently: 1,200 of 35,251 images processed (3.4%), 37,522 detections created, 14 deer profiles. Focus: Complete remaining batch processing, use correction UI to improve data quality, tag non-deer species.
 
 ## Project Metrics
 
 ### Completion Status
-- **Overall:** 75% complete (+10% from last update)
-- **Database:** 100% complete (PostgreSQL with pgvector)
-- **API:** 90% complete (all CRUD endpoints, batch processing, analytics)
+- **Overall:** 85% complete (+10% from last update)
+- **Database:** 100% complete (PostgreSQL with pgvector, correction fields)
+- **API:** 95% complete (all CRUD, batch processing, corrections, analytics)
 - **ML Pipeline:** 95% complete (detection, classification, re-ID integrated)
-- **Frontend:** 60% complete (React dashboard MVP operational)
+- **Frontend:** 75% complete (React dashboard with correction UI operational)
 - **Testing:** 15% complete (manual testing only, no automated tests)
-- **Documentation:** 85% complete (handoff system added, some docs stale)
+- **Documentation:** 90% complete (session handoffs current, all systems documented)
 
 ### Lines of Code
-- **Written:** ~12,000 lines (estimated through Sprint 7)
-- **Backend/API:** ~4,000 lines
+- **Written:** ~13,500 lines (estimated through Sprint 8)
+- **Backend/API:** ~4,500 lines (added detection corrections API)
 - **Worker/ML:** ~3,500 lines
-- **Frontend:** ~3,000 lines
+- **Frontend:** ~4,000 lines (added correction dialogs, multi-select UI)
 - **Tests:** ~500 lines
 - **Documentation:** ~1,000 lines
-- **Remaining:** ~1,500 lines (testing, monitoring, polish)
+- **Remaining:** ~1,000 lines (testing, monitoring, polish)
 
-### Sprints 1-7 Summary (Nov 1-7)
+### Sprints 1-8 Summary (Nov 1-8)
 - Sprint 1: Foundation (database, Docker, 35k images ingested)
 - Sprint 2: ML Integration (YOLOv8 CPU detection working)
 - Sprint 3: GPU & Batch Processing (10x speedup, batch API)
 - Sprint 4: Multi-Class Training (sex/age classification model)
 - Sprint 5: Re-Identification (ResNet50 embeddings, pgvector)
 - Sprint 6: Pipeline Integration (auto re-ID chaining)
-- Sprint 7: OCR Analysis (concluded not needed)
+- Sprint 7: Timestamp & Deduplication (two-stage dedup system)
+- Sprint 8: Detection Correction & Multi-Species (correction UI, 7 species)
 
 ## Sprint Plan
 
@@ -293,22 +294,47 @@ PENDING:
 - Decision: Continue using existing filename parsing
 - Documentation: docs/SPRINT_7_OCR_ANALYSIS.md
 
-### Sprint 8 (Current) - Batch Processing & Polish [Nov 7-10]
-**Focus:** Complete image processing backlog and polish features
+### Sprint 8 (Complete) - Detection Correction & Multi-Species [Nov 8] ✅
+**Focus:** Manual correction system and multi-species wildlife tracking
 
-**In Progress:**
-- 🔄 Process remaining 24,029 pending images (68.2%)
-- 🔄 Monitor and validate deer profile accuracy
-- ⬜ Frontend enhancements (image viewer improvements)
-- ⬜ Automated API testing suite
-- ⬜ Performance optimization (DB write bottleneck)
-- ⬜ Documentation updates (README, NEXT_STEPS)
+**Completed:**
+- ✅ Detection correction system (single and batch)
+- ✅ Backend: PATCH /api/detections/{id}/correct
+- ✅ Backend: PATCH /api/detections/batch/correct (up to 1000)
+- ✅ Frontend: DetectionCorrectionDialog.tsx (199 lines)
+- ✅ Frontend: BatchCorrectionDialog.tsx (183 lines)
+- ✅ Frontend: DeerImages.tsx with multi-select (415 lines)
+- ✅ Multi-species classification (cattle, pig, raccoon)
+- ✅ Species statistics API: GET /api/deer/stats/species
+- ✅ Image filtering by classification
+- ✅ Database migration: 009_add_detection_corrections.sql
+- ✅ Feral hog dedicated counter in statistics
+
+**Results:**
+- Detection correction workflow: 100% functional
+- Multi-species support: 7 classifications (4 deer, 3 non-deer)
+- Batch editing: Up to 1000 detections at once
+- All features tested and verified
+- Documentation: docs/SESSION_20251108_HANDOFF.md
+
+### Sprint 9 (Planning) - Data Quality & Batch Processing [Nov 9+]
+**Focus:** Complete image backlog and improve data quality with correction tools
+
+**Planned:**
+- ⬜ Process remaining 34,000+ pending images (96.6%)
+- ⬜ Use correction UI to review and fix misclassifications
+- ⬜ Tag non-deer species as found (cattle, pigs, raccoons)
+- ⬜ Analyze species statistics per location
+- ⬜ Add user authentication system
+- ⬜ Implement correction history view
+- ⬜ Add validity filter to images API
+- ⬜ Create export functionality for corrections
 
 **Targets:**
 - Process all 35,251 images to completion
-- Validate deer re-ID accuracy (current: 714 profiles)
-- Add pytest test suite (target: 50% coverage)
-- Update all stale documentation
+- Review and correct at least 500 detections
+- Identify and tag 50+ non-deer animals
+- Improve deer re-ID accuracy through corrections
 
 ## Critical Path (Updated)
 

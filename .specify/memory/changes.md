@@ -77,6 +77,8 @@
 - All features tested and verified
 
 ## Current Status (Nov 8, 2025)
+- **Current Sprint:** 8 (COMPLETE)
+- **Active Branch:** main
 - Total images: 35,251
 - Images processed: ~1,200 (3.4%)
 - Total detections: 37,522
@@ -86,6 +88,26 @@
   - Cattle: 8
   - Feral Hogs: 0
   - Raccoons: 0
+
+## Next Sprint Planning (Sprint 9)
+
+### High Priority
+- Continue processing remaining images (34,000+ pending)
+- Review and correct misclassifications using new correction UI
+- Tag non-deer species (cattle, pigs, raccoons) as found
+- Analyze species statistics per location
+
+### Medium Priority
+- Add user authentication system
+- Implement correction history view
+- Add validity filter to images API
+- Create export functionality for corrections
+
+### Low Priority
+- Add undo correction functionality
+- Implement correction patterns analytics
+- Create ML model retraining workflow with corrected data
+- Add bulk import of corrections (CSV)
 
 ## Deviations from Original Specs
 - YOLOv8 handles both detection AND classification (improvement)
