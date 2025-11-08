@@ -99,7 +99,7 @@ async def list_deer(
     sex: Optional[Sex] = Query(None, description="Filter by sex"),
     status: Optional[DeerStatus] = Query(None, description="Filter by status"),
     species: Optional[str] = Query(None, description="Filter by species"),
-    min_sightings: Optional[int] = Query(None, description="Minimum sighting count"),
+    min_sightings: Optional[int] = Query(1, description="Minimum sighting count (default: 1 to hide invalidated profiles)"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(50, ge=1, le=200, description="Items per page"),
     db: Session = Depends(get_db),

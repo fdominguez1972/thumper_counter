@@ -28,6 +28,7 @@ from PIL.ExifTags import TAGS
 from backend.core.database import get_db
 from backend.models.image import Image, ProcessingStatus
 from backend.models.location import Location
+from backend.models.detection import Detection
 from backend.schemas.image import (
     ImageUploadResponse,
     ImageResponse,
@@ -407,6 +408,10 @@ def list_images(
         None,
         description="Filter by detection classification (buck/doe/fawn/unknown/cattle/pig). Uses corrected_classification if available, otherwise ML classification."
     ),
+    show_duplicates: Optional[bool] = Query(
+        None,
+        description="Filter duplicate images (same location and timestamp within 1 second). True=only duplicates, False=exclude duplicates, None=all"
+    ),
     page_size: int = Query(
         20,
         ge=1,
@@ -479,8 +484,14 @@ def list_images(
         if has_detections is not None:
             from backend.models.detection import Detection
             if has_detections:
-                # Has at least one detection
-                query = query.join(Detection).distinct()
+                # Has at least one detection - use EXISTS to avoid DISTINCT with JSON
+                from sqlalchemy import exists, select
+                detection_exists = (
+                    select(1)
+                    .select_from(Detection)
+                    .where(Detection.image_id == Image.id)
+                )
+                query = query.filter(exists(detection_exists))
             else:
                 # Has no detections (left outer join with filter)
                 query = query.outerjoin(Detection).filter(Detection.id.is_(None))
@@ -489,14 +500,6 @@ def list_images(
         if classification:
             from backend.models.detection import Detection
             from sqlalchemy import or_, func, exists, select
-
-            # Validate classification value
-            valid_classes = ["buck", "doe", "fawn", "unknown", "cattle", "pig", "raccoon"]
-            if classification.lower() not in valid_classes:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid classification: {classification}. Valid values: {', '.join(valid_classes)}"
-                )
 
             # Use EXISTS subquery to avoid DISTINCT issues with JSON columns
             # This filters images that have at least one detection with matching classification
@@ -507,6 +510,31 @@ def list_images(
                 .where(func.coalesce(Detection.corrected_classification, Detection.classification) == classification.lower())
             )
             query = query.filter(exists(classification_subquery))
+
+        # Apply duplicate filter
+        if show_duplicates is not None:
+            from sqlalchemy import func, exists, select, and_
+
+            # Create alias for self-join
+            ImageAlias = Image.__table__.alias('img_dup')
+
+            # Find images with same location_id and timestamp within 1 second
+            duplicate_subquery = (
+                select(1)
+                .select_from(ImageAlias)
+                .where(and_(
+                    Image.location_id == ImageAlias.c.location_id,
+                    func.date_trunc('second', Image.timestamp) == func.date_trunc('second', ImageAlias.c.timestamp),
+                    Image.id != ImageAlias.c.id
+                ))
+            )
+
+            if show_duplicates:
+                # Show only images that have duplicates
+                query = query.filter(exists(duplicate_subquery))
+            else:
+                # Exclude images that have duplicates
+                query = query.filter(~exists(duplicate_subquery))
 
         # Get total count before pagination
         total = query.count()
@@ -520,10 +548,25 @@ def list_images(
         )
 
         # Convert to response models and add detection count
+        from backend.schemas.image import DetectionSummary
         image_responses = []
         for img in images:
-            # Count detections for each image
-            detection_count = img.detections.count() if img.is_processed else None
+            # Get detections for each image
+            detections_list = []
+            if img.is_processed:
+                detection_count = img.detections.count()
+                # Get detections and convert to summaries
+                for det in img.detections:
+                    detections_list.append(DetectionSummary(
+                        id=det.id,
+                        classification=det.classification,
+                        corrected_classification=det.corrected_classification,
+                        confidence=det.confidence,
+                        is_valid=det.is_valid,
+                        is_reviewed=det.is_reviewed
+                    ))
+            else:
+                detection_count = None
 
             img_response = ImageResponse(
                 id=img.id,
@@ -534,7 +577,8 @@ def list_images(
                 exif_data=img.exif_data,
                 processing_status=img.processing_status.value,
                 created_at=img.created_at,
-                detection_count=detection_count
+                detection_count=detection_count,
+                detections=detections_list
             )
             image_responses.append(img_response)
 
@@ -554,6 +598,43 @@ def list_images(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve images"
+        )
+
+
+@router.get("/classifications")
+def get_classifications(db: Session = Depends(get_db)) -> dict:
+    """
+    Get all unique classification values for filtering.
+
+    Returns both ML classifications and corrected classifications
+    to populate the filter dropdown with all available options,
+    including custom tags like 'human', 'vehicle', etc.
+
+    Returns:
+        Dictionary with list of unique classification values
+    """
+    try:
+        # Get unique ML classifications
+        ml_classifications = db.query(Detection.classification).distinct().all()
+        ml_set = {c[0] for c in ml_classifications if c[0]}
+
+        # Get unique corrected classifications
+        corrected_classifications = db.query(Detection.corrected_classification).distinct().all()
+        corrected_set = {c[0] for c in corrected_classifications if c[0]}
+
+        # Combine and sort
+        all_classifications = sorted(ml_set | corrected_set)
+
+        return {
+            "classifications": all_classifications,
+            "count": len(all_classifications)
+        }
+
+    except Exception as e:
+        print(f"[ERROR] Failed to get classifications: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve classifications"
         )
 
 

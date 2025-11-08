@@ -1,16 +1,19 @@
 import { ReactNode, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   AppBar,
   Box,
   Drawer,
   IconButton,
+  LinearProgress,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Toolbar,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -22,6 +25,7 @@ import {
   CloudUpload as UploadIcon,
   LocationOn as LocationIcon,
 } from '@mui/icons-material';
+import apiClient from '../../api/client';
 
 interface LayoutProps {
   children: ReactNode;
@@ -41,6 +45,19 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const theme = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Fetch review count for progress tracking
+  const { data: reviewStats } = useQuery({
+    queryKey: ['review-stats'],
+    queryFn: async () => {
+      const response = await apiClient.get('/detections/stats/reviewed');
+      return response.data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const reviewCount = reviewStats?.reviewed_count || 0;
+  const reviewProgress = Math.min((reviewCount / 500) * 100, 100);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -107,9 +124,35 @@ export default function Layout({ children }: LayoutProps) {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Deer Tracking Dashboard
           </Typography>
-          <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
-            Hopkins Ranch
-          </Typography>
+          <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'right' }}>
+            <Typography variant="body2">
+              Hopkins Ranch
+            </Typography>
+            <Tooltip title={`${reviewCount} of 500 reviews completed. Review images to improve AI accuracy.`}>
+              <Box sx={{ minWidth: 150 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                    Reviews: {reviewCount}/500
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontSize: '0.7rem', fontWeight: 'bold' }}>
+                    {reviewProgress.toFixed(0)}%
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={reviewProgress}
+                  sx={{
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: reviewCount >= 500 ? '#4caf50' : '#fff',
+                    },
+                  }}
+                />
+              </Box>
+            </Tooltip>
+          </Box>
         </Toolbar>
       </AppBar>
 

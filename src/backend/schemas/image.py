@@ -5,10 +5,23 @@ These schemas handle validation and serialization for image endpoints.
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
 from pydantic import BaseModel, Field, validator
+
+
+class DetectionSummary(BaseModel):
+    """Summary of a detection for image lists."""
+    id: UUID
+    classification: str
+    corrected_classification: Optional[str] = None
+    confidence: float
+    is_valid: bool
+    is_reviewed: bool
+
+    class Config:
+        from_attributes = True
 
 
 class ImageUploadResponse(BaseModel):
@@ -54,6 +67,10 @@ class ImageResponse(BaseModel):
     detection_count: Optional[int] = Field(
         None,
         description="Number of deer detections in this image"
+    )
+    detections: List[DetectionSummary] = Field(
+        default_factory=list,
+        description="List of detections in this image"
     )
 
     class Config:
@@ -137,6 +154,7 @@ class BatchUploadResponse(BaseModel):
 
 # Export all schemas
 __all__ = [
+    "DetectionSummary",
     "ImageUploadResponse",
     "ImageResponse",
     "ImageList",

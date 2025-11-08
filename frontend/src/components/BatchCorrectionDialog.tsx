@@ -38,6 +38,7 @@ export default function BatchCorrectionDialog({
 
   const [isValid, setIsValid] = useState(true);
   const [correctedClassification, setCorrectedClassification] = useState('');
+  const [customTag, setCustomTag] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +55,7 @@ export default function BatchCorrectionDialog({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['deer'] });
+      queryClient.invalidateQueries({ queryKey: ['images'] });
       onClose();
       // Show success message
       alert(`Successfully corrected ${data.total_corrected} of ${data.total_requested} detections`);
@@ -66,7 +68,16 @@ export default function BatchCorrectionDialog({
   const handleSubmit = () => {
     setError(null);
 
-    if (!correctedClassification && isValid && !notes) {
+    // Get final classification (use custom tag if selected)
+    const finalClassification = correctedClassification === 'custom' ? customTag.trim().toLowerCase() : correctedClassification;
+
+    // Validate custom tag
+    if (correctedClassification === 'custom' && !customTag.trim()) {
+      setError('Please enter a custom tag (e.g., human, vehicle, etc.)');
+      return;
+    }
+
+    if (!finalClassification && isValid && !notes) {
       setError('Please make at least one change (mark as invalid, correct classification, or add notes)');
       return;
     }
@@ -74,7 +85,7 @@ export default function BatchCorrectionDialog({
     batchMutation.mutate({
       detection_ids: detectionIds,
       is_valid: isValid,
-      corrected_classification: correctedClassification || undefined,
+      corrected_classification: finalClassification || undefined,
       correction_notes: notes || undefined,
       reviewed_by: 'user', // TODO: Get actual username
     });
@@ -143,7 +154,21 @@ export default function BatchCorrectionDialog({
               <FormControlLabel value="cattle" control={<Radio />} label="Cattle (Not Deer)" />
               <FormControlLabel value="pig" control={<Radio />} label="Pig / Feral Hog (Not Deer)" />
               <FormControlLabel value="raccoon" control={<Radio />} label="Raccoon (Not Deer)" />
+              <FormControlLabel value="custom" control={<Radio />} label="Custom Tag (e.g., human, vehicle)" />
             </RadioGroup>
+
+            {/* Custom Tag Input */}
+            {correctedClassification === 'custom' && (
+              <TextField
+                label="Enter custom tag"
+                value={customTag}
+                onChange={(e) => setCustomTag(e.target.value)}
+                fullWidth
+                sx={{ mt: 2, ml: 4 }}
+                placeholder="e.g., human, vehicle, bird, etc."
+                helperText="Common tags: human, vehicle, bird, coyote, bobcat, etc."
+              />
+            )}
           </FormControl>
 
           {/* Notes */}

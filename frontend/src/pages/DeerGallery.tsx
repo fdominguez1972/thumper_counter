@@ -18,15 +18,19 @@ import {
   useTheme,
 } from '@mui/material';
 import { getDeerList, Deer } from '../api/deer';
+import PaginationControls from '../components/PaginationControls';
 
 export default function DeerGallery() {
   const [sexFilter, setSexFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('last_seen');
+  const [page, setPage] = useState(1);
+  const pageSize = 30;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['deer', 'list', sexFilter, sortBy],
+    queryKey: ['deer', 'list', sexFilter, sortBy, page],
     queryFn: () => getDeerList({
-      page_size: 100,
+      page,
+      page_size: pageSize,
       sex: sexFilter !== 'all' ? sexFilter : undefined,
       sort_by: sortBy,
       min_sightings: 1,
@@ -42,6 +46,12 @@ export default function DeerGallery() {
   }
 
   const filteredDeer = data?.deer.filter(deer => deer.sighting_count > 0) || [];
+  const totalPages = data ? Math.ceil(data.total / pageSize) : 1;
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <Box>
@@ -50,7 +60,7 @@ export default function DeerGallery() {
           Deer Gallery
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {filteredDeer.length} deer with sightings
+          {data?.total || 0} deer with sightings
         </Typography>
       </Box>
 
@@ -109,6 +119,12 @@ export default function DeerGallery() {
           </Typography>
         </Box>
       )}
+
+      <PaginationControls
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
     </Box>
   );
 }

@@ -17,8 +17,68 @@ from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
 from backend.models.detection import Detection
+from backend.models.deer import Deer
+from backend.models.image import Image
 
 router = APIRouter(prefix="/api/detections", tags=["detections"])
+
+
+def cleanup_deer_reference(detection: Detection, db: Session) -> None:
+    """
+    Clean up deer re-identification references when a detection is marked invalid.
+
+    When a detection is invalidated:
+    - Clear the deer_id from the detection
+    - Update the deer's sighting_count
+    - Update the deer's first_seen and last_seen timestamps
+    - If deer has no more valid detections, leave profile for manual review
+
+    Args:
+        detection: Detection being invalidated
+        db: Database session
+    """
+    if not detection.deer_id:
+        return  # No deer reference to clean up
+
+    print(f"[INFO] Cleaning up deer reference for detection {detection.id}")
+
+    # Get the deer profile
+    deer = db.query(Deer).filter(Deer.id == detection.deer_id).first()
+    if not deer:
+        print(f"[WARN] Deer {detection.deer_id} not found, clearing detection reference")
+        detection.deer_id = None
+        return
+
+    # Clear the deer_id from this detection
+    old_deer_id = detection.deer_id
+    detection.deer_id = None
+
+    # Count remaining valid detections for this deer
+    valid_detections = db.query(Detection).filter(
+        Detection.deer_id == old_deer_id,
+        Detection.is_valid == True
+    ).all()
+
+    # Update deer sighting count
+    deer.sighting_count = len(valid_detections)
+
+    if valid_detections:
+        # Update first_seen and last_seen based on remaining valid detections
+        timestamps = []
+        for det in valid_detections:
+            image = db.query(Image).filter(Image.id == det.image_id).first()
+            if image:
+                timestamps.append(image.timestamp)
+
+        if timestamps:
+            deer.first_seen = min(timestamps)
+            deer.last_seen = max(timestamps)
+    else:
+        # No more valid detections - leave first_seen/last_seen as is for reference
+        # Don't delete the deer profile - may need manual review
+        print(f"[WARN] Deer {old_deer_id} has no more valid detections")
+
+    print(f"[INFO] Updated deer {old_deer_id}: sighting_count={deer.sighting_count}")
 
 
 class DetectionCorrectionRequest(BaseModel):
@@ -114,15 +174,6 @@ def batch_correct_detections(
     Raises:
         400: Invalid correction data
     """
-    # Validate corrected classification if provided
-    if correction.corrected_classification:
-        valid_classes = ["buck", "doe", "fawn", "unknown", "cattle", "pig", "raccoon"]
-        if correction.corrected_classification.lower() not in valid_classes:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid classification. Must be one of: {', '.join(valid_classes)}"
-            )
-
     # Process detections
     corrected_count = 0
     failed_ids = []
@@ -142,6 +193,10 @@ def batch_correct_detections(
 
             if correction.is_valid is not None:
                 detection.is_valid = correction.is_valid
+
+                # Clean up deer references if marking as invalid
+                if correction.is_valid is False:
+                    cleanup_deer_reference(detection, db)
 
             if correction.corrected_classification:
                 detection.corrected_classification = correction.corrected_classification.lower()
@@ -225,15 +280,6 @@ def correct_detection(
             detail=f"Detection with ID {detection_id} not found"
         )
 
-    # Validate corrected classification if provided
-    if correction.corrected_classification:
-        valid_classes = ["buck", "doe", "fawn", "unknown", "cattle", "pig", "raccoon"]
-        if correction.corrected_classification.lower() not in valid_classes:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid classification. Must be one of: {', '.join(valid_classes)}"
-            )
-
     # Apply corrections
     detection.is_reviewed = True
     detection.reviewed_at = datetime.utcnow()
@@ -241,6 +287,10 @@ def correct_detection(
 
     if correction.is_valid is not None:
         detection.is_valid = correction.is_valid
+
+        # Clean up deer references if marking as invalid
+        if correction.is_valid is False:
+            cleanup_deer_reference(detection, db)
 
     if correction.corrected_classification:
         detection.corrected_classification = correction.corrected_classification.lower()
@@ -276,6 +326,40 @@ def correct_detection(
         message=message,
         detection=detection.to_dict()
     )
+
+
+@router.get("/stats/reviewed", response_model=dict)
+def get_review_stats(db: Session = Depends(get_db)) -> dict:
+    """
+    Get statistics about reviewed detections for progress tracking.
+
+    Returns:
+        Dictionary with review counts and progress metrics
+    """
+    # Count total reviewed detections
+    reviewed_count = db.query(Detection).filter(Detection.is_reviewed == True).count()
+
+    # Count by validity
+    valid_count = db.query(Detection).filter(
+        Detection.is_reviewed == True,
+        Detection.is_valid == True
+    ).count()
+
+    invalid_count = db.query(Detection).filter(
+        Detection.is_reviewed == True,
+        Detection.is_valid == False
+    ).count()
+
+    # Calculate progress toward retraining goal (500 reviews)
+    progress_percent = min((reviewed_count / 500) * 100, 100)
+
+    return {
+        "reviewed_count": reviewed_count,
+        "valid_count": valid_count,
+        "invalid_count": invalid_count,
+        "progress_percent": progress_percent,
+        "retraining_ready": reviewed_count >= 500,
+    }
 
 
 @router.get("/{detection_id}", response_model=dict)

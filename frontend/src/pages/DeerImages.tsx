@@ -12,6 +12,10 @@ import {
   IconButton,
   Chip,
   Checkbox,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -20,12 +24,14 @@ import {
   NavigateNext as NextIcon,
   Edit as EditIcon,
   Warning as WarningIcon,
+  Sort as SortIcon,
 } from '@mui/icons-material';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { getDeer } from '../api/deer';
 import apiClient from '../api/client';
 import DetectionCorrectionDialog from '../components/DetectionCorrectionDialog';
 import BatchCorrectionDialog from '../components/BatchCorrectionDialog';
+import PaginationControls from '../components/PaginationControls';
 
 interface Detection {
   id: string;
@@ -61,6 +67,9 @@ export default function DeerImages() {
   const [correctionDialogOpen, setCorrectionDialogOpen] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Set<number>>(new Set());
   const [batchDialogOpen, setBatchDialogOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<string>('timestamp_desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 30;
 
   // Get deer info
   const { data: deer, isLoading: deerLoading } = useQuery({
@@ -79,10 +88,45 @@ export default function DeerImages() {
     enabled: !!id,
   });
 
-  const images: Image[] = imagesData?.images || [];
+  // Filter and sort images client-side
+  const sortedImages = useMemo(() => {
+    const filtered = (imagesData?.images || []).filter((img: Image) => img.is_valid !== false);
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'timestamp_desc':
+          return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        case 'timestamp_asc':
+          return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+        case 'filename_asc':
+          return a.filename.localeCompare(b.filename);
+        case 'filename_desc':
+          return b.filename.localeCompare(a.filename);
+        case 'confidence_desc':
+          return b.confidence - a.confidence;
+        case 'confidence_asc':
+          return a.confidence - b.confidence;
+        default:
+          return 0;
+      }
+    });
+    return sorted;
+  }, [imagesData?.images, sortBy]);
+
+  // Paginate images client-side
+  const totalPages = Math.ceil(sortedImages.length / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const images = sortedImages.slice(startIndex, endIndex);
 
   const handleImageClick = (index: number) => {
-    setSelectedIndex(index);
+    // Adjust index to account for pagination
+    setSelectedIndex(startIndex + index);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    setSelectedImages(new Set()); // Clear selection on page change
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleClose = () => {
@@ -96,7 +140,7 @@ export default function DeerImages() {
   };
 
   const handleNext = () => {
-    if (selectedIndex !== null && selectedIndex < images.length - 1) {
+    if (selectedIndex !== null && selectedIndex < sortedImages.length - 1) {
       setSelectedIndex(selectedIndex + 1);
     }
   };
@@ -114,7 +158,8 @@ export default function DeerImages() {
   };
 
   const handleSelectAll = () => {
-    setSelectedImages(new Set(images.map((_, i) => i)));
+    // Select all images on current page (adjust indices for pagination)
+    setSelectedImages(new Set(images.map((_, i) => startIndex + i)));
   };
 
   const handleClearSelection = () => {
@@ -147,7 +192,7 @@ export default function DeerImages() {
     );
   }
 
-  const selectedImage = selectedIndex !== null ? images[selectedIndex] : null;
+  const selectedImage = selectedIndex !== null ? sortedImages[selectedIndex] : null;
 
   return (
     <Box>
@@ -164,8 +209,28 @@ export default function DeerImages() {
           {deer.name || 'Unnamed Deer'} - All Sightings
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          {images.length} images found
+          {sortedImages.length} images found
         </Typography>
+      </Box>
+
+      {/* Sort Controls */}
+      <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+        <SortIcon color="action" />
+        <FormControl sx={{ minWidth: 200 }} size="small">
+          <InputLabel>Sort By</InputLabel>
+          <Select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            label="Sort By"
+          >
+            <MenuItem value="timestamp_desc">Newest First</MenuItem>
+            <MenuItem value="timestamp_asc">Oldest First</MenuItem>
+            <MenuItem value="confidence_desc">Highest Confidence</MenuItem>
+            <MenuItem value="confidence_asc">Lowest Confidence</MenuItem>
+            <MenuItem value="filename_asc">Filename (A-Z)</MenuItem>
+            <MenuItem value="filename_desc">Filename (Z-A)</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
 
       {/* Selection Controls */}
@@ -318,7 +383,7 @@ export default function DeerImages() {
             )}
 
             {/* Next Button */}
-            {selectedIndex < images.length - 1 && (
+            {selectedIndex < sortedImages.length - 1 && (
               <IconButton
                 onClick={handleNext}
                 sx={{
@@ -370,7 +435,7 @@ export default function DeerImages() {
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant="body2" color="text.secondary">
-                    Image {selectedIndex + 1} of {images.length}
+                    Image {selectedIndex + 1} of {sortedImages.length}
                   </Typography>
                 </Grid>
               </Grid>
@@ -405,10 +470,16 @@ export default function DeerImages() {
             setBatchDialogOpen(false);
             setSelectedImages(new Set());
           }}
-          detectionIds={Array.from(selectedImages).map(i => images[i].detection_id)}
+          detectionIds={Array.from(selectedImages).map(i => sortedImages[i].detection_id)}
           deerName={deer?.name || 'Unknown'}
         />
       )}
+
+      <PaginationControls
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
     </Box>
   );
 }

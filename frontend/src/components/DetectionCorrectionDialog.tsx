@@ -45,9 +45,16 @@ export default function DetectionCorrectionDialog({
   const queryClient = useQueryClient();
 
   const [isValid, setIsValid] = useState(detection.is_valid);
+
+  // Check if current classification is a custom tag
+  const predefinedTags = ['buck', 'doe', 'fawn', 'unknown', 'cattle', 'pig', 'raccoon'];
+  const initialClassification = detection.corrected_classification || detection.classification;
+  const isCustomTag = initialClassification && !predefinedTags.includes(initialClassification.toLowerCase());
+
   const [correctedClassification, setCorrectedClassification] = useState(
-    detection.corrected_classification || detection.classification
+    isCustomTag ? 'custom' : initialClassification
   );
+  const [customTag, setCustomTag] = useState(isCustomTag ? initialClassification : '');
   const [notes, setNotes] = useState(detection.correction_notes || '');
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +75,7 @@ export default function DetectionCorrectionDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deer'] });
+      queryClient.invalidateQueries({ queryKey: ['images'] });
       onClose();
     },
     onError: (err: any) => {
@@ -78,9 +86,18 @@ export default function DetectionCorrectionDialog({
   const handleSubmit = () => {
     setError(null);
 
+    // Get final classification (use custom tag if selected)
+    const finalClassification = correctedClassification === 'custom' ? customTag.trim().toLowerCase() : correctedClassification;
+
+    // Validate custom tag
+    if (correctedClassification === 'custom' && !customTag.trim()) {
+      setError('Please enter a custom tag (e.g., human, vehicle, etc.)');
+      return;
+    }
+
     const hasChanges =
       isValid !== detection.is_valid ||
-      correctedClassification !== (detection.corrected_classification || detection.classification) ||
+      finalClassification !== (detection.corrected_classification || detection.classification) ||
       notes !== (detection.correction_notes || '');
 
     if (!hasChanges) {
@@ -91,8 +108,8 @@ export default function DetectionCorrectionDialog({
     correctionMutation.mutate({
       is_valid: isValid,
       corrected_classification:
-        correctedClassification !== detection.classification
-          ? correctedClassification
+        finalClassification !== detection.classification
+          ? finalClassification
           : undefined,
       correction_notes: notes || undefined,
     });
@@ -160,7 +177,21 @@ export default function DetectionCorrectionDialog({
               <FormControlLabel value="cattle" control={<Radio />} label="Cattle (Not Deer)" />
               <FormControlLabel value="pig" control={<Radio />} label="Pig / Feral Hog (Not Deer)" />
               <FormControlLabel value="raccoon" control={<Radio />} label="Raccoon (Not Deer)" />
+              <FormControlLabel value="custom" control={<Radio />} label="Custom Tag (e.g., human, vehicle)" />
             </RadioGroup>
+
+            {/* Custom Tag Input */}
+            {correctedClassification === 'custom' && (
+              <TextField
+                label="Enter custom tag"
+                value={customTag}
+                onChange={(e) => setCustomTag(e.target.value)}
+                fullWidth
+                sx={{ mt: 2, ml: 4 }}
+                placeholder="e.g., human, vehicle, bird, etc."
+                helperText="Common tags: human, vehicle, bird, coyote, bobcat, etc."
+              />
+            )}
           </FormControl>
 
           {/* Notes */}
