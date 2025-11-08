@@ -524,11 +524,46 @@ curl "http://localhost:8001/api/images?location_id=UUID&status=completed&page_si
 - Multi-threaded operations when beneficial
 - Verify file creation immediately with `ls` or `dir`
 
-## SESSION STATUS - Updated November 7, 2025
+## SESSION STATUS - Updated November 8, 2025
 
-### Current Sprint: 10 (Frontend Dashboard)
-**Phase:** Sprint 10 - Frontend Implementation (PLANNING)
-**Branch:** main (will create: 006-frontend-dashboard)
+### Current Sprint: 8 of 8 - COMPLETE
+**Phase:** Sprint 8 Complete - Detection Correction & Multi-Species Classification
+**Branch:** main
+**Next Sprint:** Sprint 9 - Data Quality & Batch Processing
+
+### Sprint 8 Completed (Nov 8, 2025)
+**Focus:** Manual correction system and multi-species wildlife tracking
+
+**Completed Features:**
+- [OK] Detection correction system (single and batch editing)
+- [OK] Backend: PATCH /api/detections/{id}/correct (single correction)
+- [OK] Backend: PATCH /api/detections/batch/correct (up to 1000 detections)
+- [OK] Frontend: DetectionCorrectionDialog.tsx (199 lines, single image review)
+- [OK] Frontend: BatchCorrectionDialog.tsx (183 lines, multi-image review)
+- [OK] Frontend: DeerImages.tsx (415 lines, image browser with multi-select)
+- [OK] Multi-species classification expanded (7 classes: 4 deer + 3 non-deer)
+- [OK] Species statistics API: GET /api/deer/stats/species
+- [OK] Image filtering by classification: GET /api/images?classification=X
+- [OK] Database migration: 009_add_detection_corrections.sql
+- [OK] Feral hog dedicated counter in population statistics
+
+**Results:**
+- Detection correction workflow: 100% functional
+- Multi-species support: buck, doe, fawn, unknown, cattle, pig, raccoon
+- Batch editing: Up to 1000 detections per batch
+- All features tested and verified working
+- Documentation: docs/SESSION_20251108_HANDOFF.md (comprehensive session handoff)
+
+**Current System Statistics:**
+- Total images: 35,251
+- Images processed: ~1,200 (3.4%)
+- Total detections: 37,522
+- Deer profiles: 14
+- Species breakdown:
+  - Deer: 37,514 (99.98%)
+  - Cattle: 8
+  - Feral Hogs: 0
+  - Raccoons: 0
 
 ### Sprint 3 Completed (Nov 6, 2025)
 - [OK] GPU acceleration enabled (10x faster: 0.04s vs 0.4s per image)
