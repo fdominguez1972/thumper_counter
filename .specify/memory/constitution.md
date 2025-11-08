@@ -1,50 +1,238 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Thumper Counter Project Constitution
+**Version:** 1.0.1
+**Ratified:** 2025-11-05
+**Last Amended:** 2025-11-08  
 
-## Core Principles
+## Preamble
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+This constitution establishes the fundamental principles, governance, and non-negotiable standards for the Thumper Counter wildlife tracking system. These principles guide all development, deployment, and operational decisions.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+## Article I: Core Principles
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### Principle 1: Wildlife Conservation First
+**Statement:** The system MUST prioritize wildlife welfare and conservation goals above technical elegance or feature completeness.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**Rationale:** This project exists to understand and protect deer populations at Hopkins Ranch. Any feature that could harm wildlife or enable poaching is forbidden.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+**Implementation:**
+- No real-time location broadcasting
+- Delay public data by 48+ hours
+- Aggregate data for external sharing
+- Secure storage of sensitive locations
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### Principle 2: Data Sovereignty
+**Statement:** Ranch data MUST remain under ranch control with local-first storage and processing.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+**Rationale:** Trail camera data contains sensitive information about private property. Cloud dependence creates privacy and availability risks.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**Implementation:**
+- Primary storage on local servers (Ubuntu/Synology)
+- GPU processing on-premises
+- No required internet connectivity
+- Export capabilities for backup only
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Principle 3: Operational Simplicity
+**Statement:** The system MUST be operable by non-technical ranch personnel with minimal training.
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+**Rationale:** The primary users are ranch workers who need reliable tools, not complex interfaces.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+**Implementation:**
+- Single-button upload process
+- Location dropdown (no coordinates needed)
+- Clear success/failure indicators
+- Automatic error recovery
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+### Principle 4: Scientific Rigor
+**Statement:** All wildlife identification and tracking MUST maintain documented confidence levels and support manual verification.
+
+**Rationale:** Conservation decisions require accurate data. False positives/negatives must be trackable and correctable.
+
+**Implementation:**
+- Confidence thresholds (>0.5 for detection)
+- Manual verification interface
+- Audit trail for corrections
+- Separate "verified" flag in database
+
+### Principle 5: Modular Architecture
+**Statement:** Components MUST be independently deployable, testable, and replaceable.
+
+**Rationale:** ML models evolve rapidly. The system must accommodate updates without full rebuilds.
+
+**Implementation:**
+- Microservices architecture
+- Versioned ML models
+- Standard REST APIs between services
+- Database migrations for schema changes
+
+### Principle 6: Performance Efficiency
+**Statement:** The system MUST process the full image backlog (35,000+ images) within 24 hours using available hardware.
+
+**Rationale:** Timely processing enables responsive wildlife management decisions.
+
+**Implementation:**
+- GPU acceleration mandatory
+- Batch processing (32 images)
+- Multithreaded operations
+- Progress monitoring
+
+### Principle 7: Open Development
+**Statement:** The system SHOULD use open-source components and contribute improvements back to the community.
+
+**Rationale:** Wildlife conservation benefits from shared knowledge and tools.
+
+**Implementation:**
+- MIT license for custom code
+- Public GitHub repository (sanitized)
+- Use of open models (YOLOv8, ResNet)
+- Documentation of methods
+
+## Article II: Technical Standards
+
+### Mandatory Requirements
+1. **Python 3.11+** for all backend code
+2. **PostgreSQL 15+** for data persistence
+3. **Docker** for deployment
+4. **Git** with branching strategy
+5. **ASCII-only** output in logs and CLI
+
+### Prohibited Practices
+1. Storage of credentials in code
+2. Direct database access from frontend
+3. Synchronous ML processing in API calls
+4. Hardcoded file paths
+5. Unicode/emoji in system output
+
+## Article III: Data Governance
+
+### Data Retention
+- **Images:** Indefinite retention (ranch property)
+- **Detections:** Minimum 5 years
+- **Audit logs:** Minimum 1 year
+- **Backups:** 3-2-1 rule (3 copies, 2 media, 1 offsite)
+
+### Privacy Protection
+- No personally identifiable information in wildlife data
+- Camera locations obscured in public exports
+- User actions logged but not tracked
+- GDPR-compliant data handling
+
+## Article IV: Development Governance
+
+### Change Management
+1. **Specification First:** Changes must update specs before implementation
+2. **Review Required:** Database schema changes require documentation
+3. **Testing Mandatory:** No deployment without passing tests
+4. **Rollback Plan:** Every deployment must be reversible
+
+### Version Control
+- **Branching:** main (stable) ← development ← feature/*
+- **Commits:** Conventional format (feat/fix/docs)
+- **Releases:** Semantic versioning (MAJOR.MINOR.PATCH)
+- **Tags:** v1.0.0 format
+
+### Documentation Standards
+1. **Code:** Docstrings for all public functions
+2. **API:** OpenAPI specification maintained
+3. **User:** README for each component
+4. **Specs:** Living documents updated with changes
+5. **Session Handoffs:** Mandatory handoff document for each development session
+
+### Session Handoff Requirements
+1. **Timing:** Create handoff document at end of each development session
+2. **Template:** Use docs/SESSION_HANDOFF_TEMPLATE.md as base
+3. **Naming:** SESSION_YYYYMMDD_HANDOFF.md (use session end date)
+4. **Content Requirements:**
+   - Executive summary (2-3 sentences)
+   - Work completed with time tracking
+   - Issues resolved and discovered
+   - Database and performance metrics
+   - Git status with commit list
+   - Service health verification
+   - Next session priorities (High/Medium/Low)
+   - How to resume instructions
+5. **Stale Document Cleanup:** Archive handoffs older than 30 days to docs/archive/
+6. **Living Documents Update:** README, NEXT_STEPS, plan.md must stay current
+
+## Article V: Operational Requirements
+
+### Monitoring
+- System health checks every 60 seconds
+- GPU utilization tracking
+- Queue depth monitoring
+- Error rate alerting (<5% threshold)
+
+### Maintenance Windows
+- Scheduled: Sunday 2-4 AM CST
+- Emergency: With 1-hour notice
+- Duration: Maximum 2 hours
+- Rollback: Within 30 minutes
+
+## Article VI: Amendment Process
+
+### Proposal Requirements
+1. Written specification of change
+2. Impact analysis on all principles
+3. Migration plan if breaking
+4. Review period (minimum 48 hours)
+
+### Approval Threshold
+- **Minor amendments:** Development team consensus
+- **Major amendments:** Ranch owner approval required
+- **Emergency fixes:** Retroactive approval within 24 hours
+
+### Version Increments
+- **MAJOR:** Principle removal or redefinition
+- **MINOR:** Principle addition or expansion
+- **PATCH:** Clarifications and corrections
+
+## Article VII: Compliance Validation
+
+### Regular Audits
+- **Weekly:** Automated test suite
+- **Monthly:** Manual verification sampling
+- **Quarterly:** Full specification review
+- **Annually:** Architecture assessment
+
+### Non-Compliance Resolution
+1. **Detection:** Automated alerts for violations
+2. **Triage:** Severity assessment (critical/high/medium/low)
+3. **Resolution:** Fix within severity SLA
+4. **Prevention:** Root cause analysis
+
+## Appendix A: Decision Record
+
+### Key Architecture Decisions
+1. **YOLOv8 Multi-class** (2025-11-04): Single model for detection and classification
+2. **Folder-based Locations** (2025-11-04): Location from directory, not EXIF
+3. **RTX 4080 Super** (2025-11-05): Hardware upgrade for larger batches
+4. **Port Shifting** (2025-11-05): Avoid conflicts with existing deer_tracker
+5. **Threads Pool for Celery** (2025-11-06): Use threads instead of prefork to avoid CUDA fork errors
+6. **pgvector for Re-ID** (2025-11-06): PostgreSQL pgvector extension for efficient similarity search
+7. **Two-Stage Deduplication** (2025-11-07): Spatial dedup (same image) + temporal dedup (within 10s)
+8. **Detection Correction System** (2025-11-08): Single and batch correction UI (up to 1000 detections)
+9. **Multi-Species Classification** (2025-11-08): Expanded to 7 classes (4 deer + 3 non-deer)
+
+## Appendix B: Stakeholders
+
+### Primary Stakeholders
+- **Ranch Owner:** Final authority on features and data use
+- **Ranch Workers:** Primary system users
+- **Wildlife Biologists:** Data consumers for research
+
+### Development Team
+- **Lead Developer:** Architecture and implementation
+- **ML Engineer:** Model training and optimization
+- **DevOps:** Deployment and monitoring
+
+## Appendix C: Glossary
+
+- **Re-ID:** Re-identification of individual animals across images
+- **EXIF:** Exchangeable Image File Format metadata
+- **Confidence Threshold:** Minimum certainty for accepting ML predictions
+- **Feature Vector:** Mathematical representation for individual identification
+
+---
+
+**Ratification:** This constitution is adopted as the governing document for the Thumper Counter project.
+
+**Signatures:** [Digital signatures via Git commit]

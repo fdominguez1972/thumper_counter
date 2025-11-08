@@ -1,7 +1,7 @@
 # Thumper Counter Project Constitution
-**Version:** 1.0.0  
-**Ratified:** 2025-11-05  
-**Last Amended:** 2025-11-05  
+**Version:** 1.0.1
+**Ratified:** 2025-11-05
+**Last Amended:** 2025-11-08  
 
 ## Preamble
 
@@ -206,6 +206,11 @@ This constitution establishes the fundamental principles, governance, and non-ne
 2. **Folder-based Locations** (2025-11-04): Location from directory, not EXIF
 3. **RTX 4080 Super** (2025-11-05): Hardware upgrade for larger batches
 4. **Port Shifting** (2025-11-05): Avoid conflicts with existing deer_tracker
+5. **Threads Pool for Celery** (2025-11-06): Use threads instead of prefork to avoid CUDA fork errors
+6. **pgvector for Re-ID** (2025-11-06): PostgreSQL pgvector extension for efficient similarity search
+7. **Two-Stage Deduplication** (2025-11-07): Spatial dedup (same image) + temporal dedup (within 10s)
+8. **Detection Correction System** (2025-11-08): Single and batch correction UI (up to 1000 detections)
+9. **Multi-Species Classification** (2025-11-08): Expanded to 7 classes (4 deer + 3 non-deer)
 
 ## Appendix B: Stakeholders
 
