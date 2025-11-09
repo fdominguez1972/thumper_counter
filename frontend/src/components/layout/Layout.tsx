@@ -24,6 +24,7 @@ import {
   PhotoLibrary as PhotoLibraryIcon,
   CloudUpload as UploadIcon,
   LocationOn as LocationIcon,
+  Assessment as AssessmentIcon,
 } from '@mui/icons-material';
 import apiClient from '../../api/client';
 
@@ -39,6 +40,7 @@ const navigation = [
   { name: 'Images', href: '/images', icon: <PhotoLibraryIcon /> },
   { name: 'Upload', href: '/upload', icon: <UploadIcon /> },
   { name: 'Locations', href: '/locations', icon: <LocationIcon /> },
+  { name: 'Seasonal Analysis', href: '/seasonal', icon: <AssessmentIcon /> },
 ];
 
 export default function Layout({ children }: LayoutProps) {

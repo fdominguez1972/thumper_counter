@@ -20,7 +20,7 @@ from backend.core.database import (
     get_db_info,
     engine
 )
-from backend.api import locations, images, processing, deer, static, detections
+from backend.api import locations, images, processing, deer, static, detections, seasonal, reports, exports
 
 # Celery app for sending tasks from backend
 # WHY: Backend cannot import worker modules directly, use send_task() instead
@@ -122,6 +122,9 @@ app.include_router(images.router)
 app.include_router(processing.router)
 app.include_router(deer.router)
 app.include_router(detections.router)
+app.include_router(seasonal.router)  # Feature 008: Rut season analysis
+app.include_router(reports.router)   # Feature 008: Seasonal reports
+app.include_router(exports.router)   # Feature 008: PDF and ZIP exports
 app.include_router(static.router)
 
 
@@ -202,6 +205,9 @@ async def root() -> Dict[str, Any]:
             "locations": "/api/locations",
             "deer": "/api/deer",
             "detections": "/api/detections",
+            "seasonal": "/api/seasonal",
+            "reports": "/api/reports",
+            "exports": "/api/exports",
         }
     }
 

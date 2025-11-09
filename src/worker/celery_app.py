@@ -117,8 +117,12 @@ app = Celery(
         'worker.tasks.process_images',
         'worker.tasks.detection',
         'worker.tasks.reidentification',  # Sprint 5: Re-ID task
+        'worker.tasks.exports',  # Sprint 8: PDF/ZIP exports
     ]
 )
+
+# Alias for compatibility with different import patterns
+celery_app = app
 
 
 # Celery Configuration
@@ -138,12 +142,14 @@ app.conf.update(
     task_routes={
         'worker.tasks.process_images.*': {'queue': 'ml_processing'},
         'worker.tasks.detection.*': {'queue': 'ml_processing'},
+        'worker.tasks.exports.*': {'queue': 'exports'},
     },
 
     # Queue definitions
     # WHY: Separate queues allow priority control and resource allocation
     task_queues=(
         Queue('ml_processing', routing_key='ml.#'),
+        Queue('exports', routing_key='export.#'),
         Queue('default', routing_key='default'),
     ),
     task_default_queue='default',

@@ -1,0 +1,515 @@
+# API Contract: Seasonal Queries
+# Feature: 008-rut-season-analysis
+# Purpose: Date-based filtering for images and detections
+
+openapi: 3.0.3
+info:
+  title: Seasonal Queries API
+  description: Filter trail camera images and deer detections by date range and classification
+  version: 1.0.0
+
+paths:
+  /api/seasonal/images:
+    get:
+      summary: Query images by date range
+      description: |
+        Retrieve trail camera images filtered by date range with optional seasonal presets.
+        Supports custom date ranges or predefined seasons (rut, spring, summer, fall).
+        Results paginated with metadata for large datasets.
+      operationId: getSeasonalImages
+      tags:
+        - Seasonal Queries
+      parameters:
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-09-01"
+          description: |
+            Start date (YYYY-MM-DD format). Inclusive.
+            If omitted, uses season parameter or defaults to 30 days ago.
+
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2025-01-31"
+          description: |
+            End date (YYYY-MM-DD format). Inclusive.
+            If omitted, uses season parameter or defaults to today.
+
+        - name: season
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - rut_season
+              - spring
+              - summer
+              - fall
+            example: rut_season
+          description: |
+            Predefined seasonal filter. Overrides start_date/end_date if provided.
+            - rut_season: Sept 1 - Jan 31 (crosses year boundary)
+            - spring: Mar 1 - May 31
+            - summer: Jun 1 - Aug 31
+            - fall: Sept 1 - Nov 30
+
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2030
+            example: 2024
+          description: |
+            Year for seasonal filter (required if season parameter used).
+            For rut_season, this is the start year (e.g., 2024 = Sept 2024 to Jan 2025).
+            Defaults to current year if omitted.
+
+        - name: location_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          description: Filter images from specific camera location
+
+        - name: processing_status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - processing
+              - completed
+              - failed
+            example: completed
+          description: Filter by image processing status
+
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+          description: Page number for pagination (1-indexed)
+
+        - name: page_size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+            example: 100
+          description: Number of images per page (max 1000)
+
+      responses:
+        '200':
+          description: Successful query
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - images
+                  - total_count
+                  - page_metadata
+                properties:
+                  images:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Image'
+                    description: Array of image objects matching filters
+
+                  total_count:
+                    type: integer
+                    example: 6115
+                    description: Total number of images matching filters (all pages)
+
+                  page_metadata:
+                    type: object
+                    required:
+                      - page
+                      - page_size
+                      - total_pages
+                      - has_next
+                      - has_previous
+                    properties:
+                      page:
+                        type: integer
+                        example: 1
+                      page_size:
+                        type: integer
+                        example: 100
+                      total_pages:
+                        type: integer
+                        example: 62
+                      has_next:
+                        type: boolean
+                        example: true
+                      has_previous:
+                        type: boolean
+                        example: false
+
+              examples:
+                rut_season_2024:
+                  summary: Rut season 2024 query
+                  value:
+                    images:
+                      - id: "12345678-1234-1234-1234-123456789012"
+                        filename: "SANCTUARY_20241115_143022.jpg"
+                        path: "/mnt/images/Sanctuary/SANCTUARY_20241115_143022.jpg"
+                        timestamp: "2024-11-15T14:30:22Z"
+                        location_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                        processing_status: "completed"
+                        detection_count: 3
+                        created_at: "2024-11-15T15:00:00Z"
+                    total_count: 6115
+                    page_metadata:
+                      page: 1
+                      page_size: 100
+                      total_pages: 62
+                      has_next: true
+                      has_previous: false
+
+        '400':
+          description: Invalid request (bad date format or conflicting parameters)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_date_format:
+                  value:
+                    error: "Invalid date format"
+                    detail: "start_date must be YYYY-MM-DD format (got: '2024-13-01')"
+                impossible_range:
+                  value:
+                    error: "Invalid date range"
+                    detail: "end_date (2024-01-01) cannot be before start_date (2024-09-01)"
+
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/seasonal/detections:
+    get:
+      summary: Query detections by date range and classification
+      description: |
+        Retrieve deer detections filtered by date range and classification.
+        Useful for analyzing specific sex/age classes during seasonal periods
+        (e.g., all mature buck detections during rut season).
+      operationId: getSeasonalDetections
+      tags:
+        - Seasonal Queries
+      parameters:
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-09-01"
+          description: Start date (YYYY-MM-DD). Uses image timestamp for filtering.
+
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2025-01-31"
+          description: End date (YYYY-MM-DD). Uses image timestamp for filtering.
+
+        - name: season
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [rut_season, spring, summer, fall]
+            example: rut_season
+          description: Predefined seasonal filter (same as /api/seasonal/images)
+
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 2024
+          description: Year for seasonal filter (required if season provided)
+
+        - name: classifications
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - doe
+                - fawn
+                - mature
+                - mid
+                - young
+                - cattle
+                - pig
+                - raccoon
+            example: ["mature", "mid", "young"]
+          description: |
+            Filter by specific classifications. Multiple values allowed (OR logic).
+            Example: classifications=mature&classifications=mid&classifications=young
+            (filters for all buck age classes)
+
+        - name: min_confidence
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+            minimum: 0.0
+            maximum: 1.0
+            default: 0.0
+            example: 0.7
+          description: Minimum detection confidence threshold (0.0 - 1.0)
+
+        - name: location_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter detections from specific camera location
+
+        - name: deer_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter detections for specific re-identified deer
+
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number (1-indexed)
+
+        - name: page_size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+          description: Detections per page (max 1000)
+
+      responses:
+        '200':
+          description: Successful query
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - detections
+                  - total_count
+                  - page_metadata
+                properties:
+                  detections:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Detection'
+                    description: Array of detection objects
+
+                  total_count:
+                    type: integer
+                    example: 3214
+                    description: Total detections matching filters
+
+                  page_metadata:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      page_size:
+                        type: integer
+                      total_pages:
+                        type: integer
+                      has_next:
+                        type: boolean
+                      has_previous:
+                        type: boolean
+
+              examples:
+                mature_bucks_rut_season:
+                  summary: Mature buck detections during rut season
+                  value:
+                    detections:
+                      - id: "det-12345678-1234-1234-1234-123456789012"
+                        image_id: "img-87654321-4321-4321-4321-210987654321"
+                        bbox_x1: 0.23
+                        bbox_y1: 0.45
+                        bbox_x2: 0.67
+                        bbox_y2: 0.89
+                        confidence: 0.86
+                        classification: "mature"
+                        deer_id: "deer-11111111-1111-1111-1111-111111111111"
+                        deer_name: "Big Eight"
+                        created_at: "2024-11-15T14:30:25Z"
+                    total_count: 3214
+                    page_metadata:
+                      page: 1
+                      page_size: 100
+                      total_pages: 33
+                      has_next: true
+                      has_previous: false
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Image:
+      type: object
+      required:
+        - id
+        - filename
+        - path
+        - timestamp
+        - processing_status
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique image identifier
+        filename:
+          type: string
+          example: "SANCTUARY_20241115_143022.jpg"
+        path:
+          type: string
+          example: "/mnt/images/Sanctuary/SANCTUARY_20241115_143022.jpg"
+        timestamp:
+          type: string
+          format: date-time
+          description: When photo was captured (UTC)
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        location_name:
+          type: string
+          example: "Sanctuary"
+          nullable: true
+        processing_status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        detection_count:
+          type: integer
+          description: Number of detections in this image
+        created_at:
+          type: string
+          format: date-time
+          description: When image was uploaded
+
+    Detection:
+      type: object
+      required:
+        - id
+        - image_id
+        - bbox_x1
+        - bbox_y1
+        - bbox_x2
+        - bbox_y2
+        - confidence
+        - classification
+      properties:
+        id:
+          type: string
+          format: uuid
+        image_id:
+          type: string
+          format: uuid
+        bbox_x1:
+          type: number
+          format: float
+          description: Bounding box left X (normalized 0-1)
+        bbox_y1:
+          type: number
+          format: float
+          description: Bounding box top Y (normalized 0-1)
+        bbox_x2:
+          type: number
+          format: float
+          description: Bounding box right X (normalized 0-1)
+        bbox_y2:
+          type: number
+          format: float
+          description: Bounding box bottom Y (normalized 0-1)
+        confidence:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Detection confidence score
+        classification:
+          type: string
+          enum: [doe, fawn, mature, mid, young, cattle, pig, raccoon]
+          description: Sex/age/species classification
+        deer_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Re-identified deer profile ID (null if not matched)
+        deer_name:
+          type: string
+          nullable: true
+          description: User-assigned deer name (null if unnamed)
+        created_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error type or short message
+        detail:
+          type: string
+          description: Detailed error explanation
+        code:
+          type: string
+          description: Machine-readable error code

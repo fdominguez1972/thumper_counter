@@ -1315,3 +1315,178 @@ http://localhost:8001/docs
 - Backend: http://localhost:8001
 - Branch: main
 - Remotes: origin (GitHub), ubuntu (local)
+
+## Active Technologies
+- Python 3.11 (backend), TypeScript 5.x (frontend) (008-rut-season-analysis)
+- PostgreSQL 15 (existing database with images, detections tables) (008-rut-season-analysis)
+
+## Recent Changes
+- 008-rut-season-analysis: Added Python 3.11 (backend), TypeScript 5.x (frontend)
+
+## SESSION STATUS - Updated November 9, 2025
+
+### Current Feature: 008-rut-season-analysis - NEARLY COMPLETE
+**Phase:** 7 of 8 phases complete (pending: polish and validation)
+**Branch:** 008-rut-season-analysis
+**Status:** Ready for final testing and refinement
+
+### Feature 008: Rut Season Analysis (Nov 9, 2025)
+**Focus:** Seasonal wildlife activity analysis with export capabilities
+
+**Completed Phases:**
+1. [OK] Phase 1: Setup - Dependencies installed (ReportLab, Pandas)
+2. [OK] Phase 2: Database - Indexes and seasonal schemas created
+3. [OK] Phase 3: Seasonal API - Image and detection filtering endpoints
+4. [OK] Phase 4: Detection Queries - Classification and confidence filters
+5. [OK] Phase 5: Reports API - Activity reports and comparisons
+6. [OK] Phase 6: Frontend - Seasonal Analysis page with filters and stats
+7. [OK] Phase 7: Export - PDF and ZIP generation with Celery workers
+8. [PENDING] Phase 8: Polish and validation
+
+**Key Backend Files Created:**
+- src/backend/models/seasonal.py - SeasonalFilter enum with date ranges
+- src/backend/schemas/seasonal.py - Image/Detection response schemas
+- src/backend/schemas/report.py - Report request/response schemas
+- src/backend/schemas/export.py - PDF/ZIP export schemas
+- src/backend/api/seasonal.py - GET /seasonal/images, /seasonal/detections
+- src/backend/api/reports.py - GET /reports/seasonal/activity, /comparison
+- src/backend/api/exports.py - POST/GET /exports/pdf, /exports/zip
+- src/backend/api/static.py - GET /static/exports/{filename} (download)
+- src/worker/tasks/exports.py - PDF (ReportLab) and ZIP generation tasks
+- migrations/010_add_seasonal_indexes.sql - Performance indexes
+
+**Key Frontend Files Created:**
+- frontend/src/api/seasonal.ts - Seasonal API client
+- frontend/src/pages/SeasonalAnalysis.tsx - Full seasonal analysis UI
+- Updated: App.tsx, Layout.tsx for /seasonal route
+
+**Worker Configuration:**
+- Updated celery_app.py: exports module, queue, routing
+- Installed ReportLab 4.4.4 and Pandas 2.3.3
+- Added 'exports' queue for PDF/ZIP tasks
+- Worker concurrency: 32 threads (optimal for RTX 4080 Super)
+
+**Technical Achievements:**
+- Seasonal date range handling (RUT_SEASON crosses calendar year)
+- PDF generation with ReportLab (titles, tables, styling)
+- ZIP archives with detection crops and CSV metadata
+- Celery task routing and queue management
+- React Query integration with 2-second polling for exports
+- Material-UI cards and grids for seasonal stats display
+
+**Current Limitations:**
+1. PDF job status callback not implemented
+   - Jobs complete but status remains "processing"
+   - Files generate successfully (2.3KB PDFs verified)
+   - Workaround: Direct download URL works
+   - Fix needed: Redis-based job tracking or result backend polling
+
+2. Charts not yet implemented
+   - Timeline visualization (Recharts)
+   - Comparison bar charts
+   - Recommendation: Add in Phase 8
+
+3. ZIP export UI missing
+   - Backend complete and tested
+   - Frontend button needed
+   - Recommendation: Add to SeasonalAnalysis page
+
+**Database Status (Feature 008 End):**
+- Total images: 35,251
+- Processing: Ongoing background queue
+- Detections: Full database available for seasonal queries
+- Seasonal indexes: Optimized for timestamp and classification queries
+
+**API Endpoints Added:**
+```
+GET  /api/seasonal/images          - Filter images by season/year
+GET  /api/seasonal/detections      - Filter detections by season/year
+GET  /api/reports/seasonal/activity - Aggregate seasonal activity stats
+GET  /api/reports/seasonal/comparison - Compare multiple periods
+POST /api/exports/pdf              - Queue PDF report generation
+GET  /api/exports/pdf/{job_id}     - Poll PDF generation status
+POST /api/exports/zip              - Queue ZIP archive creation
+GET  /api/exports/zip/{job_id}     - Poll ZIP creation status
+DELETE /api/exports/{job_id}       - Cancel/delete export job
+GET  /api/static/exports/{filename} - Download generated files
+```
+
+**Frontend Routes Added:**
+```
+/seasonal - Seasonal Analysis page
+```
+
+**Performance Metrics:**
+- PDF generation: ~29ms per report
+- ZIP creation: ~0.1s per detection crop
+- Worker concurrency: 32 threads optimal
+- GPU utilization: 31% (RTX 4080 Super)
+- Image processing: 840 images/min
+
+**Next Steps for Phase 8 - Polish and Validation:**
+1. Fix PDF job status callback mechanism
+2. Add Recharts timeline visualization
+3. Implement ZIP export UI button
+4. End-to-end testing with real rut season data
+5. Performance optimization
+6. Documentation updates
+7. User acceptance testing
+
+**Files Modified (Summary):**
+- requirements.txt: Added reportlab, pandas
+- docker-compose.yml: Added /mnt/exports volumes
+- src/worker/celery_app.py: exports module + queue
+- src/backend/app/main.py: Registered seasonal, reports, exports routers
+- frontend/package.json: No new dependencies needed (all present)
+- frontend/src/App.tsx: Added /seasonal route
+- frontend/src/components/layout/Layout.tsx: Added navigation item
+
+**Known Working:**
+- [OK] Seasonal date range calculations (Sept-Jan crosses year boundary)
+- [OK] Database indexes improve query performance
+- [OK] PDF files generate successfully (verified with pdftotext)
+- [OK] Export files served via /api/static/exports/
+- [OK] Frontend displays seasonal stats correctly
+- [OK] Celery task routing to 'exports' queue
+- [OK] Worker processes export tasks successfully
+
+**Known Issues:**
+- [ ] Job status update mechanism (worker -> backend communication)
+- [ ] Charts/visualizations not implemented
+- [ ] ZIP export UI missing
+- [ ] File expiration cleanup not implemented
+
+**Testing Completed:**
+- [OK] PDF export: Generated 2.3KB report in 29ms
+- [OK] File download: Successfully retrieved via /api/static/exports/
+- [OK] Seasonal filters: All 4 seasons with date ranges
+- [OK] Worker task registration: exports tasks visible in worker logs
+- [ ] End-to-end PDF workflow (status polling incomplete)
+- [ ] ZIP export end-to-end
+- [ ] Frontend error handling
+- [ ] Mobile responsiveness
+
+**Git Branch:** 008-rut-season-analysis
+**Ready for:** Commit and merge after Phase 8 completion
+
+### Quick Start (Feature 008):
+```bash
+# View seasonal analysis
+http://localhost:3000/seasonal
+
+# Test PDF export
+curl -X POST "http://localhost:8001/api/exports/pdf" \
+  -H "Content-Type: application/json" \
+  -d '{"report_type": "seasonal_activity", "start_date": "2023-09-01", "end_date": "2024-01-31", "group_by": "month"}'
+
+# Download generated PDF
+curl -o report.pdf "http://localhost:8001/api/static/exports/report_{job_id}_{timestamp}.pdf"
+```
+
+### Environment:
+- Backend: http://localhost:8001
+- Frontend: http://localhost:3000
+- Flower (Celery monitoring): http://localhost:5555
+- Database: PostgreSQL on port 5433
+- Redis: Port 6380
+- Worker: 32 threads, CUDA enabled

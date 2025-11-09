@@ -75,9 +75,11 @@ services:
       - ./src:/app/src
       - ./tests:/app/tests
       - ./scripts:/app/scripts
-      - I:\Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
+      - /mnt/i/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
       - ./data/uploads:/mnt/uploads
       - ./data/thumbnails:/mnt/thumbnails
+      - ./data/exports:/mnt/exports
+      - ./data/exports:/mnt/exports
     depends_on:
       db:
         condition: service_healthy
@@ -123,10 +125,11 @@ services:
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
-      - I:\Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
+      - /mnt/i/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
       - ./data/uploads:/mnt/uploads
       - ./src/models:/app/models
-      - I:\deer_tracker\models:/mnt/training_data:ro
+      - /mnt/i/deer_tracker/models:/mnt/training_data:ro
+      - ./data/exports:/mnt/exports
     depends_on:
       db:
         condition: service_healthy

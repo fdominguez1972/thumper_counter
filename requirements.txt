@@ -31,6 +31,10 @@ easyocr>=1.7.0                    # OCR for trail camera footer extraction (Spri
 python-dotenv>=1.0.0              # Environment variable loading
 httpx>=0.25.0                     # HTTP client for async requests
 
+# Sprint 8: Rut Season Analysis
+reportlab>=4.0.0                  # PDF report generation
+pandas>=2.0.0                     # Data aggregation for seasonal reports
+
 # Development & Testing
 pytest>=7.4.0                     # Testing framework
 pytest-asyncio>=0.21.0            # Async test support
