@@ -524,12 +524,65 @@ curl "http://localhost:8001/api/images?location_id=UUID&status=completed&page_si
 - Multi-threaded operations when beneficial
 - Verify file creation immediately with `ls` or `dir`
 
-## SESSION STATUS - Updated November 8, 2025
+## SESSION STATUS - Updated November 8, 2025 (Evening Session)
 
-### Current Sprint: 8 of 8 - COMPLETE
-**Phase:** Sprint 8 Complete - Detection Correction & Multi-Species Classification
+### Current Sprint: Post-Sprint 8 - Performance Optimization COMPLETE
+**Phase:** Infrastructure Optimization & Volume Mount Fix
 **Branch:** main
-**Next Sprint:** Sprint 9 - Data Quality & Batch Processing
+**Next Sprint:** Sprint 9 - Rut Season Analysis & Buck Detection Validation
+
+### Performance Optimization Session (Nov 8, 2025 - Evening)
+**Focus:** Critical infrastructure fixes and performance optimization
+
+**Major Issues Resolved:**
+1. [CRITICAL FIX] Volume Mount Paths - Changed from Linux paths to Windows paths
+   - docker-compose.yml used /mnt/i/ paths (broken on Windows Docker Desktop)
+   - Fixed to I:\ format - ALL 35,251 images now accessible
+   - This was causing "Image file not found" errors on every image
+
+2. [PERFORMANCE] Worker Concurrency Optimization
+   - Tested concurrency: 1 -> 16 -> 64 -> 32 (optimal)
+   - Concurrency=64 caused GPU lock contention (18s/task vs 0.7s)
+   - Concurrency=32 is sweet spot: 31% GPU util, 840 images/min
+   - **13x speed improvement** over initial configuration
+
+3. [DATA VALIDATION] Rut Season Image Verification
+   - Created verify_and_queue_rut_season.py script
+   - Verified 6,115 rut season images (Sept-Jan) exist on disk
+   - Queued 7,000 images for processing
+   - Goal: Find mature buck detections from rut season
+
+**Performance Results:**
+- Before: "Processing going on for days" (volume mounts broken)
+- After: 840 images/min (14/sec), ~22 minutes for remaining 18,409 images
+- GPU: RTX 4080 Super at 31% utilization (optimal, no contention)
+- VRAM: 3.15GB / 16.4GB (19%)
+- Bottleneck: Database writes (70% of time), not GPU
+
+**Files Modified:**
+- docker-compose.yml: Windows path format (I:\ instead of /mnt/i/)
+- docker/dockerfiles/Dockerfile.worker: concurrency=32
+- New: scripts/verify_and_queue_rut_season.py
+- New: docs/SESSION_20251108_PERFORMANCE_OPTIMIZATION.md
+
+**Database Status (End of Session):**
+- Total: 35,251 images
+- Completed: 16,285 (46.2%)
+- Pending: 18,409
+- Failed: 557
+- Processing at: 840 images/min
+
+**Next Actions:**
+1. Monitor rut season image processing completion
+2. Query for mature buck detections (classification='mature', 'mid', 'young')
+3. Analyze buck detection patterns by season
+4. Validate model performance on rut season images
+
+---
+
+### Previous Session: Sprint 8 - COMPLETE
+**Phase:** Detection Correction & Multi-Species Classification
+**Branch:** main (merged)
 
 ### Sprint 8 Completed (Nov 8, 2025)
 **Focus:** Manual correction system and multi-species wildlife tracking
@@ -693,11 +746,13 @@ docker-compose exec db psql -U deertrack deer_tracking -c \
 Note: Real-world slower than GPU capability due to DB write bottleneck.
 
 ### File Paths
-- Project: /mnt/i/projects/thumper_counter
-- Images: /mnt/i/Hopkins_Ranch_Trail_Cam_Pics
+- Project: I:\projects\thumper_counter
+- Images: I:\Hopkins_Ranch_Trail_Cam_Pics (mounted as /mnt/images in containers)
 - Models: src/models/yolov8n_deer.pt (22MB)
-- Branch: 004-pipeline-integration (current, Sprint 6)
+- Branch: main (current)
 - Remotes: origin (GitHub), ubuntu (local)
+
+**IMPORTANT:** Docker volume mounts must use Windows path format (I:\) not Linux format (/mnt/i/)
 
 ## SESSION STATUS - Updated November 6, 2025
 

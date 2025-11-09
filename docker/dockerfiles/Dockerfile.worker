@@ -33,6 +33,6 @@ ENV PYTHONPATH=/app/src
 
 # Run Celery worker with threads pool for GPU support (Sprint 3)
 # WHY threads pool: Avoids CUDA fork() issues while staying CUDA-compatible
-# Concurrency=1: YOLO model inference is not thread-safe, use single thread
-# GPU handles parallelism internally (batch processing, CUDA streams)
-CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info", "--pool=threads", "--concurrency=1"]
+# Concurrency=32: Sweet spot - avoid GPU lock contention from 64 threads
+# GPU at 38% util with 64, but tasks slow down due to contention (18s vs 0.2s)
+CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info", "--pool=threads", "--concurrency=32"]
