@@ -68,6 +68,13 @@ curl http://localhost:8001/api/images/{image_id}
   - Catch torch.cuda.OutOfMemoryError for GPU issues
   - Update image status to "failed" and populate error_message
   - Log all errors with image_id and stack trace
+- [ ] T009a [US1] Implement GPU OOM retry logic in `src/worker/tasks/detection.py`
+  - Catch torch.cuda.OutOfMemoryError during batch inference
+  - Reduce batch size by 50% (32 -> 16 -> 8 -> 4 -> 1)
+  - Retry failed batch with reduced size (max 5 attempts)
+  - Log each batch size reduction with GPU memory stats
+  - Mark all images as "failed" if all retries exhausted
+  - Clear GPU cache between retries (torch.cuda.empty_cache())
 - [ ] T010 [US1] Add YOLOv8 GPU optimization in `src/worker/models/yolov8_detector.py`
   - Use torch.no_grad() context for inference
   - Verify model stays loaded in GPU memory
@@ -186,6 +193,13 @@ docker-compose exec db psql -U deertrack -d deer_tracking \
 - [ ] T027 [P] Update API documentation in `src/backend/app/main.py` FastAPI metadata with new endpoints
 - [ ] T028 [P] Verify Celery worker logs show task execution details
 - [ ] T029 Test end-to-end processing of 1000 images and verify no crashes
+- [ ] T029a Measure and verify batch processing throughput meets NFR-001
+  - Process batch of 1000 images
+  - Measure total time and calculate images/second
+  - Verify throughput >= 70 images/second on RTX 4080 Super
+  - Log throughput metrics to console
+  - Document actual throughput in ANALYSIS_REMEDIATION.md
+  - If below threshold, profile bottlenecks and optimize
 - [ ] T030 Document API endpoints in `.specify/features/001-detection-pipeline/api_usage.md`
 
 ---

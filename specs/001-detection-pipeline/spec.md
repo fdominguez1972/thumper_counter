@@ -61,30 +61,29 @@ As a wildlife researcher, I need to monitor the progress of batch processing job
 - How does system handle images with corrupted data that PIL cannot read?
 - What happens when GPU runs out of memory during batch processing?
 - What happens when Redis connection fails during task queueing? [OUT OF SCOPE: Celery connection retry handles this automatically; manual restart required for persistent failures]
-- How does system handle extremely large images (>50MB)?
+- How does system handle extremely large images (>50MB)? [RESOLVED BY FR-012: Rejected with HTTP 413 error]
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: System MUST load YOLOv8 model from `src/models/yolov8n_deer.pt` on worker startup; worker MUST fail to start with descriptive error if model cannot be loaded
+- **FR-001**: System MUST load and validate YOLOv8 model from `src/models/yolov8n_deer.pt` on worker startup; validation MUST check file exists and size >20MB (corruption check); worker MUST fail to start with descriptive error including full file path if model cannot be loaded or is corrupted
 - **FR-002**: System MUST accept single image processing via `process_immediately=true` flag in upload endpoint
 - **FR-003**: System MUST create Detection database records with bbox (x1,y1,x2,y2), confidence, and class_id for each detected deer
 - **FR-004**: System MUST update Image.processing_status through state transitions: pending -> processing -> completed/failed
 - **FR-005**: System MUST provide batch processing endpoint accepting list of image_ids
 - **FR-006**: System MUST process images in batches of 32 (configurable via BATCH_SIZE env var)
 - **FR-007**: System MUST provide processing status endpoint showing counts by status and processing rate
-- **FR-008**: System MUST handle detection failures gracefully without crashing worker
+- **FR-008**: System MUST handle detection failures gracefully without crashing worker; "graceful" means: worker process remains running, error logged with image_id and full stack trace, image status set to "failed" with error_message populated, next image in batch continues processing
 - **FR-009**: System MUST store error messages in Image.error_message field when processing fails
 - **FR-010**: System MUST use Celery task queue with Redis backend for async processing
-- **FR-011**: System MUST validate YOLOv8 model file exists at startup and fail with descriptive error if missing or corrupted
 - **FR-012**: System MUST reject image uploads larger than 50MB with HTTP 413 error
 
 ### Non-Functional Requirements
 
-- **NFR-001**: Detection processing MUST achieve minimum 70 images/second throughput on RTX 4080 Super
+- **NFR-001**: Detection processing MUST achieve minimum 70 images/second throughput on RTX 4080 Super GPU (16GB VRAM) with batch size 32
 - **NFR-002**: API response time for status endpoint MUST be under 200ms
-- **NFR-003**: Worker MUST recover from GPU OOM errors without requiring container restart by dynamically reducing batch size (32 -> 16 -> 8 -> 1) and retrying failed batch
+- **NFR-003**: Worker MUST recover from GPU OOM errors without requiring container restart by catching `torch.cuda.OutOfMemoryError`, dynamically reducing batch size by 50% on each retry (32 -> 16 -> 8 -> 4 -> 1), maximum 5 retry attempts, logging each reduction, and marking images as "failed" only after all retry attempts exhausted
 - **NFR-004**: Database write operations MUST use connection pooling to handle concurrent batch writes
 - **NFR-005**: System MUST log all processing errors with image_id and error details for debugging
 
@@ -100,7 +99,7 @@ As a wildlife researcher, I need to monitor the progress of batch processing job
 
 - **SC-001**: Single image upload with immediate processing completes within 3 seconds from upload to detection records created
 - **SC-002**: Batch processing achieves minimum 70 images/second sustained throughput for batches of 100+ images
-- **SC-003**: Detection accuracy matches YOLOv8n baseline (>80% precision at 0.5 IoU on deer class) [POST-DEPLOYMENT: Validated against manually labeled test set after Sprint 2]
+- **SC-003**: Detection accuracy matches YOLOv8n baseline (>80% precision at 0.5 IoU on deer class) [POST-DEPLOYMENT: Wildlife researcher validates against 100-image manually labeled test set within 7 days of deployment; pass threshold: >75% precision at 0.5 IoU; if failed, model requires retraining]
 - **SC-004**: System processes all 35,234 existing images without worker crashes or database errors
 - **SC-005**: Processing status endpoint response time remains under 200ms even with 10,000 images in "processing" state
 - **SC-006**: Error rate for valid JPEG images is under 1% (excluding corrupted files)
