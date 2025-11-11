@@ -47,7 +47,7 @@ export default function DetectionCorrectionDialog({
   const [isValid, setIsValid] = useState(detection.is_valid);
 
   // Check if current classification is a custom tag
-  const predefinedTags = ['buck', 'doe', 'fawn', 'unknown', 'cattle', 'pig', 'raccoon'];
+  const predefinedTags = ['buck', 'doe', 'fawn', 'unknown', 'cattle', 'pig', 'raccoon', 'human', 'vehicle', 'no animals'];
   const initialClassification = detection.corrected_classification || detection.classification;
   const isCustomTag = initialClassification && !predefinedTags.includes(initialClassification.toLowerCase());
 
@@ -177,7 +177,10 @@ export default function DetectionCorrectionDialog({
               <FormControlLabel value="cattle" control={<Radio />} label="Cattle (Not Deer)" />
               <FormControlLabel value="pig" control={<Radio />} label="Pig / Feral Hog (Not Deer)" />
               <FormControlLabel value="raccoon" control={<Radio />} label="Raccoon (Not Deer)" />
-              <FormControlLabel value="custom" control={<Radio />} label="Custom Tag (e.g., human, vehicle)" />
+              <FormControlLabel value="human" control={<Radio />} label="Human (Not Wildlife)" />
+              <FormControlLabel value="vehicle" control={<Radio />} label="Vehicle (Not Wildlife)" />
+              <FormControlLabel value="no animals" control={<Radio />} label="No Animals Detected" />
+              <FormControlLabel value="custom" control={<Radio />} label="Other (Custom Tag)" />
             </RadioGroup>
 
             {/* Custom Tag Input */}

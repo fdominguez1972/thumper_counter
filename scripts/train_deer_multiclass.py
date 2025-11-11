@@ -4,23 +4,44 @@ YOLOv8 Multi-Class Deer Training
 Sprint 4: Sex/Age Classification
 """
 import sys
+import argparse
 from pathlib import Path
 from ultralytics import YOLO
 import torch
 
-# Configuration (container paths)
-data_yaml = "/app/src/models/training_data/deer_multiclass.yaml"
-output_dir = "/app/src/models/runs"
+# Parse arguments
+parser = argparse.ArgumentParser(description='Train YOLOv8 multiclass deer model')
+parser.add_argument('--data', type=str, default='/app/src/models/training_data/deer_multiclass.yaml',
+                    help='Path to data.yaml file')
+parser.add_argument('--epochs', type=int, default=200,
+                    help='Number of training epochs')
+parser.add_argument('--batch', type=int, default=32,
+                    help='Batch size')
+parser.add_argument('--patience', type=int, default=20,
+                    help='Early stopping patience (epochs)')
+parser.add_argument('--name', type=str, default='deer_multiclass',
+                    help='Experiment name')
+parser.add_argument('--project', type=str, default='/app/src/models/runs',
+                    help='Project directory')
+args = parser.parse_args()
+
+# Configuration
+data_yaml = args.data
+output_dir = args.project
+epochs = args.epochs
+batch = args.batch
+patience = args.patience
+name = args.name
 
 print("="*70)
 print("YOLOV8 MULTI-CLASS DEER TRAINING")
 print("="*70)
 print(f"GPU: {torch.cuda.get_device_name(0)}")
 print(f"Data: {data_yaml}")
-print(f"Epochs: 200")
-print(f"Batch: 32")
-print(f"Patience: 20 (early stopping)")
-print(f"Output: {output_dir}")
+print(f"Epochs: {epochs}")
+print(f"Batch: {batch}")
+print(f"Patience: {patience} (early stopping)")
+print(f"Output: {output_dir}/{name}")
 print("="*70)
 print()
 
@@ -29,7 +50,7 @@ print("[INFO] Loading YOLOv8n pretrained model...")
 model = YOLO('yolov8n.pt')
 
 print("[OK] Model loaded - starting training...")
-print("[INFO] This will take 3-5 hours")
+print(f"[INFO] This will take approximately {epochs * 45 / 3600:.1f}-{epochs * 60 / 3600:.1f} hours")
 print("[INFO] Progress will be displayed below")
 print()
 
@@ -37,13 +58,13 @@ print()
 try:
     results = model.train(
         data=data_yaml,
-        epochs=200,
-        batch=32,
+        epochs=epochs,
+        batch=batch,
         imgsz=640,
         device=0,
-        patience=20,
+        patience=patience,
         project=output_dir,
-        name='deer_multiclass',
+        name=name,
         exist_ok=True,
         verbose=True,
         amp=True,
@@ -55,8 +76,8 @@ try:
     print()
     print("="*70)
     print("[OK] TRAINING COMPLETE!")
-    print(f"Best model: {output_dir}/deer_multiclass/weights/best.pt")
-    print(f"Last model: {output_dir}/deer_multiclass/weights/last.pt")
+    print(f"Best model: {output_dir}/{name}/weights/best.pt")
+    print(f"Last model: {output_dir}/{name}/weights/last.pt")
     print("="*70)
 
 except KeyboardInterrupt:

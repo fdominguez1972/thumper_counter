@@ -27,30 +27,32 @@ from typing import List, Dict, Tuple
 sys.path.insert(0, '/app')
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, joinedload
 from backend.models.detection import Detection
 from backend.models.image import Image
 from backend.models.deer import Deer
+from backend.models.location import Location
 
 
 # Class mapping for YOLOv8
+# Simplified for male/female counting: buck, doe, unknown (no fawn since it contains both sexes)
 CLASS_MAPPING = {
     'doe': 3,      # Female deer
-    'fawn': 4,     # Young deer (unknown sex)
-    'mature': 5,   # Mature buck
-    'mid': 6,      # Mid-age buck
-    'young': 10,   # Young buck
-    'buck': 5,     # Generic buck -> mature
-    'unknown': 4,  # Unknown -> fawn class
-    'cattle': 0,   # Cattle (if we want to include)
+    'buck': 5,     # All male deer (any age)
+    'mature': 5,   # Mature buck -> buck
+    'mid': 5,      # Mid-age buck -> buck
+    'young': 5,    # Young buck -> buck
+    'fawn': 4,     # Young deer -> unknown (contains both male/female)
+    'unknown': 4,  # Unknown sex
+    'cattle': 0,   # Cattle
     'pig': 1,      # Pig/feral hog
     'raccoon': 2,  # Raccoon
 }
 
 SEX_TO_CLASS = {
     'female': 'doe',
-    'male': 'mature',
-    'unknown': 'fawn',
+    'male': 'buck',
+    'unknown': 'unknown',
 }
 
 
@@ -158,11 +160,12 @@ def export_to_yolo_format(detections: List[Tuple], output_dir: Path, image_dir: 
             continue
 
         # Calculate normalized YOLO format
+        # bbox is stored as {x, y, width, height} - convert to normalized center format
         bbox = det.bbox
-        x_center = (bbox['x1'] + bbox['x2']) / 2 / img_width
-        y_center = (bbox['y1'] + bbox['y2']) / 2 / img_height
-        width = (bbox['x2'] - bbox['x1']) / img_width
-        height = (bbox['y2'] - bbox['y1']) / img_height
+        x_center = (bbox['x'] + bbox['width'] / 2) / img_width
+        y_center = (bbox['y'] + bbox['height'] / 2) / img_height
+        width = bbox['width'] / img_width
+        height = bbox['height'] / img_height
 
         # Write label file
         label_filename = f"{img.id}.txt"
@@ -171,9 +174,11 @@ def export_to_yolo_format(detections: List[Tuple], output_dir: Path, image_dir: 
             f.write(f"{class_id} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}\n")
 
     # Create data.yaml
-    yaml_content = f"""# Corrected Training Data
+    yaml_content = f"""# Corrected Training Data (Simplified for Male/Female Counting)
 # Exported: {datetime.now().isoformat()}
 # Total images: {stats['total']}
+# Note: All buck age classes (young, mid, mature) combined into 'buck'
+# Note: Fawn maps to 'unknown' since it contains both male and female
 
 path: {output_dir.absolute()}
 train: images/train
@@ -184,10 +189,8 @@ names:
   1: pig
   2: raccoon
   3: doe
-  4: fawn
-  5: mature
-  6: mid
-  10: young
+  4: unknown
+  5: buck
 
 # Class distribution:
 """
@@ -219,22 +222,32 @@ def export_to_csv(detections: List[Tuple], output_path: Path) -> Dict:
             stats['total'] += 1
             stats['by_class'][classification] = stats['by_class'].get(classification, 0) + 1
 
+            # Get location name from relationship
+            location_name = img.location.name if img.location else 'Unknown'
+
+            # Extract bbox coordinates
+            bbox = det.bbox
+            x1 = bbox['x']
+            y1 = bbox['y']
+            x2 = bbox['x'] + bbox['width']
+            y2 = bbox['y'] + bbox['height']
+
             writer.writerow([
                 str(det.id),
                 str(img.id),
                 img.path,
                 img.timestamp.isoformat(),
-                img.location_name,
+                location_name,
                 det.classification,
                 det.corrected_classification,
                 classification,
                 f"{det.confidence:.3f}" if det.confidence else '',
                 det.is_reviewed,
                 det.reviewed_by or '',
-                det.bbox['x1'],
-                det.bbox['y1'],
-                det.bbox['x2'],
-                det.bbox['y2'],
+                x1,
+                y1,
+                x2,
+                y2,
                 det.correction_notes or '',
             ])
 
@@ -262,8 +275,8 @@ def main():
     # Get database session
     db = get_database_session()
 
-    # Query detections
-    query = db.query(Detection, Image).join(Image, Detection.image_id == Image.id)
+    # Query detections with eager loading of location
+    query = db.query(Detection, Image).join(Image, Detection.image_id == Image.id).options(joinedload(Image.location))
 
     # Filter criteria
     if not args.include_invalid:
@@ -364,18 +377,20 @@ cp /app/src/models/runs/corrected_model/weights/best.pt \\
 docker-compose restart worker
 ```
 
-## Class Mapping
+## Class Mapping (Simplified for Male/Female Counting)
 - doe (3): Female deer
-- fawn (4): Young deer (unknown sex)
-- mature (5): Mature buck
-- mid (6): Mid-age buck
-- young (10): Young buck
+- buck (5): Male deer (all ages - young/mid/mature combined)
+- unknown (4): Unknown sex (includes fawn which contains both male/female)
 - cattle (0): Cattle
 - pig (1): Pig/feral hog
 - raccoon (2): Raccoon
 
 ## Notes
-Review the corrected_detections.csv file for detailed analysis of your corrections.
+- All buck age classes (young, mid, mature) combined into single 'buck' class
+- Fawn class merged into 'unknown' since young deer can be either male or female
+- This allows accurate male vs female population counting
+- Mature buck classifier can be built later from collected images
+- Review the corrected_detections.csv file for detailed analysis of your corrections.
 """)
 
     print(f"[OK] Export complete! See {readme_path} for next steps.")

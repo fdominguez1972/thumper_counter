@@ -1,0 +1,1 @@
+detection_id,image_id,image_path,timestamp,location,ml_classification,corrected_classification,final_classification,confidence,is_reviewed,reviewed_by,bbox_x1,bbox_y1,bbox_x2,bbox_y2,notes

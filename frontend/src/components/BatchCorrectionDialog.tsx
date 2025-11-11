@@ -153,7 +153,10 @@ export default function BatchCorrectionDialog({
               <FormControlLabel value="cattle" control={<Radio />} label="Cattle (Not Deer)" />
               <FormControlLabel value="pig" control={<Radio />} label="Pig / Feral Hog (Not Deer)" />
               <FormControlLabel value="raccoon" control={<Radio />} label="Raccoon (Not Deer)" />
-              <FormControlLabel value="custom" control={<Radio />} label="Custom Tag (e.g., human, vehicle)" />
+              <FormControlLabel value="human" control={<Radio />} label="Human (Not Wildlife)" />
+              <FormControlLabel value="vehicle" control={<Radio />} label="Vehicle (Not Wildlife)" />
+              <FormControlLabel value="no animals" control={<Radio />} label="No Animals Detected" />
+              <FormControlLabel value="custom" control={<Radio />} label="Other (Custom Tag)" />
             </RadioGroup>
 
             {/* Custom Tag Input */}
