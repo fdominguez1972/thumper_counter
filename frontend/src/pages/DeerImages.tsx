@@ -23,7 +23,6 @@ import {
   NavigateBefore as PrevIcon,
   NavigateNext as NextIcon,
   Edit as EditIcon,
-  Warning as WarningIcon,
   Sort as SortIcon,
 } from '@mui/icons-material';
 import { useState, useMemo } from 'react';
@@ -32,19 +31,6 @@ import apiClient from '../api/client';
 import DetectionCorrectionDialog from '../components/DetectionCorrectionDialog';
 import BatchCorrectionDialog from '../components/BatchCorrectionDialog';
 import PaginationControls from '../components/PaginationControls';
-
-interface Detection {
-  id: string;
-  image_id: string;
-  confidence: number;
-  bbox: {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-  };
-  created_at: string;
-}
 
 interface Image {
   id: string;
@@ -364,7 +350,7 @@ export default function DeerImages() {
             </IconButton>
 
             {/* Previous Button */}
-            {selectedIndex > 0 && (
+            {selectedIndex! > 0 && (
               <IconButton
                 onClick={handlePrevious}
                 sx={{
@@ -383,7 +369,7 @@ export default function DeerImages() {
             )}
 
             {/* Next Button */}
-            {selectedIndex < sortedImages.length - 1 && (
+            {selectedIndex! < sortedImages.length - 1 && (
               <IconButton
                 onClick={handleNext}
                 sx={{
@@ -405,7 +391,7 @@ export default function DeerImages() {
             <Box
               component="img"
               src={`/api/static/images/${selectedImage.id}`}
-              alt={`Sighting ${selectedIndex + 1}`}
+              alt={`Sighting ${selectedIndex! + 1}`}
               sx={{
                 width: '100%',
                 maxHeight: '80vh',
@@ -435,7 +421,7 @@ export default function DeerImages() {
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant="body2" color="text.secondary">
-                    Image {selectedIndex + 1} of {sortedImages.length}
+                    Image {selectedIndex! + 1} of {sortedImages.length}
                   </Typography>
                 </Grid>
               </Grid>

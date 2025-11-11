@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Box,
@@ -44,8 +43,6 @@ interface LocationStats {
 }
 
 export default function Locations() {
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-
   // Fetch locations
   const { data: locationsData, isLoading: locationsLoading } = useQuery({
     queryKey: ['locations'],
@@ -171,14 +168,7 @@ export default function Locations() {
 
           return (
             <Grid item xs={12} md={6} lg={4} key={location.id}>
-              <Card
-                sx={{
-                  cursor: 'pointer',
-                  '&:hover': { boxShadow: 4 },
-                  transition: 'box-shadow 0.2s',
-                }}
-                onClick={() => setSelectedLocation(location.id)}
-              >
+              <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <LocationOnIcon color="primary" sx={{ mr: 1 }} />

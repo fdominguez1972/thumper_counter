@@ -1319,6 +1319,8 @@ http://localhost:8001/docs
 ## Active Technologies
 - Python 3.11 (backend), TypeScript 5.x (frontend) (008-rut-season-analysis)
 - PostgreSQL 15 (existing database with images, detections tables) (008-rut-season-analysis)
+- Python 3.11 (backend), TypeScript 5.x (frontend) + FastAPI, React 18, Material-UI v5, Celery, Pillow, zipfile (009-bulk-image-upload)
+- PostgreSQL 15 (metadata), local filesystem (images at /mnt/images/{location}/) (009-bulk-image-upload)
 
 ## Recent Changes
 - 008-rut-season-analysis: Added Python 3.11 (backend), TypeScript 5.x (frontend)
@@ -1490,3 +1492,133 @@ curl -o report.pdf "http://localhost:8001/api/static/exports/report_{job_id}_{ti
 - Database: PostgreSQL on port 5433
 - Redis: Port 6380
 - Worker: 32 threads, CUDA enabled
+
+## Bulk Image Import and Queue Management (Nov 11, 2025)
+
+### Feature 009: Bulk Image Upload - Partially Implemented
+
+**Status**: Manual workflow operational, web UI pending
+
+**Implemented Components:**
+1. [OK] File copy script: scripts/copy_and_queue_images.sh
+2. [OK] Database registration: scripts/register_copied_images.py
+3. [OK] Automatic queue monitor: scripts/continuous_queue.sh
+4. [PENDING] Web upload interface
+5. [PENDING] ZIP archive extraction
+
+### Critical Discovery: Queue Management Issue
+
+**Problem**: After importing 23,934 new trail camera images (Nov 11, 2025), discovered images were stuck in "pending" status for 36+ hours with no processing. Worker was operational but queue was empty.
+
+**Root Cause**: Database import creates records with `processing_status='pending'` but does not automatically trigger Celery task queue. Manual API calls required to queue batches.
+
+**Solution**: Implemented automatic queue monitoring script that:
+- Polls `/api/processing/status` every 60 seconds
+- Detects idle state (pending>0, processing=0)
+- Auto-queues 10,000 images when idle
+- Runs as background daemon
+
+**Lesson**: Always run continuous queue monitor after bulk imports to ensure automatic processing.
+
+### Bulk Import Workflow (Operational)
+
+```bash
+# Step 1: Copy images from dumps to storage
+bash scripts/copy_and_queue_images.sh
+# Result: 23,934 images copied (270_Jason: 8,788, Hayfield: 5,533, Sanctuary: 9,613)
+
+# Step 2: Register in database with EXIF extraction
+docker-compose exec -T backend python3 /app/scripts/register_copied_images.py
+# Result: 23,934 records created with 100% EXIF timestamp success
+
+# Step 3: Start automatic queue monitor
+nohup ./scripts/continuous_queue.sh > queue_monitor.log 2>&1 &
+
+# Step 4: Monitor progress
+tail -f queue_monitor.log
+curl -s http://localhost:8001/api/processing/status | python3 -m json.tool
+```
+
+### Performance Metrics (Nov 11, 2025 Import)
+
+**System Configuration:**
+- GPU: RTX 4080 Super (16GB VRAM)
+- Worker concurrency: 32 threads (optimal)
+- Batch size: 16 images per batch
+
+**Results:**
+- Throughput: 840 images/minute sustained
+- GPU utilization: 31% (optimal, no contention)
+- VRAM usage: 3.15GB / 16.4GB (19%)
+- Bottleneck: Database writes (70% of time), not GPU
+
+**Concurrency Testing:**
+| Threads | Throughput | GPU Util | Notes |
+|---------|------------|----------|-------|
+| 1 | 150 img/min | 10% | Baseline |
+| 16 | 600 img/min | 25% | Good |
+| 32 | 840 img/min | 31% | Optimal (current) |
+| 64 | 540 img/min | 18% | GPU lock contention |
+
+### Key Scripts Created
+
+- **scripts/continuous_queue.sh**: Auto-queues pending images
+  - Monitors every 60 seconds
+  - Queues 10,000 images when idle
+  - Usage: `nohup ./scripts/continuous_queue.sh > queue_monitor.log 2>&1 &`
+
+- **scripts/register_copied_images.py**: Database registration
+  - EXIF extraction (3-level fallback: EXIF → filename → current UTC)
+  - Duplicate detection by filename+location
+  - Batch commits every 100 images
+
+- **scripts/copy_and_queue_images.sh**: File transfer
+  - Uses rsync -av for timestamp preservation
+  - Processes 270_Jason, Hayfield, Sanctuary locations
+
+### Database Status (Post-Import)
+
+```sql
+-- As of Nov 11, 2025
+Total images: 59,185
+  - Pending: 23,288 (39.4%)
+  - Processing: 30 (0.05%)
+  - Completed: 35,279 (59.6%)
+  - Failed: 588 (1.0%)
+```
+
+**Locations:**
+- Sanctuary: 21,288 images
+- Hayfield: 18,217 images
+- 270_Jason: 12,452 images
+- Camphouse: 4,308 images
+- TinMan: 1,466 images
+- Phils_Secret_Spot: 1,454 images
+
+### Documentation Updated
+
+- **specs/009-bulk-image-upload/spec.md**: Added "Implementation Notes - Automated Queue Management" section
+- **specs/001-detection-pipeline/spec.md**: Added "Implementation Notes - Queue Management and Operational Insights" section
+- **docs/OPERATIONS_RUNBOOK.md**: Created comprehensive operations manual
+  - System health checks
+  - Bulk import workflow
+  - Queue management procedures
+  - Troubleshooting guide
+  - Performance tuning
+  - Monitoring commands
+
+### Operational Recommendations
+
+1. **Always run continuous queue monitor** after bulk imports
+2. **Monitor queue status** every 5 minutes during large imports
+3. **Check for stuck images** if processing=0 with pending>0 for >5 minutes
+4. **Verify worker health** via logs: `docker-compose logs -f worker`
+5. **Use operations runbook** for troubleshooting: `docs/OPERATIONS_RUNBOOK.md`
+
+### Next Steps for Feature 009
+
+1. Implement web upload UI with drag-drop interface
+2. Add ZIP archive extraction support
+3. Integrate automatic queueing into upload API endpoint
+4. Add upload progress tracking and status display
+5. Create upload history view showing recent batches

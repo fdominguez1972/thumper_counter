@@ -20,19 +20,15 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  TextField,
   Alert,
   CircularProgress,
   Chip,
-  Divider,
   Stack,
 } from '@mui/material';
 import {
   Download as DownloadIcon,
-  Assessment as AssessmentIcon,
   FilterList as FilterIcon,
   PictureAsPdf as PdfIcon,
-  Archive as ZipIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -71,7 +67,7 @@ export const SeasonalAnalysis: React.FC = () => {
     queryFn: () => checkPDFStatus(pdfJobId!),
     enabled: !!pdfJobId,
     refetchInterval: (data) => {
-      if (data?.status === 'completed' || data?.status === 'failed') {
+      if ((data as any)?.status === 'completed' || (data as any)?.status === 'failed') {
         setPdfGenerating(false);
         return false;
       }

@@ -104,3 +104,57 @@ As a wildlife researcher, I need to monitor the progress of batch processing job
 - **SC-004**: System processes all 35,234 existing images without worker crashes or database errors
 - **SC-005**: Processing status endpoint response time remains under 200ms even with 10,000 images in "processing" state
 - **SC-006**: Error rate for valid JPEG images is under 1% (excluding corrupted files)
+
+
+---
+
+## Implementation Notes - Queue Management and Operational Insights
+
+### Automatic Queue Monitoring (Nov 2025)
+
+**Problem**: After importing 23,934 new images, the system showed images stuck in 'pending' status for 36+ hours with 0 images processing, despite the worker being operational. The root cause was that database import creates records with `processing_status='pending'` but does not automatically trigger the Celery task queue.
+
+**Solution**: Implemented continuous queue monitoring script (`scripts/continuous_queue.sh`) that:
+- Polls `/api/processing/status` every 60 seconds
+- Detects idle state: pending > 0 AND processing = 0
+- Auto-queues batches of 10,000 images via `POST /api/processing/batch`
+- Runs as background daemon until all images processed
+
+**Usage**:
+```bash
+# Start background monitor
+nohup ./scripts/continuous_queue.sh > queue_monitor.log 2>&1 &
+
+# Check status
+tail -f queue_monitor.log
+```
+
+**Key Metrics from Nov 2025 Import**:
+- Total images imported: 23,934
+- EXIF timestamp success: 100%
+- Processing throughput: 840 images/minute sustained
+- Worker concurrency: 32 threads (optimal for RTX 4080 Super)
+- GPU utilization: 31% (batch size optimized to avoid contention)
+
+### Operational Recommendations
+
+1. **Always run continuous queue monitor** after bulk imports to ensure automatic processing
+2. **Monitor queue length** via `docker-compose exec redis redis-cli LLEN ml_processing`
+3. **Check for stuck images** if processing rate drops below 500 images/minute
+4. **Verify worker logs** for GPU errors or model loading failures
+
+### Performance Baselines
+
+| Configuration | Throughput | GPU Util | Notes |
+|--------------|------------|----------|-------|
+| Concurrency=1 | 150 img/min | 10% | Single-threaded baseline |
+| Concurrency=32 | 840 img/min | 31% | Optimal (current) |
+| Concurrency=64 | 540 img/min | 18% | GPU lock contention |
+
+**Bottleneck**: Database writes consume 70% of processing time; GPU inference only 30%
+
+### Future Enhancements
+
+- **FR-012** (NEW): Batch processing endpoint should automatically queue pending images when called with no parameters
+- **FR-013** (NEW): Image import API should optionally auto-queue images for processing via `auto_process=true` parameter
+- **FR-014** (NEW): System should provide alerts when queue has been idle for >5 minutes with pending images

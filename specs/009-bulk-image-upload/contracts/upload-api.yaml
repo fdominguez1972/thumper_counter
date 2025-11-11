@@ -1,0 +1,464 @@
+openapi: 3.0.3
+info:
+  title: Bulk Image Upload API
+  description: |
+    API endpoints for uploading trail camera images (individual files or ZIP archives)
+    with automatic location assignment, EXIF timestamp extraction, and ML pipeline integration.
+  version: 1.0.0
+  contact:
+    name: Thumper Counter API
+    url: https://github.com/your-org/thumper_counter
+
+servers:
+  - url: http://localhost:8001/api
+    description: Local development server
+  - url: https://api.example.com/api
+    description: Production server
+
+tags:
+  - name: Upload
+    description: Image upload operations
+  - name: Upload Batches
+    description: Upload batch management and history
+
+paths:
+  /upload/files:
+    post:
+      summary: Upload individual image files
+      description: |
+        Upload one or more individual JPG/JPEG images to a specified location.
+        Files are validated, EXIF timestamps extracted, and optionally queued for ML processing.
+      operationId: uploadFiles
+      tags:
+        - Upload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - files
+                - location_id
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: JPG/JPEG image files (max 50MB each)
+                  minItems: 1
+                  maxItems: 1000
+                location_id:
+                  type: string
+                  format: uuid
+                  description: UUID of the location (camera site)
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                process_immediately:
+                  type: boolean
+                  description: Queue images for detection/re-ID processing after upload
+                  default: true
+            encoding:
+              files:
+                contentType: image/jpeg
+      responses:
+        '200':
+          description: Upload successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        '400':
+          description: Invalid request (bad file type, missing location, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidFileType:
+                  summary: Invalid file type
+                  value:
+                    detail: "Only JPG/JPEG files are supported"
+                missingLocation:
+                  summary: Missing location
+                  value:
+                    detail: "location_id is required"
+        '413':
+          description: File size exceeds limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                detail: "File size exceeds 50MB limit"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /upload/zip:
+    post:
+      summary: Upload ZIP archive containing images
+      description: |
+        Upload a ZIP archive containing multiple JPG/JPEG images.
+        Archive is extracted server-side, only image files are imported, other files ignored.
+        Maximum archive size: 2GB.
+      operationId: uploadZip
+      tags:
+        - Upload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - location_id
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: ZIP archive file (max 2GB)
+                location_id:
+                  type: string
+                  format: uuid
+                  description: UUID of the location (camera site)
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                process_immediately:
+                  type: boolean
+                  description: Queue extracted images for ML processing
+                  default: true
+            encoding:
+              file:
+                contentType: application/zip
+      responses:
+        '200':
+          description: ZIP extraction started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        '400':
+          description: Invalid ZIP archive or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                corruptedZip:
+                  summary: Corrupted ZIP file
+                  value:
+                    detail: "ZIP file is corrupted or unreadable"
+                noImagesFound:
+                  summary: No images in ZIP
+                  value:
+                    detail: "No JPG/JPEG files found in archive"
+        '413':
+          description: ZIP file exceeds 2GB limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during extraction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /upload/batches:
+    get:
+      summary: List upload batches
+      description: |
+        Retrieve upload history with pagination and filtering.
+        Returns most recent uploads first.
+      operationId: listUploadBatches
+      tags:
+        - Upload Batches
+      parameters:
+        - name: location_id
+          in: query
+          description: Filter by location UUID
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: Filter by batch status
+          required: false
+          schema:
+            type: string
+            enum: [pending, processing, completed, failed]
+        - name: upload_type
+          in: query
+          description: Filter by upload type
+          required: false
+          schema:
+            type: string
+            enum: [files, zip]
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: page_size
+          in: query
+          description: Results per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Upload batch list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  batches:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UploadBatch'
+                  total:
+                    type: integer
+                    description: Total number of batches matching filters
+                    example: 42
+                  page:
+                    type: integer
+                    example: 1
+                  page_size:
+                    type: integer
+                    example: 20
+                  has_more:
+                    type: boolean
+                    description: Whether more results exist
+                    example: true
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /upload/batches/{batch_id}:
+    get:
+      summary: Get upload batch details
+      description: |
+        Retrieve detailed information about a specific upload batch,
+        including list of uploaded images and processing status.
+      operationId: getUploadBatch
+      tags:
+        - Upload Batches
+      parameters:
+        - name: batch_id
+          in: path
+          description: Upload batch UUID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Upload batch details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadBatchDetail'
+        '404':
+          description: Batch not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    UploadResponse:
+      type: object
+      required:
+        - batch_id
+        - total_files
+        - successful_files
+        - failed_files
+        - status
+      properties:
+        batch_id:
+          type: string
+          format: uuid
+          description: UUID of the upload batch
+          example: "b1c2d3e4-f5a6-7890-bcde-f12345678901"
+        total_files:
+          type: integer
+          description: Total number of files in upload
+          example: 150
+        successful_files:
+          type: integer
+          description: Number of files successfully uploaded
+          example: 148
+        failed_files:
+          type: integer
+          description: Number of files that failed validation or storage
+          example: 2
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          description: Upload batch processing status
+          example: "completed"
+        location_name:
+          type: string
+          description: Name of the location where images were uploaded
+          example: "Sanctuary"
+        duration_seconds:
+          type: number
+          format: float
+          description: Time taken to process upload (seconds)
+          example: 12.5
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+                example: "IMG_CORRUPT.jpg"
+              error:
+                type: string
+                example: "File is corrupted or unreadable"
+          description: List of failed files with error messages
+
+    UploadBatch:
+      type: object
+      required:
+        - id
+        - location_id
+        - location_name
+        - upload_type
+        - total_files
+        - successful_files
+        - failed_files
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Upload batch UUID
+          example: "b1c2d3e4-f5a6-7890-bcde-f12345678901"
+        location_id:
+          type: string
+          format: uuid
+          description: Location UUID
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        location_name:
+          type: string
+          description: Location name
+          example: "Sanctuary"
+        upload_type:
+          type: string
+          enum: [files, zip]
+          description: Type of upload
+          example: "zip"
+        total_files:
+          type: integer
+          description: Total files in batch
+          example: 150
+        successful_files:
+          type: integer
+          description: Successfully uploaded files
+          example: 148
+        failed_files:
+          type: integer
+          description: Failed files
+          example: 2
+        zip_filename:
+          type: string
+          nullable: true
+          description: Original ZIP filename (null for individual file uploads)
+          example: "Sanctuary_20251101.zip"
+        zip_size_bytes:
+          type: integer
+          format: int64
+          nullable: true
+          description: ZIP file size in bytes (null for individual file uploads)
+          example: 524288000
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          description: Batch processing status
+          example: "completed"
+        error_message:
+          type: string
+          nullable: true
+          description: Error message if batch failed
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: Upload creation timestamp (ISO 8601)
+          example: "2025-11-11T10:30:00Z"
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Upload completion timestamp (ISO 8601)
+          example: "2025-11-11T10:30:12Z"
+        created_by:
+          type: string
+          description: User who created upload
+          example: "web_user"
+
+    UploadBatchDetail:
+      allOf:
+        - $ref: '#/components/schemas/UploadBatch'
+        - type: object
+          properties:
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: "c1d2e3f4-a5b6-7890-cdef-123456789012"
+                  filename:
+                    type: string
+                    example: "Sanctuary_20251101_143022_001.jpg"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: Image capture timestamp (from EXIF or filename)
+                    example: "2025-11-01T14:30:22Z"
+                  processing_status:
+                    type: string
+                    enum: [pending, processing, completed, failed]
+                    example: "completed"
+                  detection_count:
+                    type: integer
+                    description: Number of deer detected in image
+                    example: 2
+              description: List of images in this upload batch
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
+          example: "Only JPG/JPEG files are supported"
+        error_code:
+          type: string
+          description: Machine-readable error code
+          example: "INVALID_FILE_TYPE"

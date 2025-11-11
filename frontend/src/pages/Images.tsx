@@ -15,7 +15,6 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  TextField,
   Typography,
 } from '@mui/material';
 import {
@@ -24,8 +23,6 @@ import {
   NavigateNext as NextIcon,
   FilterList as FilterIcon,
   Edit as EditIcon,
-  FirstPage as FirstPageIcon,
-  LastPage as LastPageIcon,
   Sort as SortIcon,
 } from '@mui/icons-material';
 import apiClient from '../api/client';
@@ -49,6 +46,7 @@ interface Image {
   location_name: string;
   detection_count?: number;
   detections?: Detection[];
+  is_valid?: boolean;
 }
 
 interface Location {
@@ -529,7 +527,7 @@ export default function Images() {
                 </Typography>
                 {selectedImage.detections && selectedImage.detections.length > 0 && (
                   <Box sx={{ mt: 1 }}>
-                    {selectedImage.detections.map((det, idx) => (
+                    {selectedImage.detections.map((det) => (
                       <Box key={det.id} sx={{ mb: 1 }}>
                         <Chip
                           label={det.corrected_classification || det.classification}

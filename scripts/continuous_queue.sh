@@ -1,36 +1,50 @@
 #!/bin/bash
-# Continuous queuing script - keeps queue fed until all images processed
-# Usage: bash scripts/continuous_queue.sh
+#
+# Continuous Queue Monitor
+# Automatically queues pending images when the worker queue is idle
+#
+# Usage: ./scripts/continuous_queue.sh
+# To run in background: nohup ./scripts/continuous_queue.sh > queue_monitor.log 2>&1 &
+#
 
-echo "[INFO] Starting continuous queuing..."
+set -e
+
+API_URL="http://localhost:8001"
+CHECK_INTERVAL=60  # Check every 60 seconds
+BATCH_SIZE=10000   # Queue 10k images at a time
+
+echo "[INFO] Starting continuous queue monitor..."
+echo "[INFO] Check interval: ${CHECK_INTERVAL}s"
+echo "[INFO] Batch size: ${BATCH_SIZE}"
 echo ""
-
-total_queued=0
 
 while true; do
-    # Get pending count
-    pending=$(curl -s http://localhost:8001/api/processing/status | python3 -c "import sys, json; print(json.load(sys.stdin)['pending'])" 2>/dev/null)
+    # Get current processing status
+    STATUS=$(curl -s "${API_URL}/api/processing/status")
 
-    if [ -z "$pending" ] || [ "$pending" = "0" ]; then
-        echo ""
-        echo "[OK] All images processed! Total queued: $total_queued"
-        break
-    fi
+    PENDING=$(echo "$STATUS" | python3 -c "import sys, json; print(json.load(sys.stdin)['pending'])" 2>/dev/null || echo "0")
+    PROCESSING=$(echo "$STATUS" | python3 -c "import sys, json; print(json.load(sys.stdin)['processing'])" 2>/dev/null || echo "0")
+    COMPLETED=$(echo "$STATUS" | python3 -c "import sys, json; print(json.load(sys.stdin)['completed'])" 2>/dev/null || echo "0")
 
-    # Queue 1000 tasks (limit as query parameter, not body)
-    result=$(curl -s -X POST "http://localhost:8001/api/processing/batch?limit=1000" \
-        | python3 -c "import sys, json; d=json.load(sys.stdin); print(d['queued_count'])" 2>/dev/null)
+    TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-    if [ "$result" = "0" ] || [ -z "$result" ]; then
-        echo "[WARN] No tasks queued, waiting..."
-        sleep 5
+    echo "[$TIMESTAMP] Status: Pending=$PENDING, Processing=$PROCESSING, Completed=$COMPLETED"
+
+    # If there are pending images AND no images currently processing
+    # (which means the queue is empty), queue a batch
+    if [ "$PENDING" -gt "0" ] && [ "$PROCESSING" -eq "0" ]; then
+        echo "[$TIMESTAMP] [ACTION] Queue is empty with $PENDING pending images - queueing batch of $BATCH_SIZE"
+
+        RESULT=$(curl -s -X POST "${API_URL}/api/processing/batch?limit=${BATCH_SIZE}")
+        QUEUED=$(echo "$RESULT" | python3 -c "import sys, json; print(json.load(sys.stdin)['queued_count'])" 2>/dev/null || echo "0")
+
+        echo "[$TIMESTAMP] [OK] Queued $QUEUED images for processing"
+    elif [ "$PENDING" -eq "0" ]; then
+        echo "[$TIMESTAMP] [INFO] All images processed! No pending images."
     else
-        total_queued=$((total_queued + result))
-        echo "[OK] Queued $result tasks (total: $total_queued, pending: $pending)"
-        sleep 2
+        echo "[$TIMESTAMP] [INFO] Worker actively processing ($PROCESSING images in queue)"
     fi
-done
 
-echo ""
-echo "Monitor final results with:"
-echo "  curl http://localhost:8001/api/processing/status"
+    echo ""
+    sleep $CHECK_INTERVAL
+done
