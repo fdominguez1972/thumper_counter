@@ -100,6 +100,7 @@ async def list_deer(
     status: Optional[DeerStatus] = Query(None, description="Filter by status"),
     species: Optional[str] = Query(None, description="Filter by species"),
     min_sightings: Optional[int] = Query(1, description="Minimum sighting count (default: 1 to hide invalidated profiles)"),
+    sort_by: Optional[str] = Query("last_seen", description="Sort field: last_seen, first_seen, sighting_count"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(50, ge=1, le=200, description="Items per page"),
     db: Session = Depends(get_db),
@@ -148,9 +149,17 @@ async def list_deer(
     # Get total count
     total = query.count()
 
-    # Apply pagination and sorting (most recently seen first)
+    # Determine sort order
+    sort_field_map = {
+        "last_seen": Deer.last_seen,
+        "first_seen": Deer.first_seen,
+        "sighting_count": Deer.sighting_count,
+    }
+    sort_field = sort_field_map.get(sort_by, Deer.last_seen)
+
+    # Apply pagination and sorting
     deer_list = (
-        query.order_by(desc(Deer.last_seen))
+        query.order_by(desc(sort_field))
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()

@@ -4,9 +4,73 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## PROJECT: Thumper Counter (Deer Tracking System Rebuild)
 
-**Rebuild using:** spec-kit + claude-cli  
-**Original project:** I:\deer_tracker  
-**Purpose:** Learn spec-kit workflow while rebuilding the deer tracking ML pipeline  
+**Rebuild using:** spec-kit + claude-cli
+**Original project:** I:\deer_tracker
+**Purpose:** Learn spec-kit workflow while rebuilding the deer tracking ML pipeline
+
+## SESSION HANDOFF - AUTOMATED CATCHUP (CRITICAL)
+
+**IMPORTANT:** When Claude Code starts a new session, immediately perform these steps:
+
+### Step 1: Read Latest Session Handoff
+```bash
+# Find the most recent session handoff document
+ls -lt docs/SESSION_*.md | head -1
+
+# Read the entire handoff document (most recent first)
+cat docs/SESSION_20251111_MODEL_DEPLOYMENT.md
+```
+
+### Step 2: Check System Status
+```bash
+# Check what's currently running
+docker-compose ps
+
+# Check processing queue status
+curl -s http://localhost:8001/api/processing/status | python3 -m json.tool
+
+# Check database status
+docker-compose exec -T db psql -U deertrack deer_tracking -c \
+  "SELECT processing_status, COUNT(*) FROM images GROUP BY processing_status;"
+```
+
+### Step 3: Review Recent Changes
+```bash
+# Check recent commits
+git log --oneline -10
+
+# Check current branch
+git branch --show-current
+
+# Check git status
+git status
+```
+
+### Step 4: Inform User
+After reading the handoff document and checking status, provide the user with:
+1. **Current System State** - What's running, processing status, database stats
+2. **Recent Work Summary** - What was accomplished in last session (from handoff doc)
+3. **Pending Tasks** - What needs attention or is in progress
+4. **Next Steps** - Recommended actions based on current state
+
+### Session Handoff Documents
+- `docs/SESSION_20251111_MODEL_DEPLOYMENT.md` - Buck/doe model deployment (LATEST)
+- `docs/SESSION_20251108_PERFORMANCE_OPTIMIZATION.md` - Performance optimization
+- `docs/SESSION_20251108_HANDOFF.md` - Detection correction system
+- Additional handoff docs listed in docs/ directory
+
+### Quick Status Commands
+```bash
+# Check processing progress
+curl -s http://localhost:8001/api/processing/status
+
+# Check classification distribution
+docker-compose exec -T db psql -U deertrack deer_tracking -c \
+  "SELECT classification, COUNT(*) FROM detections GROUP BY classification ORDER BY COUNT(*) DESC;"
+
+# Check worker status
+docker-compose logs -f worker --tail=50
+```
 
 ## CRITICAL: User Preferences & Working Style
 

@@ -51,28 +51,24 @@ IOU_THRESHOLD = float(os.getenv('DETECTION_IOU', 0.45))
 MAX_DETECTIONS = int(os.getenv('MAX_DETECTIONS', 20))
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Model paths (Sprint 4: Multi-class model for sex/age classification)
+# Model paths (Updated: Simplified buck/doe model - Nov 11, 2025)
 MODEL_DIR = Path(os.getenv('MODEL_DIR', 'src/models'))
-YOLO_MODEL_PATH = MODEL_DIR / 'runs' / 'deer_multiclass' / 'weights' / 'best.pt'
+YOLO_MODEL_PATH = MODEL_DIR / 'yolov8n_deer.pt'  # Production model (6-class simplified)
 
-# Class mapping from multi-class model (Sprint 4)
-# Model has 11 classes, we care about deer classes for sex/age
+# Class mapping from simplified buck/doe model
+# Model trained on 2,027 manually corrected images
+# Classes: cattle, pig, raccoon, doe, unknown, buck
 CLASS_NAMES = {
-    0: "UTV",
-    1: "cow",
-    2: "coyote",
+    0: "cattle",     # Not deer
+    1: "pig",        # Feral hog (not deer)
+    2: "raccoon",    # Not deer
     3: "doe",        # Female deer
-    4: "fawn",       # Baby deer (sex unknown)
-    5: "mature",     # Mature buck (large antlers)
-    6: "mid",        # Mid-age buck (medium antlers)
-    7: "person",
-    8: "raccoon",
-    9: "turkey",
-    10: "young"      # Young buck (small/spike antlers)
+    4: "unknown",    # Unknown sex (including fawns)
+    5: "buck"        # Male deer (all ages combined)
 }
 
 # Deer-specific classes for filtering
-DEER_CLASSES = {3, 4, 5, 6, 10}  # doe, fawn, mature, mid, young
+DEER_CLASSES = {3, 4, 5}  # doe, unknown, buck
 
 # Deduplication settings (Sprint 8)
 DEDUP_IOU_THRESHOLD = float(os.getenv('DEDUP_IOU_THRESHOLD', 0.5))  # 50% overlap = duplicate

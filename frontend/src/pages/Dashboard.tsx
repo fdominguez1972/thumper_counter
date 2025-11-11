@@ -62,7 +62,7 @@ export default function Dashboard() {
             value={stats.totalDeer}
             icon={<PetsIcon sx={{ fontSize: 40 }} />}
             color={theme.palette.primary.main}
-            onClick={() => navigate('/deer')}
+            onClick={() => navigate('/deer?sort=sighting_count')}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -80,7 +80,7 @@ export default function Dashboard() {
             value={stats.bucks}
             icon={<MaleIcon sx={{ fontSize: 40 }} />}
             color={theme.palette.info.main}
-            onClick={() => navigate('/deer?sex=male')}
+            onClick={() => navigate('/deer?sex=buck&sort=sighting_count')}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -89,7 +89,7 @@ export default function Dashboard() {
             value={stats.does}
             icon={<FemaleIcon sx={{ fontSize: 40 }} />}
             color={theme.palette.secondary.main}
-            onClick={() => navigate('/deer?sex=female')}
+            onClick={() => navigate('/deer?sex=doe&sort=sighting_count')}
           />
         </Grid>
       </Grid>

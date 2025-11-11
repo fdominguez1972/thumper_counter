@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -21,10 +21,19 @@ import { getDeerList, Deer } from '../api/deer';
 import PaginationControls from '../components/PaginationControls';
 
 export default function DeerGallery() {
-  const [sexFilter, setSexFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('last_seen');
+  const [searchParams] = useSearchParams();
+  const [sexFilter, setSexFilter] = useState<string>(searchParams.get('sex') || 'all');
+  const [sortBy, setSortBy] = useState<string>(searchParams.get('sort') || 'sighting_count');
   const [page, setPage] = useState(1);
   const pageSize = 30;
+
+  // Sync state with URL params on mount
+  useEffect(() => {
+    const sexParam = searchParams.get('sex');
+    const sortParam = searchParams.get('sort');
+    if (sexParam) setSexFilter(sexParam);
+    if (sortParam) setSortBy(sortParam);
+  }, [searchParams]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['deer', 'list', sexFilter, sortBy, page],
@@ -53,11 +62,20 @@ export default function DeerGallery() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Generate page title based on active filter
+  const getPageTitle = () => {
+    if (sexFilter === 'buck') return 'Deer Gallery - Bucks';
+    if (sexFilter === 'doe') return 'Deer Gallery - Does';
+    if (sexFilter === 'fawn') return 'Deer Gallery - Fawns';
+    if (sexFilter === 'unknown') return 'Deer Gallery - Unknown Sex';
+    return 'Deer Gallery';
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 600 }}>
-          Deer Gallery
+          {getPageTitle()}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {data?.total || 0} deer with sightings
