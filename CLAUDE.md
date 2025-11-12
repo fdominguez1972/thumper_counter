@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ls -lt docs/SESSION_*.md | head -1
 
 # Read the entire handoff document (most recent first)
-cat docs/SESSION_20251111_MODEL_DEPLOYMENT.md
+cat docs/SESSION_20251112_CRITICAL_FIXES.md
 ```
 
 ### Step 2: Check System Status
