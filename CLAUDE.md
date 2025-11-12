@@ -1389,12 +1389,69 @@ http://localhost:8001/docs
 ## Recent Changes
 - 008-rut-season-analysis: Added Python 3.11 (backend), TypeScript 5.x (frontend)
 
-## SESSION STATUS - Updated November 9, 2025
+## SESSION STATUS - Updated November 11, 2025
 
-### Current Feature: 008-rut-season-analysis - NEARLY COMPLETE
-**Phase:** 7 of 8 phases complete (pending: polish and validation)
-**Branch:** 008-rut-season-analysis
-**Status:** Ready for final testing and refinement
+### Current Branch: 011-frontend-enhancements - ML MODEL IMPROVEMENTS
+**Phase:** Model training complete, data quality fixes deployed
+**Branch:** 011-frontend-enhancements
+**Status:** New model deployed and active, ready for validation
+
+### Session November 11, 2025 - ML Model Training & Data Quality
+**Focus:** Address classification accuracy issues discovered during manual review
+
+**Problems Identified:**
+1. Images page filter showed mixed-sex detections (buck filter showed does)
+2. Batch correction endpoint timing out on large batches
+3. ML model misclassifying does as bucks (62.6% confidence errors)
+4. 2,372 images with mixed buck/doe classifications (some real, many errors)
+5. 19 classification variants in dropdown (duplicates, plurals)
+
+**Solutions Implemented:**
+1. [OK] Modified classification filter: Show ONLY images where ALL detections match
+   - src/backend/api/images.py (lines 499-529)
+   - Changed from "at least one" to "ALL match" logic
+   - Result: 2,102 pure-buck images vs 2,372 mixed before
+
+2. [OK] Optimized batch correction endpoint for 100x performance
+   - src/backend/api/detections.py (lines 177-227)
+   - Bulk query instead of N individual queries
+   - Eliminates timeout issues
+
+3. [OK] Fixed burst linking cross-sex contamination
+   - src/worker/tasks/reidentification.py (line 355)
+   - Added classification filter to prevent grouping different sexes
+   - Cleaned 185 contaminated deer profiles
+
+4. [OK] Trained new model on 779 manually corrected images
+   - Model: corrected_final_buck_doe
+   - Accuracy: mAP50=0.851 (85.1%), mAP50-95=0.667
+   - Classes: buck, doe, fawn, cattle, pig, raccoon
+   - Deployed: src/models/yolov8n_deer.pt
+   - Backup: src/models/yolov8n_deer_OLD_20251111_193040.pt
+
+5. [OK] Database cleanup scripts (3,327 detections fixed)
+   - Consolidated young/mid/mature → buck (3,312 detections)
+   - Standardized plural forms and variants (15 detections)
+   - Custom dropdown sorting: buck, doe, pig, alphabetical
+   - Reduced from 19 to 12 clean classifications
+
+**Files Modified:**
+- src/backend/api/images.py: Classification filter logic
+- src/backend/api/detections.py: Batch correction optimization
+- src/worker/tasks/reidentification.py: Burst linking fix
+- scripts/archive/: 3 cleanup scripts (consolidate, fix_cross_sex, standardize)
+- scripts/deploy_new_model.sh: Model deployment script
+
+**Expected Improvements:**
+- Mixed-sex misclassifications should reduce by 30-40% with new model
+- Batch corrections now handle 1000+ detections without timeout
+- Classification filter accurately shows pure-sex image sets
+- Cleaner UI with 12 sorted classifications instead of 19
+
+**Next Steps:**
+- Monitor new model performance on incoming images
+- Continue manual corrections to improve training data
+- Consider reprocessing entire dataset with new model (optional)
 
 ### Feature 008: Rut Season Analysis (Nov 9, 2025)
 **Focus:** Seasonal wildlife activity analysis with export capabilities
