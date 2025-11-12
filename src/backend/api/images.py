@@ -499,17 +499,34 @@ def list_images(
         # Apply classification filter
         if classification:
             from backend.models.detection import Detection
-            from sqlalchemy import or_, func, exists, select
+            from sqlalchemy import or_, func, exists, select, and_, not_
 
-            # Use EXISTS subquery to avoid DISTINCT issues with JSON columns
-            # This filters images that have at least one detection with matching classification
-            classification_subquery = (
+            # Filter to show ONLY images where ALL detections match the classification
+            # This uses two conditions:
+            # 1. Image has at least one detection with matching classification (has_matching)
+            # 2. Image has NO detections with different classification (no_non_matching)
+
+            # Has at least one matching detection
+            has_matching = (
                 select(1)
                 .select_from(Detection)
                 .where(Detection.image_id == Image.id)
                 .where(func.coalesce(Detection.corrected_classification, Detection.classification) == classification.lower())
             )
-            query = query.filter(exists(classification_subquery))
+
+            # Has NO non-matching detections
+            has_non_matching = (
+                select(1)
+                .select_from(Detection)
+                .where(Detection.image_id == Image.id)
+                .where(func.coalesce(Detection.corrected_classification, Detection.classification) != classification.lower())
+                .where(func.coalesce(Detection.corrected_classification, Detection.classification).isnot(None))
+            )
+
+            query = query.filter(and_(
+                exists(has_matching),
+                not_(exists(has_non_matching))
+            ))
 
         # Apply duplicate filter
         if show_duplicates is not None:
@@ -622,8 +639,14 @@ def get_classifications(db: Session = Depends(get_db)) -> dict:
         corrected_classifications = db.query(Detection.corrected_classification).distinct().all()
         corrected_set = {c[0] for c in corrected_classifications if c[0]}
 
-        # Combine and sort
-        all_classifications = sorted(ml_set | corrected_set)
+        # Combine all classifications
+        all_classifications_set = ml_set | corrected_set
+
+        # Custom sort: buck, doe, pig first, then alphabetical
+        priority_order = ['buck', 'doe', 'pig']
+        priority_items = [c for c in priority_order if c in all_classifications_set]
+        other_items = sorted([c for c in all_classifications_set if c not in priority_order])
+        all_classifications = priority_items + other_items
 
         return {
             "classifications": all_classifications,

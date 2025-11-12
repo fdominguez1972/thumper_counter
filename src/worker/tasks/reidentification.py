@@ -310,19 +310,22 @@ def find_matching_deer(db, feature_vector: np.ndarray, sex: str) -> Optional[Tup
 
 def get_burst_detections(db, detection: Detection) -> List[Detection]:
     """
-    Find all detections in the same photo burst/event.
+    Find all detections in the same photo burst/event with matching classification.
 
     A burst is defined as photos taken within BURST_WINDOW seconds
     at the same camera location. This handles cases where cameras
     take multiple photos within the same second or a few seconds apart.
+
+    IMPORTANT: Only returns detections with the SAME classification (sex)
+    as the input detection to prevent cross-sex deer profile contamination.
 
     Args:
         db: Database session
         detection: Detection to find burst companions for
 
     Returns:
-        List[Detection]: All non-duplicate detections in the same burst,
-                         including the input detection
+        List[Detection]: All non-duplicate detections in the same burst
+                         with matching classification, including the input detection
     """
     # Get the image for this detection
     image = db.query(Image).filter(Image.id == detection.image_id).first()
@@ -344,16 +347,17 @@ def get_burst_detections(db, detection: Detection) -> List[Detection]:
     )
 
     # Collect all non-duplicate detections from burst images
+    # FILTER BY CLASSIFICATION to prevent cross-sex grouping
     burst_detections = []
     for img in burst_images:
         for det in img.detections:
-            # Only include non-duplicate detections
-            if not det.is_duplicate:
+            # Only include non-duplicate detections with matching classification
+            if not det.is_duplicate and det.classification == detection.classification:
                 burst_detections.append(det)
 
     logger.debug(
         f"[BURST] Found {len(burst_detections)} detections in burst "
-        f"({len(burst_images)} images within {BURST_WINDOW}s)"
+        f"({len(burst_images)} images within {BURST_WINDOW}s, classification={detection.classification})"
     )
 
     return burst_detections

@@ -174,46 +174,51 @@ def batch_correct_detections(
     Raises:
         400: Invalid correction data
     """
-    # Process detections
-    corrected_count = 0
-    failed_ids = []
+    # Fetch all detections in one query (much faster for large batches)
     review_time = datetime.utcnow()
 
-    for detection_id in correction.detection_ids:
-        try:
-            detection = db.query(Detection).filter(Detection.id == detection_id).first()
-            if not detection:
-                failed_ids.append(str(detection_id))
+    try:
+        # Bulk fetch all detections
+        detections = db.query(Detection).filter(
+            Detection.id.in_(correction.detection_ids)
+        ).all()
+
+        # Track which IDs were found
+        found_ids = {d.id for d in detections}
+        failed_ids = [str(d_id) for d_id in correction.detection_ids if d_id not in found_ids]
+        corrected_count = 0
+
+        # Apply corrections to all fetched detections
+        for detection in detections:
+            try:
+                # Apply corrections
+                detection.is_reviewed = True
+                detection.reviewed_at = review_time
+                detection.reviewed_by = correction.reviewed_by
+
+                if correction.is_valid is not None:
+                    detection.is_valid = correction.is_valid
+
+                    # Clean up deer references if marking as invalid
+                    if correction.is_valid is False:
+                        cleanup_deer_reference(detection, db)
+
+                if correction.corrected_classification:
+                    detection.corrected_classification = correction.corrected_classification.lower()
+
+                if correction.correction_notes:
+                    detection.correction_notes = correction.correction_notes
+
+                corrected_count += 1
+
+            except Exception as e:
+                failed_ids.append(str(detection.id))
+                print(f"[WARN] Failed to correct detection {detection.id}: {e}")
                 continue
 
-            # Apply corrections
-            detection.is_reviewed = True
-            detection.reviewed_at = review_time
-            detection.reviewed_by = correction.reviewed_by
-
-            if correction.is_valid is not None:
-                detection.is_valid = correction.is_valid
-
-                # Clean up deer references if marking as invalid
-                if correction.is_valid is False:
-                    cleanup_deer_reference(detection, db)
-
-            if correction.corrected_classification:
-                detection.corrected_classification = correction.corrected_classification.lower()
-
-            if correction.correction_notes:
-                detection.correction_notes = correction.correction_notes
-
-            corrected_count += 1
-
-        except Exception as e:
-            failed_ids.append(str(detection_id))
-            print(f"[WARN] Failed to correct detection {detection_id}: {e}")
-            continue
-
-    # Commit all changes
-    try:
+        # Commit all changes
         db.commit()
+
     except Exception as e:
         db.rollback()
         raise HTTPException(

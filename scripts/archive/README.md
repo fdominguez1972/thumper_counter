@@ -33,6 +33,11 @@ November 11, 2025
 ### Monitoring (Replaced by API)
 - monitor_processing.sh - Manual processing monitor (use /api/processing/status instead)
 
+### Data Cleanup (One-Off Scripts - November 11, 2025)
+- consolidate_buck_classifications.py - Consolidated young/mid/mature → buck (3,312 detections)
+- fix_cross_sex_assignments.py - Fixed cross-sex deer profile contamination (185 profiles)
+- standardize_classifications.py - Standardized plural forms and "no animal" variants (15 detections)
+
 ## Active Scripts
 
 Current scripts are in the parent scripts/ directory:
