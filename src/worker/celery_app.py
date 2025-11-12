@@ -147,10 +147,11 @@ app.conf.update(
 
     # Queue definitions
     # WHY: Separate queues allow priority control and resource allocation
+    # FIX: Use queue names as routing keys (not patterns) for direct routing
     task_queues=(
-        Queue('ml_processing', routing_key='ml.#'),
-        Queue('exports', routing_key='export.#'),
-        Queue('default', routing_key='default'),
+        Queue('ml_processing'),  # Direct routing to ml_processing queue
+        Queue('exports'),        # Direct routing to exports queue
+        Queue('default'),        # Direct routing to default queue
     ),
     task_default_queue='default',
     task_default_exchange='tasks',

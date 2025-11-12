@@ -263,6 +263,7 @@ def find_matching_deer(db, feature_vector: np.ndarray, sex: str) -> Optional[Tup
         # Map classification to deer sex
         sex_mapping = {
             'doe': DeerSex.DOE,
+            'buck': DeerSex.BUCK,
             'fawn': DeerSex.FAWN,
             'mature': DeerSex.BUCK,
             'mid': DeerSex.BUCK,

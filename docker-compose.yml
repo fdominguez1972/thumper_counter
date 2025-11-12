@@ -79,7 +79,6 @@ services:
       - ./data/uploads:/mnt/uploads
       - ./data/thumbnails:/mnt/thumbnails
       - ./data/exports:/mnt/exports
-      - ./data/exports:/mnt/exports
     depends_on:
       db:
         condition: service_healthy

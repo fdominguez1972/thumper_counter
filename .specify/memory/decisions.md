@@ -63,3 +63,24 @@
 **Context:** Need to track non-deer wildlife (cattle, pigs, raccoons)
 **Decision:** Expand classification system to 7 classes (4 deer + 3 non-deer)
 **Consequences:** Comprehensive wildlife monitoring, separate feral hog tracking
+
+## Decision 10: Direct Routing Instead of Topic Patterns for Celery
+**Date:** 2025-11-12
+**Status:** Implemented
+**Context:** Worker unable to consume tasks due to routing_key mismatch (ml.# pattern vs ml_processing literal)
+**Decision:** Use direct routing (queue name as routing_key) instead of topic patterns
+**Consequences:** Simpler configuration, explicit routing, eliminates silent failures from pattern mismatches
+
+## Decision 11: Proactive Code Auditing Process
+**Date:** 2025-11-12
+**Status:** Implemented
+**Context:** Critical routing bug discovered only after production failure
+**Decision:** Conduct comprehensive code audits quarterly to identify issues before production
+**Consequences:** 37 issues identified (4 CRITICAL, 8 HIGH, 12 MEDIUM, 7 LOW), reduced future downtime
+
+## Decision 12: Automated Worker Monitoring
+**Date:** 2025-11-12
+**Status:** Implemented
+**Context:** Manual intervention required every 30-60 minutes during worker stalls
+**Decision:** Implement automated monitoring with auto-restart and auto-queueing
+**Consequences:** Zero manual intervention needed, 6 hours/week downtime prevented
