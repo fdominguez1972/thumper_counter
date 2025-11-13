@@ -65,6 +65,10 @@ class PDFStatusResponse(BaseModel):
 
     job_id: str
     status: str = Field(..., description="'pending', 'processing', 'completed', 'failed', or 'expired'")
+    filename: Optional[str] = Field(
+        None,
+        description="Generated filename (available when status='completed')"
+    )
     download_url: Optional[str] = Field(
         None,
         description="Available when status='completed'"
@@ -128,6 +132,10 @@ class ZIPStatusResponse(BaseModel):
         ge=0.0,
         le=100.0,
         description="(processed_count / total_detections) * 100"
+    )
+    filename: Optional[str] = Field(
+        None,
+        description="Generated filename (available when status='completed')"
     )
     download_url: Optional[str] = Field(
         None,

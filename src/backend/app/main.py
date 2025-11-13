@@ -26,6 +26,7 @@ from backend.api import locations, images, processing, deer, static, detections,
 # WHY: Backend cannot import worker modules directly, use send_task() instead
 import os
 from celery import Celery
+import redis
 
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
@@ -36,6 +37,15 @@ celery_app = Celery(
     'thumper_counter',
     broker=REDIS_URL,
     backend=REDIS_URL,
+)
+
+# Redis client for job status tracking
+# WHY: Export job status needs persistent storage with TTL
+redis_client = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    db=REDIS_DB,
+    decode_responses=True  # Return strings instead of bytes
 )
 
 
