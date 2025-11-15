@@ -67,8 +67,12 @@ services:
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
       CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.7}
-      REID_THRESHOLD: 0.55  # Lowered from 0.85 to improve deer consolidation
+      REID_THRESHOLD: ${REID_THRESHOLD:-0.60}  # Feature 009: Enhanced Re-ID (was 0.40 baseline, 0.55 interim)
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
+      # Feature 009: Enhanced Re-ID Configuration
+      USE_ENHANCED_REID: ${USE_ENHANCED_REID:-true}
+      ENSEMBLE_WEIGHT_RESNET: ${ENSEMBLE_WEIGHT_RESNET:-0.6}
+      ENSEMBLE_WEIGHT_EFFICIENTNET: ${ENSEMBLE_WEIGHT_EFFICIENTNET:-0.4}
     ports:
       - "8001:8000"  # Using port 8001 to avoid conflict
     volumes:
@@ -117,8 +121,12 @@ services:
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
       CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.7}
-      REID_THRESHOLD: 0.55  # Lowered from 0.85 to improve deer consolidation
+      REID_THRESHOLD: ${REID_THRESHOLD:-0.60}  # Feature 009: Enhanced Re-ID (was 0.40 baseline, 0.55 interim)
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
+      # Feature 009: Enhanced Re-ID Configuration
+      USE_ENHANCED_REID: ${USE_ENHANCED_REID:-true}
+      ENSEMBLE_WEIGHT_RESNET: ${ENSEMBLE_WEIGHT_RESNET:-0.6}
+      ENSEMBLE_WEIGHT_EFFICIENTNET: ${ENSEMBLE_WEIGHT_EFFICIENTNET:-0.4}
       # GPU enabled via model preloading in celery_app.py (Sprint 3)
       # Model is loaded before worker forks, avoiding CUDA fork() issues
     volumes:
