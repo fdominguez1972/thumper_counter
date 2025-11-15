@@ -79,7 +79,7 @@ services:
       - ./src:/app/src
       - ./tests:/app/tests
       - ./scripts:/app/scripts
-      - /mnt/i/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
+      - I:/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
       - ./data/uploads:/mnt/uploads
       - ./data/thumbnails:/mnt/thumbnails
       - ./data/exports:/mnt/exports
@@ -132,7 +132,7 @@ services:
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
-      - /mnt/i/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
+      - I:/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
       - ./data/uploads:/mnt/uploads
       - ./src/models:/app/models
       - ./src/worker/models:/app/src/worker/models  # Worker-specific model architectures (Feature 009)

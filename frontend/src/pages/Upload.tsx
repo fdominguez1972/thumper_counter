@@ -24,6 +24,8 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Delete as DeleteIcon,
+  Image as ImageIcon,
+  Archive as ArchiveIcon,
 } from '@mui/icons-material';
 import apiClient from '../api/client';
 
@@ -94,9 +96,15 @@ export default function Upload() {
     setIsDragging(false);
 
     const droppedFiles = Array.from(e.dataTransfer.files);
-    const imageFiles = droppedFiles.filter(file => file.type.startsWith('image/'));
+    // Accept images and ZIP archives
+    const validFiles = droppedFiles.filter(file =>
+      file.type.startsWith('image/') ||
+      file.type === 'application/zip' ||
+      file.type === 'application/x-zip-compressed' ||
+      file.name.toLowerCase().endsWith('.zip')
+    );
 
-    const newFiles: UploadFile[] = imageFiles.map(file => ({
+    const newFiles: UploadFile[] = validFiles.map(file => ({
       file,
       status: 'pending',
       progress: 0,
@@ -245,12 +253,12 @@ export default function Upload() {
                 type="file"
                 hidden
                 multiple
-                accept="image/*"
+                accept="image/*,.zip"
                 onChange={handleFileSelect}
               />
             </Button>
             <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 2 }}>
-              Supported formats: JPG, PNG, JPEG (max 50MB per file)
+              Supported: JPG, JPEG, PNG images and ZIP archives (max 2GB per file)
             </Typography>
           </Box>
 
@@ -294,6 +302,11 @@ export default function Upload() {
                       )
                     }
                   >
+                    {uploadFile.file.name.toLowerCase().endsWith('.zip') ? (
+                      <ArchiveIcon sx={{ mr: 1, color: 'warning.main' }} />
+                    ) : (
+                      <ImageIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    )}
                     <ListItemText
                       primary={uploadFile.file.name}
                       secondary={

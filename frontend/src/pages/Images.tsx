@@ -433,7 +433,7 @@ export default function Images() {
 
       {/* Lightbox Dialog */}
       {selectedImage && (
-        <Dialog open={selectedIndex !== null} onClose={handleClose} maxWidth="lg" fullWidth>
+        <Dialog open={selectedIndex !== null} onClose={handleClose} maxWidth="xl" fullWidth>
           <Box sx={{ position: 'relative', bgcolor: 'black' }}>
             {/* Close Button */}
             <IconButton
@@ -510,12 +510,15 @@ export default function Images() {
               <img
                 src={`/api/static/images/${selectedImage.id}`}
                 alt={selectedImage.filename}
+                onClick={() => window.open(`/api/static/images/${selectedImage.id}`, '_blank')}
                 style={{
                   width: '100%',
                   height: 'auto',
-                  maxHeight: '80vh',
+                  maxHeight: '90vh',
                   objectFit: 'contain',
+                  cursor: 'zoom-in',
                 }}
+                title="Click to open full resolution in new tab"
               />
               <Box sx={{ mt: 2, color: 'white' }}>
                 <Typography variant="h6">{selectedImage.filename}</Typography>

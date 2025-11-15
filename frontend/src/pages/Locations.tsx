@@ -81,8 +81,8 @@ export default function Locations() {
 
         const stats = locationStatsMap.get(locationId)!;
         stats.total_images += 1;
-        if (img.detection_id) {
-          stats.total_detections += 1;
+        if (img.detection_count && img.detection_count > 0) {
+          stats.total_detections += img.detection_count;
         }
         if (new Date(img.timestamp) > new Date(stats.last_activity)) {
           stats.last_activity = img.timestamp;

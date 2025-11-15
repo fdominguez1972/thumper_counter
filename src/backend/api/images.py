@@ -6,6 +6,9 @@ Provides endpoints for uploading images, listing images with filters, and queryi
 
 import os
 import uuid
+import zipfile
+import tempfile
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List
@@ -57,8 +60,10 @@ router = APIRouter(
 # Configuration
 IMAGE_STORAGE_PATH = os.getenv("IMAGE_PATH", "/mnt/images")  # Read-only source images
 UPLOAD_STORAGE_PATH = os.getenv("UPLOAD_PATH", "/mnt/uploads")  # Writable upload storage
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB per spec
+MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024  # 2GB for ZIP archives (Feature 012)
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"}
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"}
+ALLOWED_ARCHIVE_EXTENSIONS = {".zip", ".ZIP"}
 
 
 def extract_exif_data(file_path: Path) -> dict:
@@ -192,40 +197,208 @@ def get_location_by_name_or_id(
     return None
 
 
+def extract_images_from_zip(
+    zip_content: bytes,
+    zip_filename: str
+) -> List[tuple[str, bytes]]:
+    """
+    Extract all image files from a ZIP archive.
+
+    Args:
+        zip_content: ZIP file content as bytes
+        zip_filename: Original ZIP filename
+
+    Returns:
+        List of tuples (filename, file_content) for each image found
+
+    Raises:
+        Exception: If ZIP is corrupted or cannot be read
+    """
+    extracted_images = []
+
+    # Create temporary file to write ZIP content
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_zip:
+        tmp_zip.write(zip_content)
+        tmp_zip_path = tmp_zip.name
+
+    try:
+        # Open ZIP archive
+        with zipfile.ZipFile(tmp_zip_path, 'r') as zip_ref:
+            # Get list of files in ZIP
+            file_list = zip_ref.namelist()
+            print(f"[INFO] ZIP archive '{zip_filename}' contains {len(file_list)} files")
+
+            # Extract each image file
+            for filename in file_list:
+                # Skip directories
+                if filename.endswith('/'):
+                    continue
+
+                # Check if file is an image
+                file_ext = Path(filename).suffix.lower()
+                if file_ext not in ALLOWED_IMAGE_EXTENSIONS:
+                    print(f"[SKIP] Non-image file in ZIP: {filename}")
+                    continue
+
+                # Extract file content
+                try:
+                    file_content = zip_ref.read(filename)
+                    # Get just the filename without path (in case ZIP has subdirectories)
+                    base_filename = Path(filename).name
+                    extracted_images.append((base_filename, file_content))
+                    print(f"[OK] Extracted image from ZIP: {base_filename}")
+                except Exception as e:
+                    print(f"[ERROR] Failed to extract {filename} from ZIP: {e}")
+                    continue
+
+        print(f"[OK] Extracted {len(extracted_images)} images from ZIP archive '{zip_filename}'")
+
+    finally:
+        # Clean up temporary ZIP file
+        try:
+            os.unlink(tmp_zip_path)
+        except Exception as e:
+            print(f"[WARN] Failed to delete temporary ZIP file: {e}")
+
+    return extracted_images
+
+
+def process_single_image(
+    filename: str,
+    content: bytes,
+    location: Optional[Location],
+    db: Session
+) -> tuple[Optional[ImageUploadResponse], Optional[dict]]:
+    """
+    Process a single image file (save to disk, extract EXIF, create DB record).
+
+    Args:
+        filename: Original filename
+        content: Image file content as bytes
+        location: Location object (optional)
+        db: Database session
+
+    Returns:
+        Tuple of (ImageUploadResponse or None, error dict or None)
+    """
+    try:
+        # Validate file extension
+        file_ext = Path(filename).suffix.lower()
+        if file_ext not in ALLOWED_IMAGE_EXTENSIONS:
+            return None, {
+                "filename": filename,
+                "error": f"Invalid file type: {file_ext}"
+            }
+
+        # Generate unique ID for image
+        image_id = uuid.uuid4()
+
+        # Determine storage path
+        if location:
+            storage_dir = Path(UPLOAD_STORAGE_PATH) / location.name
+        else:
+            storage_dir = Path(UPLOAD_STORAGE_PATH) / "uploads"
+
+        # Create directory if it doesn't exist
+        storage_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate filename with UUID to avoid collisions
+        file_path = storage_dir / f"{image_id}_{filename}"
+
+        # Write file to disk
+        with open(file_path, "wb") as f:
+            f.write(content)
+
+        print(f"[OK] Saved image: {file_path}")
+
+        # Extract EXIF data
+        exif_data = extract_exif_data(file_path)
+
+        # Extract timestamp from EXIF or filename
+        timestamp = extract_timestamp_from_exif(exif_data)
+        if not timestamp:
+            timestamp = extract_timestamp_from_filename(filename)
+        if not timestamp:
+            # Fall back to current time
+            timestamp = datetime.utcnow()
+            print(f"[WARN] No timestamp in EXIF or filename, using current time for {filename}")
+
+        # Create image record in database
+        image = Image(
+            id=image_id,
+            filename=filename,
+            path=str(file_path),
+            timestamp=timestamp,
+            location_id=location.id if location else None,
+            exif_data=exif_data,
+            processing_status=ProcessingStatus.PENDING
+        )
+
+        db.add(image)
+
+        # Update location image count
+        if location:
+            location.increment_image_count()
+
+        # Prepare response
+        response = ImageUploadResponse(
+            id=image.id,
+            filename=image.filename,
+            processing_status=image.processing_status.value,
+            queue_position=None,
+            timestamp=image.timestamp,
+            location_id=image.location_id
+        )
+
+        print(f"[OK] Created image record: {image.id} ({filename})")
+        return response, None
+
+    except Exception as e:
+        print(f"[ERROR] Failed to process {filename}: {e}")
+        return None, {
+            "filename": filename,
+            "error": f"Processing failed: {str(e)}"
+        }
+
+
 @router.post(
     "",
     response_model=BatchUploadResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Upload images",
-    description="Upload one or more trail camera images with optional location assignment"
+    summary="Upload images or ZIP archives",
+    description="Upload trail camera images (JPG/PNG) or ZIP archives with optional location assignment and automatic processing"
 )
 async def upload_images(
-    files: List[UploadFile] = File(..., description="Image files to upload (max 50MB each)"),
+    files: List[UploadFile] = File(..., description="Image files or ZIP archives to upload (max 2GB each)"),
     location_name: Optional[str] = Form(None, description="Location name (e.g., 'Sanctuary')"),
     location_id: Optional[str] = Form(None, description="Location UUID"),
     process_immediately: bool = Form(False, description="Queue for immediate processing"),
     db: Session = Depends(get_db)
 ) -> BatchUploadResponse:
     """
-    Upload one or more trail camera images.
+    Upload one or more trail camera images or ZIP archives.
 
-    Supports batch upload with automatic location detection from folder structure.
-    Images are saved to disk, EXIF data is extracted, and records are created in database.
+    Feature 012: Bulk Image Upload System
+    - Supports individual image files (JPG, JPEG, PNG)
+    - Supports ZIP archives containing multiple images
+    - Automatic EXIF timestamp extraction
+    - Images saved to location-specific directories
+    - Optional immediate ML processing queue
 
     Args:
-        files: List of image files to upload
+        files: List of image files or ZIP archives to upload
         location_name: Optional location name for all images
         location_id: Optional location UUID for all images
         process_immediately: Whether to queue images for immediate processing
         db: Database session
 
     Returns:
-        BatchUploadResponse: Upload results with image IDs and queue positions
+        BatchUploadResponse: Upload results with image IDs and errors
 
     Raises:
         HTTPException 400: Invalid file format or size
         HTTPException 404: Location not found
-        HTTPException 413: File too large
+        HTTPException 413: File too large (>2GB)
     """
     uploaded_images = []
     errors = []
@@ -243,15 +416,6 @@ async def upload_images(
     # Process each uploaded file
     for file in files:
         try:
-            # Validate file extension
-            file_ext = Path(file.filename).suffix.lower()
-            if file_ext not in ALLOWED_EXTENSIONS:
-                errors.append({
-                    "filename": file.filename,
-                    "error": f"Invalid file type: {file_ext}. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
-                })
-                continue
-
             # Read file content
             content = await file.read()
 
@@ -259,74 +423,72 @@ async def upload_images(
             if len(content) > MAX_FILE_SIZE:
                 errors.append({
                     "filename": file.filename,
-                    "error": f"File too large: {len(content) / 1024 / 1024:.1f}MB (max 50MB)"
+                    "error": f"File too large: {len(content) / 1024 / 1024:.1f}MB (max 2GB)"
                 })
                 continue
 
-            # Generate unique ID for image
-            image_id = uuid.uuid4()
+            # Check if file is a ZIP archive
+            file_ext = Path(file.filename).suffix.lower()
 
-            # Determine storage path
-            # If location is specified, use location name as subfolder
-            if location:
-                storage_dir = Path(UPLOAD_STORAGE_PATH) / location.name
+            if file_ext in ALLOWED_ARCHIVE_EXTENSIONS:
+                # ZIP archive - extract and process all images
+                print(f"[INFO] Processing ZIP archive: {file.filename}")
+
+                try:
+                    extracted_images = extract_images_from_zip(content, file.filename)
+
+                    if not extracted_images:
+                        errors.append({
+                            "filename": file.filename,
+                            "error": "No valid images found in ZIP archive"
+                        })
+                        continue
+
+                    # Process each extracted image
+                    for img_filename, img_content in extracted_images:
+                        response, error = process_single_image(
+                            img_filename,
+                            img_content,
+                            location,
+                            db
+                        )
+
+                        if response:
+                            uploaded_images.append(response)
+                        if error:
+                            errors.append(error)
+
+                    print(f"[OK] Processed ZIP archive '{file.filename}': {len(extracted_images)} images extracted")
+
+                except Exception as e:
+                    print(f"[ERROR] Failed to process ZIP archive {file.filename}: {e}")
+                    errors.append({
+                        "filename": file.filename,
+                        "error": f"ZIP extraction failed: {str(e)}"
+                    })
+                    continue
+
+            elif file_ext in ALLOWED_IMAGE_EXTENSIONS:
+                # Single image file
+                response, error = process_single_image(
+                    file.filename,
+                    content,
+                    location,
+                    db
+                )
+
+                if response:
+                    uploaded_images.append(response)
+                if error:
+                    errors.append(error)
+
             else:
-                storage_dir = Path(UPLOAD_STORAGE_PATH) / "uploads"
-
-            # Create directory if it doesn't exist
-            storage_dir.mkdir(parents=True, exist_ok=True)
-
-            # Generate filename with UUID to avoid collisions
-            original_filename = file.filename
-            file_path = storage_dir / f"{image_id}_{original_filename}"
-
-            # Write file to disk
-            with open(file_path, "wb") as f:
-                f.write(content)
-
-            print(f"[OK] Saved image: {file_path}")
-
-            # Extract EXIF data
-            exif_data = extract_exif_data(file_path)
-
-            # Extract timestamp from EXIF or filename
-            timestamp = extract_timestamp_from_exif(exif_data)
-            if not timestamp:
-                timestamp = extract_timestamp_from_filename(original_filename)
-            if not timestamp:
-                # Fall back to current time
-                timestamp = datetime.utcnow()
-                print(f"[WARN] No timestamp in EXIF or filename, using current time for {original_filename}")
-
-            # Create image record in database
-            # All images start as PENDING per spec (FR-004)
-            image = Image(
-                id=image_id,
-                filename=original_filename,
-                path=str(file_path),
-                timestamp=timestamp,
-                location_id=location.id if location else None,
-                exif_data=exif_data,
-                processing_status=ProcessingStatus.PENDING
-            )
-
-            db.add(image)
-
-            # Update location image count
-            if location:
-                location.increment_image_count()
-
-            # Prepare response
-            uploaded_images.append(ImageUploadResponse(
-                id=image.id,
-                filename=image.filename,
-                processing_status=image.processing_status.value,
-                queue_position=None,  # Removed: queue position not tracked in new design
-                timestamp=image.timestamp,
-                location_id=image.location_id
-            ))
-
-            print(f"[OK] Created image record: {image.id} ({original_filename})")
+                # Invalid file type
+                errors.append({
+                    "filename": file.filename,
+                    "error": f"Invalid file type: {file_ext}. Allowed: images (.jpg, .jpeg, .png) or ZIP archives (.zip)"
+                })
+                continue
 
         except Exception as e:
             print(f"[ERROR] Failed to process {file.filename}: {e}")
