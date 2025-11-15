@@ -1,18 +1,26 @@
 """
 Re-Identification Task for Deer Tracking
 Sprint 5: Individual deer identification using ResNet50 embeddings
+Feature 009: Enhanced Re-ID with multi-scale and ensemble learning
 
 This module implements the re-identification stage of the ML pipeline:
 1. Extract deer crop from detection bbox
-2. Generate 512-dim feature vector using ResNet50
-3. Search for matching deer profile using cosine similarity
-4. Either link to existing deer or create new profile
+2. Generate feature vectors using multiple models:
+   - Original: ResNet50 (512-dim, backward compatible)
+   - Multi-scale: ResNet50 layers 2,3,4,avgpool (512-dim)
+   - EfficientNet: EfficientNet-B0 (512-dim for ensemble)
+3. Ensemble matching: Weighted similarity (0.6 ResNet + 0.4 EfficientNet)
+4. Search for matching deer profile using cosine similarity
+5. Either link to existing deer or create new profile
 
 Architecture:
-- Model: ResNet50 pretrained on ImageNet
-- Embeddings: 512 dimensions (final pooling layer)
+- Model: ResNet50 pretrained on ImageNet (original)
+- Multi-scale: ResNet50 layer2+layer3+layer4+avgpool (Feature 009)
+- Ensemble: EfficientNet-B0 for architectural diversity (Feature 009)
+- Embeddings: 512 dimensions (L2 normalized)
 - Similarity: Cosine distance via pgvector
-- Threshold: 0.85 (conservative to avoid false matches)
+- Threshold: 0.40 (data-driven from Feature 010)
+- Ensemble weights: 0.6 ResNet + 0.4 EfficientNet (Feature 009)
 """
 
 import os
@@ -37,6 +45,15 @@ from backend.models.image import Image
 from backend.models.detection import Detection
 from backend.models.deer import Deer, DeerSex
 
+# Feature 009: Import enhanced Re-ID models
+try:
+    from worker.models.multiscale_resnet import get_multiscale_model, get_transform as get_multiscale_transform
+    from worker.models.efficientnet_extractor import get_efficientnet_model, get_transform as get_efficientnet_transform
+    ENHANCED_MODELS_AVAILABLE = True
+except ImportError as e:
+    ENHANCED_MODELS_AVAILABLE = False
+    _IMPORT_ERROR = str(e)  # Save error for logging later
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -44,16 +61,36 @@ logger = logging.getLogger(__name__)
 
 
 # Configuration
-REID_THRESHOLD = float(os.getenv('REID_THRESHOLD', 0.85))
+REID_THRESHOLD = float(os.getenv('REID_THRESHOLD', 0.40))  # Feature 010: Data-driven threshold
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MIN_CROP_SIZE = 50  # Minimum width/height for valid crop
 BURST_WINDOW = 5  # Seconds - group photos within this window as same event
+
+# Feature 009: Enhanced Re-ID configuration
+USE_ENHANCED_REID = os.getenv('USE_ENHANCED_REID', 'true').lower() == 'true'
+ENSEMBLE_WEIGHT_RESNET = float(os.getenv('ENSEMBLE_WEIGHT_RESNET', 0.6))
+ENSEMBLE_WEIGHT_EFFICIENTNET = float(os.getenv('ENSEMBLE_WEIGHT_EFFICIENTNET', 0.4))
 
 # Sprint 9: Enable CUDA optimizations
 if torch.cuda.is_available():
     torch.backends.cudnn.enabled = True
     torch.backends.cudnn.benchmark = True  # Auto-tune for best performance
     logger.info("[SPRINT9] cuDNN optimizations enabled")
+
+# Feature 009: Log enhanced Re-ID status
+if ENHANCED_MODELS_AVAILABLE:
+    logger.info("[FEATURE009] Enhanced Re-ID models imported successfully")
+else:
+    logger.warning(f"[FEATURE009] Enhanced Re-ID models not available: {_IMPORT_ERROR if '_IMPORT_ERROR' in dir() else 'Unknown error'}")
+
+if USE_ENHANCED_REID:
+    logger.info(
+        f"[FEATURE009] Enhanced Re-ID ENABLED: "
+        f"weights={ENSEMBLE_WEIGHT_RESNET:.1f}R + {ENSEMBLE_WEIGHT_EFFICIENTNET:.1f}E, "
+        f"threshold={REID_THRESHOLD}"
+    )
+else:
+    logger.info(f"[FEATURE009] Enhanced Re-ID DISABLED: Using original ResNet50 only")
 
 
 # Global model cache (thread-safe singleton)
@@ -238,6 +275,339 @@ def extract_feature_vectors_batch(crops: List[PILImage.Image]) -> Optional[np.nd
 
     except Exception as e:
         logger.error(f"[FAIL] Batch feature extraction failed: {e}")
+        return None
+
+
+def extract_multiscale_features(crop: PILImage.Image) -> Optional[np.ndarray]:
+    """
+    Extract 512-dim multi-scale feature vector from deer crop (Feature 009).
+
+    Combines features from ResNet50 layers 2, 3, 4, and avgpool to capture
+    texture, shapes, parts, and semantic features at multiple scales.
+
+    Args:
+        crop: PIL Image of deer
+
+    Returns:
+        np.ndarray: 512-dim L2-normalized feature vector, or None if extraction fails
+    """
+    if not ENHANCED_MODELS_AVAILABLE:
+        logger.warning("[FEATURE009] Multi-scale model not available, skipping")
+        return None
+
+    try:
+        # Get model and transform
+        model = get_multiscale_model()
+        transform = get_multiscale_transform()
+
+        # Preprocess image
+        img_tensor = transform(crop).unsqueeze(0).to(DEVICE)
+
+        # Extract features (no gradient computation)
+        with torch.no_grad():
+            features = model(img_tensor)
+
+        # Convert to numpy (already L2 normalized by model)
+        features = features.cpu().numpy()[0]
+
+        return features
+
+    except Exception as e:
+        logger.error(f"[FAIL] Multi-scale feature extraction failed: {e}")
+        return None
+
+
+def extract_efficientnet_features(crop: PILImage.Image) -> Optional[np.ndarray]:
+    """
+    Extract 512-dim EfficientNet-B0 feature vector from deer crop (Feature 009).
+
+    Provides architectural diversity for ensemble learning using compound
+    scaling (width + depth + resolution).
+
+    Args:
+        crop: PIL Image of deer
+
+    Returns:
+        np.ndarray: 512-dim L2-normalized feature vector, or None if extraction fails
+    """
+    if not ENHANCED_MODELS_AVAILABLE:
+        logger.warning("[FEATURE009] EfficientNet model not available, skipping")
+        return None
+
+    try:
+        # Get model and transform
+        model = get_efficientnet_model()
+        transform = get_efficientnet_transform()
+
+        # Preprocess image
+        img_tensor = transform(crop).unsqueeze(0).to(DEVICE)
+
+        # Extract features (no gradient computation)
+        with torch.no_grad():
+            features = model(img_tensor)
+
+        # Convert to numpy (already L2 normalized by model)
+        features = features.cpu().numpy()[0]
+
+        return features
+
+    except Exception as e:
+        logger.error(f"[FAIL] EfficientNet feature extraction failed: {e}")
+        return None
+
+
+def extract_all_features(crop: PILImage.Image) -> Dict[str, Optional[np.ndarray]]:
+    """
+    Extract all feature vectors for a deer crop (Feature 009).
+
+    Extracts:
+    - Original ResNet50 (512-dim, for backward compatibility)
+    - Multi-scale ResNet50 (512-dim, layers 2+3+4+avgpool)
+    - EfficientNet-B0 (512-dim, for ensemble)
+
+    Args:
+        crop: PIL Image of deer
+
+    Returns:
+        dict: Feature vectors with keys 'resnet50', 'multiscale', 'efficientnet'
+              Values are np.ndarray or None if extraction failed
+    """
+    features = {
+        'resnet50': None,
+        'multiscale': None,
+        'efficientnet': None
+    }
+
+    # Always extract original ResNet50 (backward compatibility)
+    features['resnet50'] = extract_feature_vector(crop)
+
+    # Extract enhanced features if enabled
+    if USE_ENHANCED_REID and ENHANCED_MODELS_AVAILABLE:
+        features['multiscale'] = extract_multiscale_features(crop)
+        features['efficientnet'] = extract_efficientnet_features(crop)
+
+    return features
+
+
+def find_matching_deer_ensemble(
+    db,
+    features: Dict[str, Optional[np.ndarray]],
+    sex: str,
+    detection_id: Optional[UUID] = None
+) -> Optional[Tuple[Deer, float, Dict[str, float]]]:
+    """
+    Find matching deer using ensemble similarity (Feature 009).
+
+    Combines multiple feature vectors with weighted similarity:
+    - Multi-scale ResNet50: captures texture + shapes + parts + semantics
+    - EfficientNet-B0: provides architectural diversity
+    - Weighted sum: 0.6 * multiscale + 0.4 * efficientnet (configurable)
+
+    Falls back to original ResNet50 if enhanced features unavailable.
+
+    Args:
+        db: Database session
+        features: Dict with keys 'resnet50', 'multiscale', 'efficientnet'
+        sex: Detected sex (doe, buck, fawn, etc.)
+        detection_id: UUID of detection (for similarity logging)
+
+    Returns:
+        Tuple[Deer, float, Dict]: Matching deer, ensemble similarity, component scores
+        or None if no match found
+    """
+    try:
+        from pgvector.sqlalchemy import Vector
+        from sqlalchemy import func, cast, text
+
+        # Map classification to deer sex
+        sex_mapping = {
+            'doe': DeerSex.DOE,
+            'buck': DeerSex.BUCK,
+            'fawn': DeerSex.FAWN,
+            'mature': DeerSex.BUCK,
+            'mid': DeerSex.BUCK,
+            'young': DeerSex.BUCK,
+            'unknown': DeerSex.UNKNOWN
+        }
+        deer_sex = sex_mapping.get(sex, DeerSex.UNKNOWN)
+
+        # Determine which features to use for matching
+        use_ensemble = (
+            USE_ENHANCED_REID and
+            ENHANCED_MODELS_AVAILABLE and
+            features.get('multiscale') is not None and
+            features.get('efficientnet') is not None
+        )
+
+        if use_ensemble:
+            # Feature 009: Ensemble matching with multi-scale + EfficientNet
+            multiscale_list = features['multiscale'].tolist()
+            efficientnet_list = features['efficientnet'].tolist()
+
+            # Query all deer with enhanced feature vectors
+            results = (
+                db.query(
+                    Deer,
+                    (1 - Deer.feature_vector_multiscale.cosine_distance(multiscale_list)).label('sim_multiscale'),
+                    (1 - Deer.feature_vector_efficientnet.cosine_distance(efficientnet_list)).label('sim_efficientnet')
+                )
+                .filter(Deer.feature_vector_multiscale.isnot(None))
+                .filter(Deer.feature_vector_efficientnet.isnot(None))
+                .filter(Deer.sex == deer_sex)
+                .all()
+            )
+
+            if not results:
+                logger.info(f"[FEATURE009] No deer with enhanced embeddings found, sex={deer_sex.value}")
+                return None
+
+            # Calculate ensemble similarity for each deer
+            best_deer = None
+            best_ensemble_score = 0.0
+            best_component_scores = {}
+
+            for deer, sim_multiscale, sim_efficientnet in results:
+                # Weighted ensemble: 0.6 * multiscale + 0.4 * efficientnet
+                ensemble_score = (
+                    ENSEMBLE_WEIGHT_RESNET * sim_multiscale +
+                    ENSEMBLE_WEIGHT_EFFICIENTNET * sim_efficientnet
+                )
+
+                if ensemble_score > best_ensemble_score:
+                    best_ensemble_score = ensemble_score
+                    best_deer = deer
+                    best_component_scores = {
+                        'multiscale': float(sim_multiscale),
+                        'efficientnet': float(sim_efficientnet),
+                        'ensemble': float(ensemble_score)
+                    }
+
+                # Optional: Log all scores for analysis
+                if detection_id:
+                    try:
+                        db.execute(
+                            text("""
+                                INSERT INTO reid_similarity_scores
+                                (detection_id, deer_id, similarity_score, sex_match, matched,
+                                 threshold_used, detection_classification, deer_sex,
+                                 similarity_multiscale, similarity_efficientnet, similarity_ensemble)
+                                VALUES (:detection_id, :deer_id, :similarity_score, :sex_match,
+                                        :matched, :threshold_used, :detection_classification, :deer_sex,
+                                        :sim_multiscale, :sim_efficientnet, :sim_ensemble)
+                                ON CONFLICT (detection_id, deer_id) DO NOTHING
+                            """),
+                            {
+                                'detection_id': detection_id,
+                                'deer_id': deer.id,
+                                'similarity_score': float(ensemble_score),  # Use ensemble as primary score
+                                'sex_match': True,
+                                'matched': ensemble_score >= REID_THRESHOLD,
+                                'threshold_used': float(REID_THRESHOLD),
+                                'detection_classification': sex,
+                                'deer_sex': deer.sex.value,
+                                'sim_multiscale': float(sim_multiscale),
+                                'sim_efficientnet': float(sim_efficientnet),
+                                'sim_ensemble': float(ensemble_score)
+                            }
+                        )
+                    except Exception as log_error:
+                        logger.debug(f"[FEATURE009] Similarity logging failed: {log_error}")
+
+            # Commit similarity logs
+            if detection_id:
+                try:
+                    db.commit()
+                except Exception:
+                    db.rollback()
+
+            # Check threshold
+            if best_ensemble_score >= REID_THRESHOLD:
+                logger.info(
+                    f"[FEATURE009] Ensemble match found: deer={best_deer.id}, "
+                    f"ensemble={best_ensemble_score:.3f} "
+                    f"(M={best_component_scores['multiscale']:.3f}, "
+                    f"E={best_component_scores['efficientnet']:.3f})"
+                )
+                return best_deer, best_ensemble_score, best_component_scores
+            else:
+                logger.info(
+                    f"[FEATURE009] Best ensemble {best_ensemble_score:.3f} below threshold {REID_THRESHOLD}"
+                )
+                return None
+
+        else:
+            # Fallback: Original ResNet50 matching
+            if features.get('resnet50') is None:
+                logger.error("[FEATURE009] No feature vectors available for matching")
+                return None
+
+            resnet_list = features['resnet50'].tolist()
+
+            results = (
+                db.query(
+                    Deer,
+                    (1 - Deer.feature_vector.cosine_distance(resnet_list)).label('similarity')
+                )
+                .filter(Deer.feature_vector.isnot(None))
+                .filter(Deer.sex == deer_sex)
+                .order_by(Deer.feature_vector.cosine_distance(resnet_list))
+                .all()
+            )
+
+            if not results:
+                logger.info(f"[FEATURE009] No deer profiles found for sex={deer_sex.value}")
+                return None
+
+            best_deer, best_similarity = results[0]
+
+            # Log similarity scores
+            if detection_id:
+                for deer, similarity_score in results:
+                    try:
+                        db.execute(
+                            text("""
+                                INSERT INTO reid_similarity_scores
+                                (detection_id, deer_id, similarity_score, sex_match, matched,
+                                 threshold_used, detection_classification, deer_sex)
+                                VALUES (:detection_id, :deer_id, :similarity_score, :sex_match,
+                                        :matched, :threshold_used, :detection_classification, :deer_sex)
+                                ON CONFLICT (detection_id, deer_id) DO NOTHING
+                            """),
+                            {
+                                'detection_id': detection_id,
+                                'deer_id': deer.id,
+                                'similarity_score': float(similarity_score),
+                                'sex_match': True,
+                                'matched': similarity_score >= REID_THRESHOLD,
+                                'threshold_used': float(REID_THRESHOLD),
+                                'detection_classification': sex,
+                                'deer_sex': deer.sex.value
+                            }
+                        )
+                    except Exception:
+                        pass
+
+                try:
+                    db.commit()
+                except Exception:
+                    db.rollback()
+
+            if best_similarity >= REID_THRESHOLD:
+                logger.info(
+                    f"[FEATURE009] ResNet50 match found: deer={best_deer.id}, "
+                    f"similarity={best_similarity:.3f}"
+                )
+                component_scores = {'resnet50': float(best_similarity)}
+                return best_deer, best_similarity, component_scores
+            else:
+                logger.info(
+                    f"[FEATURE009] Best similarity {best_similarity:.3f} below threshold {REID_THRESHOLD}"
+                )
+                return None
+
+    except Exception as e:
+        logger.error(f"[FEATURE009] Ensemble matching failed: {e}")
+        logger.exception(e)
         return None
 
 
@@ -527,21 +897,21 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
             logger.warning(f"[WARN] Failed to extract crop for detection {detection_id}")
             return {"status": "skipped", "reason": "Invalid crop"}
 
-        # Extract feature vector
-        feature_vector = extract_feature_vector(crop)
-        if feature_vector is None:
+        # Feature 009: Extract all feature vectors (ResNet50 + multi-scale + EfficientNet)
+        features = extract_all_features(crop)
+        if features['resnet50'] is None:
             logger.error(f"[FAIL] Failed to extract features for detection {detection_id}")
             return {"status": "failed", "error": "Feature extraction failed"}
 
-        # Search for matching deer (with similarity logging - Option D)
-        match_result = find_matching_deer(db, feature_vector, detection.classification, detection_id=detection_uuid)
+        # Feature 009: Search for matching deer using ensemble matching
+        match_result = find_matching_deer_ensemble(db, features, detection.classification, detection_id=detection_uuid)
 
         # Generate burst_group_id for all detections in this burst
         burst_group_id = uuid.uuid4()
 
         if match_result:
             # Match found - link to existing deer
-            deer, similarity = match_result
+            deer, similarity, component_scores = match_result
 
             # Link all burst detections to matched deer
             for det in burst_detections:
@@ -557,6 +927,7 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
             logger.info(
                 f"[OK] Re-ID complete (MATCH): detection={detection_id}, "
                 f"deer={deer.id}, similarity={similarity:.3f}, "
+                f"scores={component_scores}, "
                 f"burst_size={len(burst_detections)}, duration={duration:.2f}s"
             )
 
@@ -567,17 +938,32 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
                 "burst_group_id": str(burst_group_id),
                 "burst_size": len(burst_detections),
                 "similarity": float(similarity),
+                "component_scores": component_scores,
                 "duration": duration
             }
         else:
-            # No match - create new deer profile
+            # No match - create new deer profile with all feature vectors
+            sex_value = (
+                DeerSex.DOE if detection.classification == 'doe'
+                else DeerSex.FAWN if detection.classification == 'fawn'
+                else DeerSex.BUCK
+            )
+
+            # Feature 009: Store all feature vectors with version tracking
+            embedding_version = 'v1_resnet50'  # Default
+            if USE_ENHANCED_REID and features.get('multiscale') is not None and features.get('efficientnet') is not None:
+                embedding_version = 'v3_ensemble'  # Multi-scale + EfficientNet
+            elif features.get('multiscale') is not None:
+                embedding_version = 'v2_multiscale'  # Multi-scale only
+
             new_deer = Deer(
-                sex=DeerSex.DOE if detection.classification == 'doe'
-                    else DeerSex.FAWN if detection.classification == 'fawn'
-                    else DeerSex.BUCK,
+                sex=sex_value,
                 first_seen=image.timestamp,
                 last_seen=image.timestamp,
-                feature_vector=feature_vector.tolist(),
+                feature_vector=features['resnet50'].tolist() if features['resnet50'] is not None else None,
+                feature_vector_multiscale=features['multiscale'].tolist() if features.get('multiscale') is not None else None,
+                feature_vector_efficientnet=features['efficientnet'].tolist() if features.get('efficientnet') is not None else None,
+                embedding_version=embedding_version,
                 confidence=detection.confidence,
                 sighting_count=1
             )
@@ -595,8 +981,8 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
             duration = time.time() - task_start_time
             logger.info(
                 f"[OK] Re-ID complete (NEW): detection={detection_id}, "
-                f"deer={new_deer.id}, burst_size={len(burst_detections)}, "
-                f"duration={duration:.2f}s"
+                f"deer={new_deer.id}, version={embedding_version}, "
+                f"burst_size={len(burst_detections)}, duration={duration:.2f}s"
             )
 
             return {
@@ -605,6 +991,7 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
                 "deer_id": str(new_deer.id),
                 "burst_group_id": str(burst_group_id),
                 "burst_size": len(burst_detections),
+                "embedding_version": embedding_version,
                 "duration": duration
             }
 
@@ -623,5 +1010,13 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
         db.close()
 
 
-# Export task
-__all__ = ["reidentify_deer_task", "extract_feature_vector", "find_matching_deer"]
+# Export task and Feature 009 enhanced functions
+__all__ = [
+    "reidentify_deer_task",
+    "extract_feature_vector",
+    "extract_multiscale_features",
+    "extract_efficientnet_features",
+    "extract_all_features",
+    "find_matching_deer",
+    "find_matching_deer_ensemble"
+]

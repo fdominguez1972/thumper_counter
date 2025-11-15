@@ -26,6 +26,7 @@ pillow>=10.0.0                    # Image processing (needed for EXIF extraction
 opencv-python>=4.8.0              # OpenCV for image processing
 numpy>=1.24.0                     # Numerical computing
 easyocr>=1.7.0                    # OCR for trail camera footer extraction (Sprint 7)
+efficientnet-pytorch>=0.7.1       # EfficientNet-B0 for ensemble Re-ID (Feature 009)
 
 # Utilities
 python-dotenv>=1.0.0              # Environment variable loading

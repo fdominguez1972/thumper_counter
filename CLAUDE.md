@@ -1387,6 +1387,8 @@ http://localhost:8001/docs
 - PostgreSQL 15 (metadata), local filesystem (images at /mnt/images/{location}/) (009-bulk-image-upload)
 - Python 3.11 (backend + worker) + FastAPI (backend), Celery (worker), Redis (job tracking), redis-py (Redis client), PostgreSQL 15 (data), matplotlib/seaborn (visualization) (010-infrastructure-fixes)
 - Redis (temporary job status, 1-hour TTL), PostgreSQL (detections, deer profiles, similarity scores) (010-infrastructure-fixes)
+- Python 3.11 (backend/worker containers) + PyTorch 2.x (ResNet50, EfficientNet-B0), torchvision (pretrained models), pgvector (PostgreSQL vector extension), SQLAlchemy 2.x (ORM), FastAPI 0.100+ (backend API) (009-reid-enhancement)
+- PostgreSQL 15+ with pgvector extension (vector embeddings), local filesystem (image crops), Redis (Celery queue) (009-reid-enhancement)
 
 ## Recent Changes
 - 008-rut-season-analysis: Added Python 3.11 (backend), TypeScript 5.x (frontend)

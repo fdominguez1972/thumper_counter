@@ -160,6 +160,26 @@ class Deer(Base):
         comment="ML embedding for re-identification (ResNet50 output, 512 dimensions)"
     )
 
+    # Feature 009: Enhanced Re-ID with multi-scale and ensemble embeddings
+    feature_vector_multiscale = Column(
+        Vector(512),  # Multi-scale ResNet50 (layer2 + layer3 + layer4 + avgpool)
+        nullable=True,
+        comment="Multi-scale ResNet50 embedding combining texture, shapes, parts, and semantics. 512 dimensions, L2 normalized. Feature 009-reid-enhancement."
+    )
+
+    feature_vector_efficientnet = Column(
+        Vector(512),  # EfficientNet-B0 for ensemble learning
+        nullable=True,
+        comment="EfficientNet-B0 embedding for ensemble learning. Captures complementary features using compound scaling architecture. 512 dimensions, L2 normalized. Feature 009-reid-enhancement."
+    )
+
+    embedding_version = Column(
+        String(20),
+        nullable=False,
+        default='v1_resnet50',
+        comment="Version identifier for embedding extraction. Values: v1_resnet50 (original), v2_multiscale (multi-scale only), v3_ensemble (multi-scale + EfficientNet). Feature 009-reid-enhancement."
+    )
+
     confidence = Column(
         Float,
         nullable=False,
@@ -203,6 +223,10 @@ class Deer(Base):
         # HNSW index for fast vector similarity search (Sprint 5)
         # Uses cosine distance for re-identification matching
         Index("ix_deer_feature_vector_hnsw", "feature_vector", postgresql_using="hnsw", postgresql_ops={"feature_vector": "vector_cosine_ops"}),
+        # Feature 009: HNSW indexes for enhanced Re-ID embeddings
+        Index("ix_deer_feature_vector_multiscale_hnsw", "feature_vector_multiscale", postgresql_using="hnsw", postgresql_ops={"feature_vector_multiscale": "vector_cosine_ops"}),
+        Index("ix_deer_feature_vector_efficientnet_hnsw", "feature_vector_efficientnet", postgresql_using="hnsw", postgresql_ops={"feature_vector_efficientnet": "vector_cosine_ops"}),
+        Index("ix_deer_embedding_version", "embedding_version"),
         {"comment": "Individual deer profiles with re-identification tracking"}
     )
 

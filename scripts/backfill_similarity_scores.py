@@ -129,9 +129,9 @@ def calculate_similarities(feature_vector, all_deer, sex_filter=None):
         similarity = np.dot(feature_vector, deer_vector)
 
         # Determine if this would result in a match
-        matched = (similarity >= REID_THRESHOLD) and sex_match
+        matched = bool((similarity >= REID_THRESHOLD) and sex_match)
 
-        results.append((deer.id, float(similarity), sex_match, matched))
+        results.append((deer.id, float(similarity), bool(sex_match), matched))
 
     return results
 
