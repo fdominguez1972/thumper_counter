@@ -1,17 +1,20 @@
 """
 Export worker tasks for PDF reports and ZIP archives.
 Feature: 008-rut-season-analysis
+Feature: 010-infrastructure-fixes (Redis status tracking)
 
-Celery tasks for generating downloadable exports.
+Celery tasks for generating downloadable exports with Redis status updates.
 """
 
 import os
 import io
+import json
 import csv
 import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
+import redis
 
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -31,11 +34,25 @@ from sqlalchemy.orm import sessionmaker
 EXPORT_DIR = Path("/mnt/exports")
 EXPORT_DIR.mkdir(exist_ok=True)
 
+# Redis client for status tracking (Feature 010)
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_DB = int(os.getenv("REDIS_DB", 0))
 
-@celery_app.task(name="worker.tasks.exports.generate_pdf_report_task")
-def generate_pdf_report_task(job_id: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
+redis_client = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    db=REDIS_DB,
+    decode_responses=True
+)
+
+
+@celery_app.task(name="worker.tasks.exports.generate_pdf_report_task", bind=True)
+def generate_pdf_report_task(self, job_id: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate PDF report from request configuration.
+
+    Feature 010: Updates job status in Redis with 1-hour TTL.
 
     Args:
         job_id: Unique job identifier
@@ -45,6 +62,16 @@ def generate_pdf_report_task(job_id: str, request_data: Dict[str, Any]) -> Dict[
         dict: Result with file_path, file_size, status
     """
     print(f"[INFO] Starting PDF report generation: job_id={job_id}")
+
+    # Feature 010: Set initial "processing" status in Redis
+    key = f"export_job:{job_id}"
+    initial_status = {
+        "status": "processing",
+        "job_id": job_id,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    redis_client.setex(key, 3600, json.dumps(initial_status))
+    print(f"[INFO] Set initial status in Redis: {key}")
 
     try:
         # Create PDF file path
@@ -147,29 +174,46 @@ def generate_pdf_report_task(job_id: str, request_data: Dict[str, Any]) -> Dict[
 
         print(f"[OK] PDF report generated: {file_path} ({file_size} bytes)")
 
-        return {
+        # Feature 010: Update status to "completed" in Redis
+        completed_status = {
             "status": "completed",
-            "file_path": str(file_path),
-            "file_size_bytes": file_size,
+            "job_id": job_id,
+            "filename": filename,
             "download_url": f"/api/static/exports/{filename}",
+            "file_size_bytes": file_size,
+            "created_at": initial_status["created_at"],
             "completed_at": datetime.utcnow().isoformat()
         }
+        redis_client.setex(key, 3600, json.dumps(completed_status))
+        print(f"[OK] Updated Redis status to completed: {key}")
+
+        return completed_status
 
     except Exception as e:
         print(f"[ERROR] PDF generation failed: {e}")
         import traceback
         traceback.print_exc()
 
-        return {
+        # Feature 010: Update status to "failed" in Redis
+        failed_status = {
             "status": "failed",
-            "error_message": str(e)
+            "job_id": job_id,
+            "error": str(e),
+            "created_at": initial_status.get("created_at", datetime.utcnow().isoformat()),
+            "completed_at": datetime.utcnow().isoformat()
         }
+        redis_client.setex(key, 3600, json.dumps(failed_status))
+        print(f"[WARN] Updated Redis status to failed: {key}")
+
+        return failed_status
 
 
-@celery_app.task(name="worker.tasks.exports.create_zip_archive_task")
-def create_zip_archive_task(job_id: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
+@celery_app.task(name="worker.tasks.exports.create_zip_archive_task", bind=True)
+def create_zip_archive_task(self, job_id: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Create ZIP archive with detection crops and metadata.
+
+    Feature 010: Updates job status in Redis with 1-hour TTL.
 
     Args:
         job_id: Unique job identifier
@@ -179,6 +223,16 @@ def create_zip_archive_task(job_id: str, request_data: Dict[str, Any]) -> Dict[s
         dict: Result with file_path, file_size, status
     """
     print(f"[INFO] Starting ZIP archive creation: job_id={job_id}")
+
+    # Feature 010: Set initial "processing" status in Redis
+    key = f"export_job:{job_id}"
+    initial_status = {
+        "status": "processing",
+        "job_id": job_id,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    redis_client.setex(key, 3600, json.dumps(initial_status))
+    print(f"[INFO] Set initial status in Redis: {key}")
 
     try:
         # Create ZIP file path
@@ -306,21 +360,36 @@ def create_zip_archive_task(job_id: str, request_data: Dict[str, Any]) -> Dict[s
 
         print(f"[OK] ZIP archive created: {file_path} ({file_size} bytes)")
 
-        return {
+        # Feature 010: Update status to "completed" in Redis
+        completed_status = {
             "status": "completed",
-            "file_path": str(file_path),
-            "file_size_bytes": file_size,
+            "job_id": job_id,
+            "filename": filename,
             "download_url": f"/api/static/exports/{filename}",
+            "file_size_bytes": file_size,
+            "created_at": initial_status["created_at"],
             "completed_at": datetime.utcnow().isoformat(),
             "processed_count": len(detections)
         }
+        redis_client.setex(key, 3600, json.dumps(completed_status))
+        print(f"[OK] Updated Redis status to completed: {key}")
+
+        return completed_status
 
     except Exception as e:
         print(f"[ERROR] ZIP archive creation failed: {e}")
         import traceback
         traceback.print_exc()
 
-        return {
+        # Feature 010: Update status to "failed" in Redis
+        failed_status = {
             "status": "failed",
-            "error_message": str(e)
+            "job_id": job_id,
+            "error": str(e),
+            "created_at": initial_status.get("created_at", datetime.utcnow().isoformat()),
+            "completed_at": datetime.utcnow().isoformat()
         }
+        redis_client.setex(key, 3600, json.dumps(failed_status))
+        print(f"[WARN] Updated Redis status to failed: {key}")
+
+        return failed_status

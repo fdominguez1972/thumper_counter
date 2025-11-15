@@ -241,24 +241,28 @@ def extract_feature_vectors_batch(crops: List[PILImage.Image]) -> Optional[np.nd
         return None
 
 
-def find_matching_deer(db, feature_vector: np.ndarray, sex: str) -> Optional[Tuple[Deer, float]]:
+def find_matching_deer(db, feature_vector: np.ndarray, sex: str, detection_id: Optional[UUID] = None) -> Optional[Tuple[Deer, float]]:
     """
     Find matching deer profile using vector similarity search.
 
     Uses pgvector cosine distance to find nearest neighbor.
     Only searches within same sex category for better accuracy.
 
+    **Option D Enhancement (Nov 2025):** Now logs ALL similarity scores to
+    reid_similarity_scores table for performance monitoring and threshold analysis.
+
     Args:
         db: Database session
         feature_vector: 512-dim embedding to match
         sex: Detected sex (doe, fawn, mature, mid, young)
+        detection_id: UUID of detection (for similarity logging - Option D)
 
     Returns:
         Tuple[Deer, float]: Matching deer and similarity score, or None
     """
     try:
         from pgvector.sqlalchemy import Vector
-        from sqlalchemy import func, cast
+        from sqlalchemy import func, cast, text
 
         # Map classification to deer sex
         sex_mapping = {
@@ -273,12 +277,12 @@ def find_matching_deer(db, feature_vector: np.ndarray, sex: str) -> Optional[Tup
 
         deer_sex = sex_mapping.get(sex, DeerSex.UNKNOWN)
 
-        # Query for nearest neighbor using cosine distance
-        # Only search deer with feature vectors and matching sex
+        # Query for ALL deer with feature vectors and matching sex
+        # Option D: We need all similarity scores, not just the best match
         # Convert numpy array to list for pgvector
         feature_list = feature_vector.tolist() if hasattr(feature_vector, 'tolist') else list(feature_vector)
 
-        result = (
+        all_results = (
             db.query(
                 Deer,
                 (1 - Deer.feature_vector.cosine_distance(feature_list)).label('similarity')
@@ -286,19 +290,55 @@ def find_matching_deer(db, feature_vector: np.ndarray, sex: str) -> Optional[Tup
             .filter(Deer.feature_vector.isnot(None))
             .filter(Deer.sex == deer_sex)
             .order_by(Deer.feature_vector.cosine_distance(feature_list))
-            .limit(1)
-            .first()
+            .all()
         )
 
-        if result:
-            deer, similarity = result
-            logger.info(f"[INFO] Found potential match: {deer.id} (similarity: {similarity:.3f})")
+        # Option D: Log ALL similarity scores for performance monitoring
+        if detection_id and all_results:
+            try:
+                for deer, similarity_score in all_results:
+                    # Determine if this score resulted in a match
+                    matched = similarity_score >= REID_THRESHOLD
+                    sex_match = (deer.sex == deer_sex)
+
+                    # Insert similarity score record
+                    db.execute(
+                        text("""
+                            INSERT INTO reid_similarity_scores
+                            (detection_id, deer_id, similarity_score, sex_match, matched,
+                             threshold_used, detection_classification, deer_sex)
+                            VALUES (:detection_id, :deer_id, :similarity_score, :sex_match,
+                                    :matched, :threshold_used, :detection_classification, :deer_sex)
+                            ON CONFLICT (detection_id, deer_id) DO NOTHING
+                        """),
+                        {
+                            'detection_id': detection_id,
+                            'deer_id': deer.id,
+                            'similarity_score': float(similarity_score),
+                            'sex_match': sex_match,
+                            'matched': matched,
+                            'threshold_used': float(REID_THRESHOLD),
+                            'detection_classification': sex,
+                            'deer_sex': deer.sex.value
+                        }
+                    )
+                # Commit similarity logs immediately (separate from deer assignment)
+                db.commit()
+            except Exception as log_error:
+                logger.warning(f"[WARN] Failed to log similarity scores: {log_error}")
+                # Don't fail the whole task if logging fails
+                db.rollback()
+
+        # Now find the best match (original logic)
+        if all_results:
+            best_deer, best_similarity = all_results[0]  # First result is best match
+            logger.info(f"[INFO] Found potential match: {best_deer.id} (similarity: {best_similarity:.3f})")
 
             # Check if similarity exceeds threshold
-            if similarity >= REID_THRESHOLD:
-                return deer, similarity
+            if best_similarity >= REID_THRESHOLD:
+                return best_deer, best_similarity
             else:
-                logger.info(f"[INFO] Similarity {similarity:.3f} below threshold {REID_THRESHOLD}")
+                logger.info(f"[INFO] Similarity {best_similarity:.3f} below threshold {REID_THRESHOLD}")
                 return None
         else:
             logger.info(f"[INFO] No existing deer profiles found for sex={deer_sex.value}")
@@ -493,8 +533,8 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
             logger.error(f"[FAIL] Failed to extract features for detection {detection_id}")
             return {"status": "failed", "error": "Feature extraction failed"}
 
-        # Search for matching deer
-        match_result = find_matching_deer(db, feature_vector, detection.classification)
+        # Search for matching deer (with similarity logging - Option D)
+        match_result = find_matching_deer(db, feature_vector, detection.classification, detection_id=detection_uuid)
 
         # Generate burst_group_id for all detections in this burst
         burst_group_id = uuid.uuid4()
