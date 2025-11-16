@@ -1,0 +1,27 @@
+BATCH 71 METADATA (DIRECT FILESYSTEM ACCESS)
+Generated: 2025-11-16 15:11:12
+Total Images: 20
+Method: Direct filesystem access (no download needed)
+
+IMAGES TO REVIEW:
+
+1401|5cc0c401-7aa4-4560-bbf6-8daecf9037e8|SANCTUARY_02490.jpg|doe|0.5834|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\SANCTUARY_02490.jpg
+1402|b26b56bc-1a2f-464b-8de3-81fa346d2bcb|Sanctuary2_20251101_154818_001.jpg|buck|0.5834|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\Sanctuary2_20251101_154818_001.jpg
+1403|c5c3ed5a-5add-4823-a29f-3367d7e27882|SANCTUARY_06919.jpg|doe|0.5834|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\SANCTUARY_06919.jpg
+1404|589efb6f-334c-4aa2-ad64-eaf7a46497da|SANCTUARY_02106.jpg|doe|0.5835|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\SANCTUARY_02106.jpg
+1405|09cb3e4e-d2c5-463e-8f83-8fc8bc67be54|Sanctuary2_20251106_145322_001.jpg|doe|0.5835|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\Sanctuary2_20251106_145322_001.jpg
+1406|c848506c-aef6-4cec-b9b5-8f98a43d0796|Hayfield_20251107_224750_001.jpg|buck|0.5836|I:\Hopkins_Ranch_Trail_Cam_Pics\270_JASON\Hayfield_20251107_224750_001.jpg
+1407|19a78783-075d-44fa-b223-11615e93d4ed|Sanctuary2_20251105_122632_001.jpg|buck|0.5838|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\Sanctuary2_20251105_122632_001.jpg
+1408|028f1ece-94c1-4bdd-80f6-b756581c626b|Hayfield_20251023_082443_001.jpg|buck|0.5839|I:\Hopkins_Ranch_Trail_Cam_Pics\270_JASON\Hayfield_20251023_082443_001.jpg
+1409|64594370-5124-42ef-9841-33f258c1f58c|Sanctuary2_20251103_212232_001.jpg|doe|0.5839|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\Sanctuary2_20251103_212232_001.jpg
+1410|ffeb9972-de5a-4ac5-9d29-d963b9cf9e37|HAYFIELD_03222.jpg|doe|0.5839|I:\Hopkins_Ranch_Trail_Cam_Pics\HAYFIELD\HAYFIELD_03222.jpg
+1411|b8a42515-781e-4ea5-aa99-3cbb84c598f9|Sanctuary2_20251101_103417_001.jpg|buck|0.5840|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\Sanctuary2_20251101_103417_001.jpg
+1412|f3bc78f2-91b3-4e46-ae26-5e8d0c9cf444|HAYFIELD_02068.jpg|buck|0.5841|I:\Hopkins_Ranch_Trail_Cam_Pics\HAYFIELD\HAYFIELD_02068.jpg
+1413|0a95cbe4-094b-46a6-a4f6-9fedb8f9380a|Sanctuary2_20251109_070818_001.jpg|buck|0.5841|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\Sanctuary2_20251109_070818_001.jpg
+1414|618127b7-a08c-4bb5-bf96-f661537a38da|Hayfield_20251101_093816_001.jpg|buck|0.5841|I:\Hopkins_Ranch_Trail_Cam_Pics\270_JASON\Hayfield_20251101_093816_001.jpg
+1415|6bf077eb-f432-449d-bdef-58ccec6a35d6|HAYFIELD_11144.jpg|buck|0.5842|I:\Hopkins_Ranch_Trail_Cam_Pics\HAYFIELD\HAYFIELD_11144.jpg
+1416|ad1e581d-67c6-4251-90f6-f40c7da036e4|HAYFIELD_01296.jpg|doe|0.5842|I:\Hopkins_Ranch_Trail_Cam_Pics\HAYFIELD\HAYFIELD_01296.jpg
+1417|d77b995e-f99d-4a81-9b4e-cfda7a622261|HAYFIELD_12571.jpg|buck|0.5843|I:\Hopkins_Ranch_Trail_Cam_Pics\HAYFIELD\HAYFIELD_12571.jpg
+1418|8299126f-5480-47ed-94c7-4b71fea4ed7c|HAYFIELD_01758.jpg|doe|0.5844|I:\Hopkins_Ranch_Trail_Cam_Pics\HAYFIELD\HAYFIELD_01758.jpg
+1419|986a70fe-4dc4-4755-acdb-44753a077c02|270_JASON_00865.jpg|doe|0.5845|I:\Hopkins_Ranch_Trail_Cam_Pics\270_JASON\270_JASON_00865.jpg
+1420|665f2fde-bbff-40ab-bd33-eec375937d24|SANCTUARY_04372.jpg|buck|0.5845|I:\Hopkins_Ranch_Trail_Cam_Pics\SANCTUARY\SANCTUARY_04372.jpg

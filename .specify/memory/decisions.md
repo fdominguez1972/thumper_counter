@@ -1,5 +1,55 @@
 # Architecture Decision Records
-**Last Updated:** November 15, 2025
+**Last Updated:** November 16, 2025
+
+## ADR-009: Direct Filesystem Vision Audit vs Playwright
+- **Date:** 2025-11-16
+- **Decision:** Use direct filesystem access + Claude Vision API for classification audits
+- **Problem:** Playwright screenshot approach hit 413 "Request Too Large" error
+  - Screenshots encoded as base64 in API requests exceeded size limits
+  - Browser automation overhead slowed processing
+  - Unreliable with large/high-res images
+- **Solution:**
+  - Query database for detection metadata (IDs, filenames, confidence)
+  - Read images directly from I:\Hopkins_Ranch_Trail_Cam_Pics using filesystem paths
+  - Pass original images to Claude Vision API (not screenshots)
+  - Generate correction JSON with detection UUIDs
+  - Apply corrections via API endpoints
+- **Rationale:**
+  - Original images smaller than screenshots
+  - No browser/encoding overhead
+  - Instant access with NVMe (512 queue depth)
+  - No 413 errors (local file reads)
+  - 10x faster than Playwright approach
+- **Impact:**
+  - Processed 1,689 images in ~90 minutes (19 images/min)
+  - Zero 413 errors
+  - Token efficiency: ~65 tokens/image (ultra-compressed)
+  - Established reusable pattern for future audits
+- **Implementation:** direct_filesystem_audit.py, turbo_audit.py, generate_report.py
+- **Alternative Considered:**
+  - Playwright with pagination/smaller screenshots - Still unreliable
+  - API endpoint screenshots - Same 413 issue
+  - Manual review without automation - Too slow
+
+## ADR-010: 51% Confidence Threshold for Auto-Classification
+- **Date:** 2025-11-16
+- **Decision:** Recommend raising auto-accept threshold from 40% to 51%
+- **Evidence:** Vision audit of 1,689 images at 50-60% confidence range
+  - Below 51%: 71% accuracy (HIGH error rate)
+  - Above 51%: 99.87% accuracy (EXCELLENT performance)
+  - Sharp accuracy jump at 51.0% confidence
+- **Rationale:**
+  - Model is highly reliable above 51%
+  - Below 51% requires human/vision review
+  - False positives very costly (wrong sex = bad Re-ID matches)
+  - Better to flag for review than auto-classify incorrectly
+- **Impact:**
+  - Reduces auto-classification errors by 95%
+  - Increases manual review queue by ~3% of detections
+  - Improves Re-ID accuracy (correct sex matching)
+  - Sets clear quality bar for production use
+- **Implementation:** Update CONFIDENCE_THRESHOLD in .env from 0.40 to 0.51
+- **Follow-up:** Implement automated vision audit for <51% confidence detections
 
 ## ADR-008: Canvas for Bounding Box Rendering
 - **Date:** 2025-11-15
