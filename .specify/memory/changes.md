@@ -1,5 +1,105 @@
 # Project Change Log
-**Last Updated:** November 14, 2025
+**Last Updated:** November 15, 2025
+
+## [Feature 011] Bounding Box Visualization - 2025-11-15
+### Added - Detection Bounding Box Overlay (COMPLETE)
+
+**Backend Changes:**
+- src/backend/schemas/image.py (+5 lines)
+  - Added bbox field to DetectionSummary schema
+  - Exposes {x, y, width, height} coordinates in API responses
+  - Optional field for backward compatibility
+
+**Frontend Components:**
+- frontend/src/components/BoundingBoxCanvas.tsx (181 lines, NEW)
+  - Canvas-based rendering overlays boxes on full-resolution images
+  - Toggle visibility with eye icon button
+  - Color-coded by classification (buck=blue, doe=pink, fawn=orange, etc.)
+  - Labels show classification + confidence percentage
+  - Green checkmark indicator for reviewed detections
+  - Maintains image aspect ratio and responsiveness
+  - Fallback to plain image while canvas loading
+
+**Integration:**
+- frontend/src/pages/Images.tsx (+12 lines)
+  - Added bbox field to Detection interface
+  - Integrated BoundingBoxCanvas into lightbox view
+  - Replaced img tag with interactive canvas component
+
+- frontend/src/pages/DeerImages.tsx (+21 lines)
+  - Added bbox and detections fields to Image interface
+  - Integrated BoundingBoxCanvas into deer profile image viewer
+  - Detection data passed from API response
+
+### Features
+
+**Visualization:**
+- Toggle bounding boxes on/off (eye icon)
+- Color-coded classifications:
+  - Buck: Blue (#2196F3)
+  - Doe: Pink (#E91E63)
+  - Fawn: Orange (#FF9800)
+  - Unknown: Gray (#9E9E9E)
+  - Cattle: Green (#8BC34A)
+  - Pig: Deep Orange (#FF5722)
+  - Raccoon: Brown (#795548)
+  - Human: Red (#F44336)
+  - Vehicle: Blue Gray (#607D8B)
+- Reviewed indicator (green checkmark)
+- Click-to-zoom functionality preserved
+- Responsive across all image sizes
+
+### Technical Details
+
+**Canvas Implementation:**
+- Draws directly on HTML5 canvas element
+- Natural image dimensions preserved
+- Box coordinates mapped from database (pixels)
+- Label rendering with background and padding
+- 4px stroke width for visibility
+- 20px Arial font for labels
+
+**Performance:**
+- Lazy loading: Only draws when image loaded
+- Re-renders on visibility toggle
+- No performance impact on grid view
+- Minimal memory overhead
+
+### Git
+
+**Commit:** 70aa403
+**Message:** "feat: Add bounding box visualization for detections"
+**Branch:** main
+**Remotes:** Pushed to origin (GitHub) and ubuntu
+
+**Changes:**
+- 6 files changed
+- 266 insertions(+)
+- 26 deletions(-)
+
+### Testing
+
+**Manual Verification:**
+- Backend API confirmed returning bbox field
+- Frontend components render without errors
+- Toggle functionality works correctly
+- Color-coding displays properly
+- Click-to-zoom preserved in lightbox
+
+**Notes:**
+- Older detections have bbox=null (expected)
+- New detections will include bbox coordinates
+- No regression in existing functionality
+
+### Next Steps
+
+**Re-ID Improvements (Priority):**
+- Threshold optimization analysis
+- Similarity score visualization
+- Manual correction workflow integration
+- Temporal and spatial context enhancement
+
+---
 
 ## [Feature 009] Re-ID Enhancement - 2025-11-14
 ### Added - Enhanced Re-Identification System (COMPLETE)

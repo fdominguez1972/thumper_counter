@@ -1,5 +1,24 @@
 # Architecture Decision Records
-**Last Updated:** November 12, 2025 at 23:02
+**Last Updated:** November 15, 2025
+
+## ADR-008: Canvas for Bounding Box Rendering
+- **Date:** 2025-11-15
+- **Decision:** Use HTML5 Canvas for bounding box visualization
+- **Rationale:**
+  - Direct pixel manipulation for precise box coordinates
+  - Better performance than SVG overlays for multiple detections
+  - Full control over rendering (colors, labels, indicators)
+  - Natural integration with click-to-zoom functionality
+- **Impact:**
+  - Interactive overlay without DOM overhead
+  - Responsive to image size changes
+  - Toggle on/off without re-fetching image
+  - Minimal bundle size increase (181 lines)
+- **Alternatives Considered:**
+  - SVG overlays: More DOM nodes, harder to sync with image
+  - CSS absolute positioning: Limited label rendering, alignment issues
+  - Image annotations library: Extra dependency, less control
+- **Implementation:** Feature 011, frontend/src/components/BoundingBoxCanvas.tsx
 
 ## ADR-001: YOLOv8 Multi-Class Detection
 - **Date:** 2025-11-04
