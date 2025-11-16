@@ -63,7 +63,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 REID_THRESHOLD = float(os.getenv('REID_THRESHOLD', 0.40))  # Feature 010: Data-driven threshold
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-MIN_CROP_SIZE = 50  # Minimum width/height for valid crop
+MIN_CROP_SIZE = 40  # Minimum width/height for valid crop (lowered from 50 to capture more detections)
 BURST_WINDOW = 5  # Seconds - group photos within this window as same event
 
 # Feature 009: Enhanced Re-ID configuration
