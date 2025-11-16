@@ -67,7 +67,7 @@ services:
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
       CONFIDENCE_THRESHOLD: 0.4  # Lowered for trail cameras - better detection rate
-      REID_THRESHOLD: ${REID_THRESHOLD:-0.60}  # Feature 009: Enhanced Re-ID (was 0.40 baseline, 0.55 interim)
+      REID_THRESHOLD: ${REID_THRESHOLD:-0.50}  # Optimized from 0.60 (analysis: 64.5x profile creation)
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
       # Feature 009: Enhanced Re-ID Configuration
       USE_ENHANCED_REID: ${USE_ENHANCED_REID:-true}
@@ -121,7 +121,7 @@ services:
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
       CONFIDENCE_THRESHOLD: 0.4  # Lowered for trail cameras - better detection rate
-      REID_THRESHOLD: ${REID_THRESHOLD:-0.60}  # Feature 009: Enhanced Re-ID (was 0.40 baseline, 0.55 interim)
+      REID_THRESHOLD: ${REID_THRESHOLD:-0.50}  # Optimized from 0.60 (analysis: 64.5x profile creation)
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
       # Feature 009: Enhanced Re-ID Configuration
       USE_ENHANCED_REID: ${USE_ENHANCED_REID:-true}

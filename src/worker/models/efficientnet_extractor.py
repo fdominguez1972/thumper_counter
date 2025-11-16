@@ -58,6 +58,10 @@ def build_efficientnet_b0() -> nn.Module:
         weights=models.EfficientNet_B0_Weights.IMAGENET1K_V1
     )
 
+    # CRITICAL FIX: Move base model to CUDA before extracting layers
+    # This ensures all layer parameters are on the correct device
+    base_model.to(DEVICE)
+
     # Build feature extractor
     model = EfficientNetExtractor(base_model)
 

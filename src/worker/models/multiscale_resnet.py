@@ -58,6 +58,10 @@ def build_multiscale_resnet50() -> nn.Module:
     # Load pretrained ResNet50
     base_model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 
+    # CRITICAL FIX: Move base model to CUDA before extracting layers
+    # This ensures all layer parameters are on the correct device
+    base_model.to(DEVICE)
+
     # Extract layers up to avgpool (before classifier)
     # ResNet50 structure: conv1 -> bn1 -> relu -> maxpool -> layer1 -> layer2 -> layer3 -> layer4 -> avgpool -> fc
     layer2 = base_model.layer2
