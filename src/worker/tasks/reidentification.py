@@ -917,6 +917,7 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
             for det in burst_detections:
                 det.deer_id = deer.id
                 det.burst_group_id = burst_group_id
+                det.similarity_score = float(similarity)  # Log similarity score for threshold optimization
 
             # Update deer sighting
             deer.update_sighting(image.timestamp, detection.confidence)
