@@ -57,12 +57,15 @@ export default function BoundingBoxCanvas({
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
-      setImageDimensions({ width: img.width, height: img.height });
+      setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
       setImageLoaded(true);
       imageRef.current = img;
       if (showBoxes) {
         drawBoundingBoxes();
       }
+    };
+    img.onerror = (e) => {
+      console.error('[BoundingBoxCanvas] Image load error:', e);
     };
     img.src = imageUrl;
   }, [imageUrl]);

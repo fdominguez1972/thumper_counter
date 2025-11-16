@@ -756,7 +756,8 @@ def list_images(
                         corrected_classification=det.corrected_classification,
                         confidence=det.confidence,
                         is_valid=det.is_valid,
-                        is_reviewed=det.is_reviewed
+                        is_reviewed=det.is_reviewed,
+                        bbox=det.bbox
                     ))
             else:
                 detection_count = None
