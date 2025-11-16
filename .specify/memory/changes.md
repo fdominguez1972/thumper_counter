@@ -1,6 +1,53 @@
 # Project Change Log
 **Last Updated:** November 16, 2025
 
+## [IN PROGRESS] YOLOv8 Model Retraining - 2025-11-16
+### Started - Fixing Buck Over-Classification Bias (TRAINING)
+
+**Status:** Training in progress (Epoch ~20/300)
+
+**Objective:**
+- Fix buck over-classification bias identified in audit
+- Improve accuracy at 50-60% confidence range from 71% to >80%
+- Balanced training with class weighting and heavy doe augmentation
+
+**Training Configuration:**
+- Model: YOLOv8n with balanced class weights
+- Dataset: audit_corrected_20251116 + corrected_final_20251111
+- Epochs: 300 (early stopping patience=25)
+- Batch Size: 16
+- Optimizer: AdamW with lr=0.001
+- GPU: RTX 4080 Super (2.3GB VRAM usage)
+- Estimated Time: 4-6 hours
+
+**Key Improvements:**
+- Class-weighted loss (box=7.5, cls=0.5, dfl=1.5)
+- Heavy data augmentation focused on doe examples
+- Horizontal flip, rotation, translation, scaling
+- Mosaic (100%) and mixup (10%) augmentation
+
+**Scripts Created:**
+- scripts/export_audit_training_data.py (219 lines)
+- scripts/train_balanced_model.py (156 lines)
+- scripts/start_training.sh (45 lines)
+- scripts/monitor_training.sh (65 lines)
+
+**Monitoring:**
+```bash
+docker-compose logs -f worker | grep -E "Epoch|mAP"
+bash scripts/monitor_training.sh
+```
+
+**Next Steps (After Training):**
+1. Validate model performance on audit dataset
+2. Compare to current model (yolov8n_deer.pt)
+3. If >80% accuracy at 50-60% confidence: deploy
+4. Monitor production performance on first 1,000 images
+
+**Documentation:** docs/SESSION_20251116_MODEL_RETRAINING.md
+
+---
+
 ## [AUDIT COMPLETE] Full Vision Classification Audit - 2025-11-16
 ### Completed - Manual Vision Review of All Low-Confidence Detections (COMPLETE)
 
