@@ -19,6 +19,10 @@ class DetectionSummary(BaseModel):
     confidence: float
     is_valid: bool
     is_reviewed: bool
+    bbox: Optional[dict] = Field(
+        None,
+        description="Bounding box coordinates {x, y, width, height} in pixels"
+    )
 
     class Config:
         from_attributes = True

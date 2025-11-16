@@ -66,7 +66,7 @@ services:
       BATCH_SIZE: ${BATCH_SIZE:-16}
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
-      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.7}
+      CONFIDENCE_THRESHOLD: 0.4  # Lowered for trail cameras - better detection rate
       REID_THRESHOLD: ${REID_THRESHOLD:-0.60}  # Feature 009: Enhanced Re-ID (was 0.40 baseline, 0.55 interim)
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
       # Feature 009: Enhanced Re-ID Configuration
@@ -120,7 +120,7 @@ services:
       BATCH_SIZE: ${BATCH_SIZE:-16}
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
-      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.7}
+      CONFIDENCE_THRESHOLD: 0.4  # Lowered for trail cameras - better detection rate
       REID_THRESHOLD: ${REID_THRESHOLD:-0.60}  # Feature 009: Enhanced Re-ID (was 0.40 baseline, 0.55 interim)
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
       # Feature 009: Enhanced Re-ID Configuration
@@ -182,7 +182,7 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
-      - /app/node_modules  # Prevent overwriting node_modules
+      - /app/node_modules  # Anonymous volume prevents local mount from overwriting built node_modules
     depends_on:
       - backend
     networks:

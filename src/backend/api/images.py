@@ -74,7 +74,7 @@ def extract_exif_data(file_path: Path) -> dict:
         file_path: Path to image file
 
     Returns:
-        dict: EXIF data as dictionary
+        dict: EXIF data as dictionary (JSON-serializable)
     """
     try:
         image = PILImage.open(file_path)
@@ -85,12 +85,26 @@ def extract_exif_data(file_path: Path) -> dict:
             exif = image._getexif()
             for tag_id, value in exif.items():
                 tag = TAGS.get(tag_id, tag_id)
-                # Convert bytes to string for JSON serialization
+
+                # Convert to JSON-serializable format
                 if isinstance(value, bytes):
                     try:
+                        # Try UTF-8 decode
                         value = value.decode('utf-8')
-                    except:
+                    except (UnicodeDecodeError, AttributeError):
+                        # Skip binary data that can't be decoded
+                        continue
+                elif isinstance(value, (list, tuple)):
+                    # Skip complex data structures
+                    continue
+                elif not isinstance(value, (str, int, float, bool, type(None))):
+                    # Convert other types to string
+                    try:
                         value = str(value)
+                    except:
+                        # Skip if conversion fails
+                        continue
+
                 exif_data[tag] = value
 
         return exif_data

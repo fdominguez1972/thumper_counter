@@ -31,6 +31,22 @@ import apiClient from '../api/client';
 import DetectionCorrectionDialog from '../components/DetectionCorrectionDialog';
 import BatchCorrectionDialog from '../components/BatchCorrectionDialog';
 import PaginationControls from '../components/PaginationControls';
+import BoundingBoxCanvas from '../components/BoundingBoxCanvas';
+
+interface Detection {
+  id: string;
+  classification: string;
+  corrected_classification?: string;
+  confidence: number;
+  is_valid: boolean;
+  is_reviewed: boolean;
+  bbox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
 
 interface Image {
   id: string;
@@ -44,6 +60,7 @@ interface Image {
   is_valid: boolean;
   corrected_classification?: string;
   correction_notes?: string;
+  detections?: Detection[];
 }
 
 export default function DeerImages() {
@@ -388,17 +405,22 @@ export default function DeerImages() {
             )}
 
             {/* Image */}
-            <Box
-              component="img"
-              src={`/api/static/images/${selectedImage.id}`}
-              alt={`Sighting ${selectedIndex! + 1}`}
-              sx={{
-                width: '100%',
-                maxHeight: '80vh',
-                objectFit: 'contain',
-                display: 'block',
-              }}
-            />
+            <Box sx={{ p: 2 }}>
+              <BoundingBoxCanvas
+                imageUrl={`/api/static/images/${selectedImage.id}`}
+                detections={selectedImage.detections || [{
+                  id: selectedImage.detection_id,
+                  classification: selectedImage.classification,
+                  corrected_classification: selectedImage.corrected_classification,
+                  confidence: selectedImage.confidence,
+                  is_valid: selectedImage.is_valid,
+                  is_reviewed: selectedImage.is_reviewed,
+                }]}
+                alt={`Sighting ${selectedIndex! + 1}`}
+                onClick={() => window.open(`/api/static/images/${selectedImage.id}`, '_blank')}
+                title="Click to open full resolution in new tab"
+              />
+            </Box>
 
             {/* Image Info */}
             <Box sx={{ p: 2, bgcolor: 'background.paper' }}>

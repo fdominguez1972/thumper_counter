@@ -29,6 +29,7 @@ import apiClient from '../api/client';
 import DetectionCorrectionDialog from '../components/DetectionCorrectionDialog';
 import BatchCorrectionDialog from '../components/BatchCorrectionDialog';
 import PaginationControls from '../components/PaginationControls';
+import BoundingBoxCanvas from '../components/BoundingBoxCanvas';
 
 interface Detection {
   id: string;
@@ -37,6 +38,12 @@ interface Detection {
   confidence: number;
   is_valid: boolean;
   is_reviewed: boolean;
+  bbox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 interface Image {
@@ -507,17 +514,11 @@ export default function Images() {
             )}
 
             <Box sx={{ p: 2 }}>
-              <img
-                src={`/api/static/images/${selectedImage.id}`}
+              <BoundingBoxCanvas
+                imageUrl={`/api/static/images/${selectedImage.id}`}
+                detections={selectedImage.detections || []}
                 alt={selectedImage.filename}
                 onClick={() => window.open(`/api/static/images/${selectedImage.id}`, '_blank')}
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  maxHeight: '90vh',
-                  objectFit: 'contain',
-                  cursor: 'zoom-in',
-                }}
                 title="Click to open full resolution in new tab"
               />
               <Box sx={{ mt: 2, color: 'white' }}>
