@@ -20,24 +20,18 @@ from backend.core.database import (
     get_db_info,
     engine
 )
-from backend.api import locations, images, processing, deer, static, detections, seasonal, reports, exports
+from backend.api import locations, images, processing, deer, static, detections, seasonal, reports, exports, antler_keypoints
 
 # Celery app for sending tasks from backend
 # WHY: Backend cannot import worker modules directly, use send_task() instead
 import os
-from celery import Celery
 import redis
+from backend.core.celery import celery_app
 
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 REDIS_DB = int(os.getenv('REDIS_DB', 0))
 REDIS_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
-
-celery_app = Celery(
-    'thumper_counter',
-    broker=REDIS_URL,
-    backend=REDIS_URL,
-)
 
 # Redis client for job status tracking
 # WHY: Export job status needs persistent storage with TTL
@@ -135,6 +129,7 @@ app.include_router(detections.router)
 app.include_router(seasonal.router)  # Feature 008: Rut season analysis
 app.include_router(reports.router)   # Feature 008: Seasonal reports
 app.include_router(exports.router)   # Feature 008: PDF and ZIP exports
+app.include_router(antler_keypoints.router, prefix="/api", tags=["Antler Keypoints"])  # Phase 2B: Antler detection
 app.include_router(static.router)
 
 

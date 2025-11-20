@@ -118,6 +118,7 @@ app = Celery(
         'worker.tasks.detection',
         'worker.tasks.reidentification',  # Sprint 5: Re-ID task
         'worker.tasks.exports',  # Sprint 8: PDF/ZIP exports
+        'worker.tasks.antler_detection',  # Phase 2B: Antler keypoint detection
     ]
 )
 
@@ -142,6 +143,7 @@ app.conf.update(
     task_routes={
         'worker.tasks.process_images.*': {'queue': 'ml_processing'},
         'worker.tasks.detection.*': {'queue': 'ml_processing'},
+        'worker.tasks.antler_detection.*': {'queue': 'ml_processing'},
         'worker.tasks.exports.*': {'queue': 'exports'},
     },
 

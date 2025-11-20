@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -38,11 +39,12 @@ interface LocationStats {
   location_name: string;
   total_images: number;
   total_detections: number;
-  unique_deer: number;
   last_activity: string;
 }
 
 export default function Locations() {
+  const navigate = useNavigate();
+
   // Fetch locations
   const { data: locationsData, isLoading: locationsLoading } = useQuery({
     queryKey: ['locations'],
@@ -52,44 +54,12 @@ export default function Locations() {
     },
   });
 
-  // Fetch location stats
+  // Fetch location stats from backend
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['location-stats'],
     queryFn: async () => {
-      // Fetch all images and count by location
-      const response = await apiClient.get('/images', {
-        params: { page_size: 10000 },
-      });
-      const images = response.data.images || [];
-
-      const locationStatsMap = new Map<string, LocationStats>();
-
-      images.forEach((img: any) => {
-        const locationId = img.location_id || 'unknown';
-        const locationName = img.location_name || 'Unknown';
-
-        if (!locationStatsMap.has(locationId)) {
-          locationStatsMap.set(locationId, {
-            location_id: locationId,
-            location_name: locationName,
-            total_images: 0,
-            total_detections: 0,
-            unique_deer: 0,
-            last_activity: img.timestamp,
-          });
-        }
-
-        const stats = locationStatsMap.get(locationId)!;
-        stats.total_images += 1;
-        if (img.detection_count && img.detection_count > 0) {
-          stats.total_detections += img.detection_count;
-        }
-        if (new Date(img.timestamp) > new Date(stats.last_activity)) {
-          stats.last_activity = img.timestamp;
-        }
-      });
-
-      return Array.from(locationStatsMap.values());
+      const response = await apiClient.get('/locations/stats');
+      return response.data;
     },
   });
 
@@ -168,7 +138,17 @@ export default function Locations() {
 
           return (
             <Grid item xs={12} md={6} lg={4} key={location.id}>
-              <Card>
+              <Card
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    boxShadow: 4,
+                    transform: 'translateY(-2px)',
+                    transition: 'all 0.2s'
+                  }
+                }}
+                onClick={() => navigate(`/locations/${location.id}`)}
+              >
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <LocationOnIcon color="primary" sx={{ mr: 1 }} />

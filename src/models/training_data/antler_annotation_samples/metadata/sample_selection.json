@@ -1,0 +1,1333 @@
+{
+  "total_images": 73,
+  "bucks": [
+    {
+      "detection_id": "2448fe43-d163-4eba-80d0-6c04d229e65a",
+      "image_id": "28b7943c-0f5a-49e8-ac4b-7bf8a7e010ee",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251109_073920_001.jpg",
+      "filename": "Sanctuary2_20251109_073920_001.jpg",
+      "confidence": 0.9808176755905151,
+      "bbox": {
+        "x": 1581,
+        "y": 948,
+        "width": 580,
+        "height": 289
+      },
+      "bbox_area": 167620,
+      "classification": "buck",
+      "timestamp": "2025-11-09T07:39:20+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/2448fe43-d163-4eba-80d0-6c04d229e65a_Sanctuary2_20251109_073920_001.jpg"
+    },
+    {
+      "detection_id": "457e9446-186c-4b41-8cb9-42cc40620c54",
+      "image_id": "c430ceb0-56d7-44a1-8511-89cbabb9d182",
+      "path": "/mnt/images/270_JASON/Jason1_20251003_065453_001.jpg",
+      "filename": "Jason1_20251003_065453_001.jpg",
+      "confidence": 0.9797747731208801,
+      "bbox": {
+        "x": 2699,
+        "y": 912,
+        "width": 662,
+        "height": 708
+      },
+      "bbox_area": 468696,
+      "classification": "buck",
+      "timestamp": "2025-10-03T06:54:53+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/457e9446-186c-4b41-8cb9-42cc40620c54_Jason1_20251003_065453_001.jpg"
+    },
+    {
+      "detection_id": "e0ff4845-dbb6-4a7c-b7a3-68cb9c4d8bd5",
+      "image_id": "34e92cda-1d20-4e5b-a55f-40fbbe65198d",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251109_070540_001.jpg",
+      "filename": "Sanctuary2_20251109_070540_001.jpg",
+      "confidence": 0.9796721339225769,
+      "bbox": {
+        "x": 2124,
+        "y": 1288,
+        "width": 722,
+        "height": 624
+      },
+      "bbox_area": 450528,
+      "classification": "buck",
+      "timestamp": "2025-11-09T07:05:40+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/e0ff4845-dbb6-4a7c-b7a3-68cb9c4d8bd5_Sanctuary2_20251109_070540_001.jpg"
+    },
+    {
+      "detection_id": "348cce5d-43bb-4b02-adcb-1949b23faaae",
+      "image_id": "acfd9833-a151-465b-b965-27b4e7b6b01b",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251109_070529_001.jpg",
+      "filename": "Sanctuary2_20251109_070529_001.jpg",
+      "confidence": 0.97899329662323,
+      "bbox": {
+        "x": 1638,
+        "y": 1190,
+        "width": 618,
+        "height": 529
+      },
+      "bbox_area": 326922,
+      "classification": "buck",
+      "timestamp": "2025-11-09T07:05:29+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/348cce5d-43bb-4b02-adcb-1949b23faaae_Sanctuary2_20251109_070529_001.jpg"
+    },
+    {
+      "detection_id": "587a8e5e-a0f8-4970-b31f-b62f49b1f5fb",
+      "image_id": "cc173064-169a-417d-93b0-91139d4bf73d",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20251108_033636_001.jpg",
+      "filename": "Hayfield_20251108_033636_001.jpg",
+      "confidence": 0.9780844449996948,
+      "bbox": {
+        "x": 2401,
+        "y": 890,
+        "width": 294,
+        "height": 401
+      },
+      "bbox_area": 117894,
+      "classification": "buck",
+      "timestamp": "2025-11-08T03:36:36+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/587a8e5e-a0f8-4970-b31f-b62f49b1f5fb_Hayfield_20251108_033636_001.jpg"
+    },
+    {
+      "detection_id": "dd2a518a-aee0-4969-a72d-7f54c604aa35",
+      "image_id": "d3a717d1-476c-4209-9315-d90a48f2c80b",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_174739_001.jpg",
+      "filename": "Sanctuary2_20251104_174739_001.jpg",
+      "confidence": 0.9779614210128784,
+      "bbox": {
+        "x": 1364,
+        "y": 988,
+        "width": 482,
+        "height": 338
+      },
+      "bbox_area": 162916,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:47:39+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/dd2a518a-aee0-4969-a72d-7f54c604aa35_Sanctuary2_20251104_174739_001.jpg"
+    },
+    {
+      "detection_id": "e655daf9-3e8f-462b-a8ca-4b41e800aac2",
+      "image_id": "a0996814-91e3-477a-80c9-0d4aa91209d8",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251109_070749_001.jpg",
+      "filename": "Sanctuary2_20251109_070749_001.jpg",
+      "confidence": 0.9766982197761536,
+      "bbox": {
+        "x": 1425,
+        "y": 1078,
+        "width": 527,
+        "height": 347
+      },
+      "bbox_area": 182869,
+      "classification": "buck",
+      "timestamp": "2025-11-09T07:07:49+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/e655daf9-3e8f-462b-a8ca-4b41e800aac2_Sanctuary2_20251109_070749_001.jpg"
+    },
+    {
+      "detection_id": "9765fc98-84b8-45ec-b0c9-bd1cd5c6cdb3",
+      "image_id": "abb79de0-2813-40c5-a673-1048b2efac42",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251109_070542_001.jpg",
+      "filename": "Sanctuary2_20251109_070542_001.jpg",
+      "confidence": 0.9754206538200378,
+      "bbox": {
+        "x": 2232,
+        "y": 1272,
+        "width": 865,
+        "height": 660
+      },
+      "bbox_area": 570900,
+      "classification": "buck",
+      "timestamp": "2025-11-09T07:05:42+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/9765fc98-84b8-45ec-b0c9-bd1cd5c6cdb3_Sanctuary2_20251109_070542_001.jpg"
+    },
+    {
+      "detection_id": "9ae76ee8-1e29-4cc6-abad-68b2e0b5c4cb",
+      "image_id": "d04a7bc3-d9f8-4b1a-b9e4-cf77370d834d",
+      "path": "/mnt/images/270_JASON/Jason1_20251012_185340_001.jpg",
+      "filename": "Jason1_20251012_185340_001.jpg",
+      "confidence": 0.975328803062439,
+      "bbox": {
+        "x": 1467,
+        "y": 1126,
+        "width": 436,
+        "height": 591
+      },
+      "bbox_area": 257676,
+      "classification": "buck",
+      "timestamp": "2025-10-12T18:53:40+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/9ae76ee8-1e29-4cc6-abad-68b2e0b5c4cb_Jason1_20251012_185340_001.jpg"
+    },
+    {
+      "detection_id": "af661ef8-aeae-4628-a517-4d78c79b6711",
+      "image_id": "c9a131e0-fbe7-44ae-8f87-309f298834f4",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251109_070623_001.jpg",
+      "filename": "Sanctuary2_20251109_070623_001.jpg",
+      "confidence": 0.9738892912864685,
+      "bbox": {
+        "x": 3022,
+        "y": 1283,
+        "width": 817,
+        "height": 573
+      },
+      "bbox_area": 468141,
+      "classification": "buck",
+      "timestamp": "2025-11-09T07:06:23+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/af661ef8-aeae-4628-a517-4d78c79b6711_Sanctuary2_20251109_070623_001.jpg"
+    },
+    {
+      "detection_id": "40bda4c8-a17e-4244-973a-942327c1de98",
+      "image_id": "ad83f919-ed00-4286-8334-f280d13fb51c",
+      "path": "/mnt/images/270_JASON/Jason1_20251010_024121_001.jpg",
+      "filename": "Jason1_20251010_024121_001.jpg",
+      "confidence": 0.9738116264343262,
+      "bbox": {
+        "x": 1383,
+        "y": 1137,
+        "width": 514,
+        "height": 701
+      },
+      "bbox_area": 360314,
+      "classification": "buck",
+      "timestamp": "2025-10-10T02:41:21+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/40bda4c8-a17e-4244-973a-942327c1de98_Jason1_20251010_024121_001.jpg"
+    },
+    {
+      "detection_id": "269eb807-b97d-44dc-8274-959cc3249ac9",
+      "image_id": "0e067f6e-1e22-4e32-a04f-1afdc2ac06c0",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251031_203809_001.jpg",
+      "filename": "Sanctuary2_20251031_203809_001.jpg",
+      "confidence": 0.9737755656242371,
+      "bbox": {
+        "x": 1852,
+        "y": 1100,
+        "width": 360,
+        "height": 447
+      },
+      "bbox_area": 160920,
+      "classification": "buck",
+      "timestamp": "2025-10-31T20:38:09+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/269eb807-b97d-44dc-8274-959cc3249ac9_Sanctuary2_20251031_203809_001.jpg"
+    },
+    {
+      "detection_id": "a9c7ad2d-0a23-48ab-8e75-1298577fc24e",
+      "image_id": "62365f5a-e989-405b-8673-a0dfcda62f2b",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_171714_001.jpg",
+      "filename": "Sanctuary2_20251104_171714_001.jpg",
+      "confidence": 0.9693110585212708,
+      "bbox": {
+        "x": 1637,
+        "y": 1076,
+        "width": 712,
+        "height": 372
+      },
+      "bbox_area": 264864,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:17:14+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/a9c7ad2d-0a23-48ab-8e75-1298577fc24e_Sanctuary2_20251104_171714_001.jpg"
+    },
+    {
+      "detection_id": "221f95a4-2a4c-4b06-9aeb-2a11f1aa9b85",
+      "image_id": "46969d18-7083-40e4-9d83-a587d2ee0dce",
+      "path": "/mnt/images/270_JASON/Jason1_20251010_052005_001.jpg",
+      "filename": "Jason1_20251010_052005_001.jpg",
+      "confidence": 0.968065619468689,
+      "bbox": {
+        "x": 772,
+        "y": 974,
+        "width": 423,
+        "height": 499
+      },
+      "bbox_area": 211077,
+      "classification": "buck",
+      "timestamp": "2025-10-10T05:20:05+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/221f95a4-2a4c-4b06-9aeb-2a11f1aa9b85_Jason1_20251010_052005_001.jpg"
+    },
+    {
+      "detection_id": "8c96f94f-3263-42a0-8eea-8f6c4f278683",
+      "image_id": "8b40f5d9-f3a3-4d13-8057-e8d8a62e4248",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_170625_001.jpg",
+      "filename": "Sanctuary2_20251104_170625_001.jpg",
+      "confidence": 0.9671097993850708,
+      "bbox": {
+        "x": 544,
+        "y": 920,
+        "width": 198,
+        "height": 239
+      },
+      "bbox_area": 47322,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:06:25+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/8c96f94f-3263-42a0-8eea-8f6c4f278683_Sanctuary2_20251104_170625_001.jpg"
+    },
+    {
+      "detection_id": "bdfc5502-2c19-48ba-9138-9caa8865a1b3",
+      "image_id": "aa05fa0d-6b2a-4c4f-bd4f-e3c61f63401a",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251109_070713_001.jpg",
+      "filename": "Sanctuary2_20251109_070713_001.jpg",
+      "confidence": 0.966552197933197,
+      "bbox": {
+        "x": 1816,
+        "y": 1070,
+        "width": 547,
+        "height": 384
+      },
+      "bbox_area": 210048,
+      "classification": "buck",
+      "timestamp": "2025-11-09T07:07:13+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/bdfc5502-2c19-48ba-9138-9caa8865a1b3_Sanctuary2_20251109_070713_001.jpg"
+    },
+    {
+      "detection_id": "f4a0525b-48eb-461e-8955-7cb89f7057d5",
+      "image_id": "00d3c033-cde6-49a9-8523-7df782de4e9d",
+      "path": "/mnt/images/270_JASON/Jason1_20251012_184955_001.jpg",
+      "filename": "Jason1_20251012_184955_001.jpg",
+      "confidence": 0.9665462970733643,
+      "bbox": {
+        "x": 715,
+        "y": 992,
+        "width": 573,
+        "height": 623
+      },
+      "bbox_area": 356979,
+      "classification": "buck",
+      "timestamp": "2025-10-12T18:49:55+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/f4a0525b-48eb-461e-8955-7cb89f7057d5_Jason1_20251012_184955_001.jpg"
+    },
+    {
+      "detection_id": "c8687337-7754-4f02-88bb-35ef3140753a",
+      "image_id": "566a4234-aa6c-49db-8739-b2b1fd143998",
+      "path": "/mnt/images/270_JASON/Jason1_20251010_020828_001.jpg",
+      "filename": "Jason1_20251010_020828_001.jpg",
+      "confidence": 0.9659134745597839,
+      "bbox": {
+        "x": 808,
+        "y": 1030,
+        "width": 521,
+        "height": 639
+      },
+      "bbox_area": 332919,
+      "classification": "buck",
+      "timestamp": "2025-10-10T02:08:28+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/c8687337-7754-4f02-88bb-35ef3140753a_Jason1_20251010_020828_001.jpg"
+    },
+    {
+      "detection_id": "3d834a2b-578e-4e4b-b8e9-39418a28501f",
+      "image_id": "3c438592-54fa-4e70-948b-182d260d9653",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251031_183306_001.jpg",
+      "filename": "Sanctuary2_20251031_183306_001.jpg",
+      "confidence": 0.9655781388282776,
+      "bbox": {
+        "x": 2836,
+        "y": 1268,
+        "width": 922,
+        "height": 575
+      },
+      "bbox_area": 530150,
+      "classification": "buck",
+      "timestamp": "2025-10-31T18:33:06+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/3d834a2b-578e-4e4b-b8e9-39418a28501f_Sanctuary2_20251031_183306_001.jpg"
+    },
+    {
+      "detection_id": "4caa6d28-3178-4ebf-9d7d-5fc755ca9d2f",
+      "image_id": "67b7dc7e-f001-4d5a-9119-5a12ca58c66b",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251109_073759_001.jpg",
+      "filename": "Sanctuary2_20251109_073759_001.jpg",
+      "confidence": 0.9639105796813965,
+      "bbox": {
+        "x": 2562,
+        "y": 1247,
+        "width": 833,
+        "height": 465
+      },
+      "bbox_area": 387345,
+      "classification": "buck",
+      "timestamp": "2025-11-09T07:37:59+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/4caa6d28-3178-4ebf-9d7d-5fc755ca9d2f_Sanctuary2_20251109_073759_001.jpg"
+    },
+    {
+      "detection_id": "740a004b-225e-4eb1-a2da-098cbf4339eb",
+      "image_id": "e8c7e020-a548-4405-857c-61afb13e2fb4",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_174741_001.jpg",
+      "filename": "Sanctuary2_20251104_174741_001.jpg",
+      "confidence": 0.963493287563324,
+      "bbox": {
+        "x": 1438,
+        "y": 981,
+        "width": 483,
+        "height": 362
+      },
+      "bbox_area": 174846,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:47:41+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/740a004b-225e-4eb1-a2da-098cbf4339eb_Sanctuary2_20251104_174741_001.jpg"
+    },
+    {
+      "detection_id": "74fb42e9-b049-451a-8e65-bef2cd5647f7",
+      "image_id": "4c91a285-4594-44eb-a27e-32956b918801",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251102_173235_001.jpg",
+      "filename": "Sanctuary2_20251102_173235_001.jpg",
+      "confidence": 0.9625007510185242,
+      "bbox": {
+        "x": 1430,
+        "y": 1040,
+        "width": 613,
+        "height": 367
+      },
+      "bbox_area": 224971,
+      "classification": "buck",
+      "timestamp": "2025-11-02T17:32:35+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/74fb42e9-b049-451a-8e65-bef2cd5647f7_Sanctuary2_20251102_173235_001.jpg"
+    },
+    {
+      "detection_id": "fbcf43f4-a7cb-4a99-be24-837502789cbe",
+      "image_id": "710174dd-0a76-4f6a-8297-c5126a6775c9",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251101_165639_001.jpg",
+      "filename": "Sanctuary2_20251101_165639_001.jpg",
+      "confidence": 0.9620404839515686,
+      "bbox": {
+        "x": 1873,
+        "y": 1242,
+        "width": 856,
+        "height": 560
+      },
+      "bbox_area": 479360,
+      "classification": "buck",
+      "timestamp": "2025-11-01T16:56:39+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/fbcf43f4-a7cb-4a99-be24-837502789cbe_Sanctuary2_20251101_165639_001.jpg"
+    },
+    {
+      "detection_id": "429a962f-0d9a-412a-88b8-0d1d044bd413",
+      "image_id": "bbc6e79b-4e5d-412b-ad44-69dcb2b0a533",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251109_074429_001.jpg",
+      "filename": "Sanctuary2_20251109_074429_001.jpg",
+      "confidence": 0.9617968201637268,
+      "bbox": {
+        "x": 1351,
+        "y": 1119,
+        "width": 118,
+        "height": 182
+      },
+      "bbox_area": 21476,
+      "classification": "buck",
+      "timestamp": "2025-11-09T07:44:29+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/429a962f-0d9a-412a-88b8-0d1d044bd413_Sanctuary2_20251109_074429_001.jpg"
+    },
+    {
+      "detection_id": "88b35fca-16c6-4c8b-9207-ac3c301d3361",
+      "image_id": "39a0f8af-f984-4bab-b5a2-21b6d20f1867",
+      "path": "/mnt/images/270_JASON/Jason1_20251010_021121_001.jpg",
+      "filename": "Jason1_20251010_021121_001.jpg",
+      "confidence": 0.9617491364479065,
+      "bbox": {
+        "x": 1920,
+        "y": 1058,
+        "width": 345,
+        "height": 473
+      },
+      "bbox_area": 163185,
+      "classification": "buck",
+      "timestamp": "2025-10-10T02:11:21+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/88b35fca-16c6-4c8b-9207-ac3c301d3361_Jason1_20251010_021121_001.jpg"
+    },
+    {
+      "detection_id": "a939d5af-7df5-4044-90f4-5295d9120c35",
+      "image_id": "54d07675-3043-436b-a1ec-0f69e395a29d",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_174754_001.jpg",
+      "filename": "Sanctuary2_20251104_174754_001.jpg",
+      "confidence": 0.9599268436431885,
+      "bbox": {
+        "x": 1663,
+        "y": 977,
+        "width": 468,
+        "height": 351
+      },
+      "bbox_area": 164268,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:47:54+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/a939d5af-7df5-4044-90f4-5295d9120c35_Sanctuary2_20251104_174754_001.jpg"
+    },
+    {
+      "detection_id": "4af36020-184b-404e-b18d-65b648200401",
+      "image_id": "1c251a46-2865-4ef8-a0ea-5a52b9e8fa9c",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20251029_024327_001.jpg",
+      "filename": "Hayfield_20251029_024327_001.jpg",
+      "confidence": 0.9591560363769531,
+      "bbox": {
+        "x": 2461,
+        "y": 891,
+        "width": 211,
+        "height": 273
+      },
+      "bbox_area": 57603,
+      "classification": "buck",
+      "timestamp": "2025-10-29T02:43:27+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/4af36020-184b-404e-b18d-65b648200401_Hayfield_20251029_024327_001.jpg"
+    },
+    {
+      "detection_id": "fe4ff8c4-0bef-4a66-b7ab-f068d36e2378",
+      "image_id": "66a242f4-1401-4f30-9ea2-faf9206d8200",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251102_171556_001.jpg",
+      "filename": "Sanctuary2_20251102_171556_001.jpg",
+      "confidence": 0.9583254456520081,
+      "bbox": {
+        "x": 1873,
+        "y": 967,
+        "width": 580,
+        "height": 299
+      },
+      "bbox_area": 173420,
+      "classification": "buck",
+      "timestamp": "2025-11-02T17:15:56+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/fe4ff8c4-0bef-4a66-b7ab-f068d36e2378_Sanctuary2_20251102_171556_001.jpg"
+    },
+    {
+      "detection_id": "7ce83162-2a92-4eba-bc4a-ecdcc4d37dc2",
+      "image_id": "4f85c624-f913-4bce-a188-202eadab1fd0",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251102_172143_001.jpg",
+      "filename": "Sanctuary2_20251102_172143_001.jpg",
+      "confidence": 0.9582087397575378,
+      "bbox": {
+        "x": 1581,
+        "y": 986,
+        "width": 477,
+        "height": 343
+      },
+      "bbox_area": 163611,
+      "classification": "buck",
+      "timestamp": "2025-11-02T17:21:43+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/7ce83162-2a92-4eba-bc4a-ecdcc4d37dc2_Sanctuary2_20251102_172143_001.jpg"
+    },
+    {
+      "detection_id": "c257a9a3-1c2d-4ab4-85df-4a269262c793",
+      "image_id": "74e0c688-b826-4867-8c86-d8530bd1bb71",
+      "path": "/mnt/images/270_JASON/Jason1_20251012_191806_001.jpg",
+      "filename": "Jason1_20251012_191806_001.jpg",
+      "confidence": 0.9581495523452759,
+      "bbox": {
+        "x": 1016,
+        "y": 970,
+        "width": 625,
+        "height": 686
+      },
+      "bbox_area": 428750,
+      "classification": "buck",
+      "timestamp": "2025-10-12T19:18:06+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/c257a9a3-1c2d-4ab4-85df-4a269262c793_Jason1_20251012_191806_001.jpg"
+    },
+    {
+      "detection_id": "d2286a13-40d5-4025-899b-d04ca096fef6",
+      "image_id": "7c98dbae-eac8-41c3-a843-419efa85f374",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20251108_013233_001.jpg",
+      "filename": "Hayfield_20251108_013233_001.jpg",
+      "confidence": 0.9576607346534729,
+      "bbox": {
+        "x": 2464,
+        "y": 969,
+        "width": 285,
+        "height": 306
+      },
+      "bbox_area": 87210,
+      "classification": "buck",
+      "timestamp": "2025-11-08T01:32:33+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/d2286a13-40d5-4025-899b-d04ca096fef6_Hayfield_20251108_013233_001.jpg"
+    },
+    {
+      "detection_id": "25a06f3a-4953-4f44-be3f-5acd3959e4c7",
+      "image_id": "1d83354a-be27-480a-9df3-6d5a5870de7d",
+      "path": "/mnt/images/270_JASON/Jason1_20251003_071924_001.jpg",
+      "filename": "Jason1_20251003_071924_001.jpg",
+      "confidence": 0.9572556018829346,
+      "bbox": {
+        "x": 1354,
+        "y": 1015,
+        "width": 441,
+        "height": 468
+      },
+      "bbox_area": 206388,
+      "classification": "buck",
+      "timestamp": "2025-10-03T07:19:24+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/25a06f3a-4953-4f44-be3f-5acd3959e4c7_Jason1_20251003_071924_001.jpg"
+    },
+    {
+      "detection_id": "c0689f63-8c85-4a13-9ce5-ff4bd5027295",
+      "image_id": "c76d670a-34f4-41df-b541-1d6042bdc8ad",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_173134_001.jpg",
+      "filename": "Sanctuary2_20251104_173134_001.jpg",
+      "confidence": 0.9569689631462097,
+      "bbox": {
+        "x": 1859,
+        "y": 1035,
+        "width": 537,
+        "height": 411
+      },
+      "bbox_area": 220707,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:31:34+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/c0689f63-8c85-4a13-9ce5-ff4bd5027295_Sanctuary2_20251104_173134_001.jpg"
+    },
+    {
+      "detection_id": "3d21906b-cc37-4cc7-b8e7-c25f0565eb4b",
+      "image_id": "06d390db-de4f-4925-b39e-4f895a7e14b6",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_172933_001.jpg",
+      "filename": "Sanctuary2_20251104_172933_001.jpg",
+      "confidence": 0.9567651748657227,
+      "bbox": {
+        "x": 1348,
+        "y": 1097,
+        "width": 610,
+        "height": 468
+      },
+      "bbox_area": 285480,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:29:33+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/3d21906b-cc37-4cc7-b8e7-c25f0565eb4b_Sanctuary2_20251104_172933_001.jpg"
+    },
+    {
+      "detection_id": "c41ec2c0-f6e8-491b-ab8a-c11e2e249d76",
+      "image_id": "8631080b-f915-487c-a085-695eb6bcd3e9",
+      "path": "/mnt/images/270_JASON/Jason1_20251012_190059_001.jpg",
+      "filename": "Jason1_20251012_190059_001.jpg",
+      "confidence": 0.9564315676689148,
+      "bbox": {
+        "x": 1461,
+        "y": 1070,
+        "width": 398,
+        "height": 502
+      },
+      "bbox_area": 199796,
+      "classification": "buck",
+      "timestamp": "2025-10-12T19:00:59+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/c41ec2c0-f6e8-491b-ab8a-c11e2e249d76_Jason1_20251012_190059_001.jpg"
+    },
+    {
+      "detection_id": "9c95c93c-1551-46f1-842f-4932ed010bfe",
+      "image_id": "ba4d8da3-62a1-4189-a07b-588cd2485e01",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251031_203811_001.jpg",
+      "filename": "Sanctuary2_20251031_203811_001.jpg",
+      "confidence": 0.9560690522193909,
+      "bbox": {
+        "x": 3282,
+        "y": 1008,
+        "width": 352,
+        "height": 374
+      },
+      "bbox_area": 131648,
+      "classification": "buck",
+      "timestamp": "2025-10-31T20:38:11+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/9c95c93c-1551-46f1-842f-4932ed010bfe_Sanctuary2_20251031_203811_001.jpg"
+    },
+    {
+      "detection_id": "ae42929a-135c-4e4b-88e3-9c7f4a658c03",
+      "image_id": "6432a043-baa5-4bff-b6b2-2b89e2c5b981",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20250919_073932_001.jpg",
+      "filename": "Hayfield_20250919_073932_001.jpg",
+      "confidence": 0.9560235738754272,
+      "bbox": {
+        "x": 1310,
+        "y": 945,
+        "width": 184,
+        "height": 260
+      },
+      "bbox_area": 47840,
+      "classification": "buck",
+      "timestamp": "2025-09-19T07:39:32+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/ae42929a-135c-4e4b-88e3-9c7f4a658c03_Hayfield_20250919_073932_001.jpg"
+    },
+    {
+      "detection_id": "bac0f4c2-8857-43de-aea1-6ecc5645735f",
+      "image_id": "45ffe02a-76c9-4a59-8ff1-1cde1f6d9a03",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251031_212746_001.jpg",
+      "filename": "Sanctuary2_20251031_212746_001.jpg",
+      "confidence": 0.9560149908065796,
+      "bbox": {
+        "x": 2927,
+        "y": 1165,
+        "width": 264,
+        "height": 324
+      },
+      "bbox_area": 85536,
+      "classification": "buck",
+      "timestamp": "2025-10-31T21:27:46+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/bac0f4c2-8857-43de-aea1-6ecc5645735f_Sanctuary2_20251031_212746_001.jpg"
+    },
+    {
+      "detection_id": "8f4d696f-296f-4dac-94cd-931c63cad15f",
+      "image_id": "b1c2f266-fc52-44b8-8444-3c5db3851772",
+      "path": "/mnt/images/270_JASON/Jason1_20251010_020807_001.jpg",
+      "filename": "Jason1_20251010_020807_001.jpg",
+      "confidence": 0.9552900195121765,
+      "bbox": {
+        "x": 1815,
+        "y": 872,
+        "width": 585,
+        "height": 786
+      },
+      "bbox_area": 459810,
+      "classification": "buck",
+      "timestamp": "2025-10-10T02:08:07+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/8f4d696f-296f-4dac-94cd-931c63cad15f_Jason1_20251010_020807_001.jpg"
+    },
+    {
+      "detection_id": "fa34ac03-b24a-41b9-a229-34db1f980e5c",
+      "image_id": "cfc68afa-97c7-478b-95ec-640800176248",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_170744_001.jpg",
+      "filename": "Sanctuary2_20251104_170744_001.jpg",
+      "confidence": 0.9551559090614319,
+      "bbox": {
+        "x": 1595,
+        "y": 1158,
+        "width": 816,
+        "height": 517
+      },
+      "bbox_area": 421872,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:07:44+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/fa34ac03-b24a-41b9-a229-34db1f980e5c_Sanctuary2_20251104_170744_001.jpg"
+    },
+    {
+      "detection_id": "08d6986c-8b52-4754-9834-9e1b4e654554",
+      "image_id": "67f4c0d2-0ab5-4af7-9a02-2e8980a2790a",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_172926_001.jpg",
+      "filename": "Sanctuary2_20251104_172926_001.jpg",
+      "confidence": 0.9544297456741333,
+      "bbox": {
+        "x": 2345,
+        "y": 1285,
+        "width": 698,
+        "height": 580
+      },
+      "bbox_area": 404840,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:29:26+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/08d6986c-8b52-4754-9834-9e1b4e654554_Sanctuary2_20251104_172926_001.jpg"
+    },
+    {
+      "detection_id": "05a1a900-1d24-4ea0-84f2-fc6744c4a051",
+      "image_id": "e801a5a7-45af-4b13-a139-79be44dc3223",
+      "path": "/mnt/images/270_JASON/Jason1_20251014_103945_001.jpg",
+      "filename": "Jason1_20251014_103945_001.jpg",
+      "confidence": 0.9535033702850342,
+      "bbox": {
+        "x": 1656,
+        "y": 739,
+        "width": 528,
+        "height": 619
+      },
+      "bbox_area": 326832,
+      "classification": "buck",
+      "timestamp": "2025-10-14T10:39:45+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/05a1a900-1d24-4ea0-84f2-fc6744c4a051_Jason1_20251014_103945_001.jpg"
+    },
+    {
+      "detection_id": "7546c628-d915-453c-93af-3d6743e1bddd",
+      "image_id": "8583fcac-4e93-45b5-9306-94620a2a4209",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20251108_032434_001.jpg",
+      "filename": "Hayfield_20251108_032434_001.jpg",
+      "confidence": 0.9534578323364258,
+      "bbox": {
+        "x": 1876,
+        "y": 925,
+        "width": 241,
+        "height": 345
+      },
+      "bbox_area": 83145,
+      "classification": "buck",
+      "timestamp": "2025-11-08T03:24:34+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/7546c628-d915-453c-93af-3d6743e1bddd_Hayfield_20251108_032434_001.jpg"
+    },
+    {
+      "detection_id": "6d756d9f-50d8-43ab-9e84-bdc26742e075",
+      "image_id": "4924c31f-ec89-48eb-b819-4da6dc4fb4b8",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251101_175302_001.jpg",
+      "filename": "Sanctuary2_20251101_175302_001.jpg",
+      "confidence": 0.9531036019325256,
+      "bbox": {
+        "x": 2502,
+        "y": 1161,
+        "width": 812,
+        "height": 639
+      },
+      "bbox_area": 518868,
+      "classification": "buck",
+      "timestamp": "2025-11-01T17:53:02+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/6d756d9f-50d8-43ab-9e84-bdc26742e075_Sanctuary2_20251101_175302_001.jpg"
+    },
+    {
+      "detection_id": "8f9eae6f-aa19-4553-af2d-989295812288",
+      "image_id": "abc16dae-979b-4a1f-8fe3-80cf1ecd493e",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251031_212828_001.jpg",
+      "filename": "Sanctuary2_20251031_212828_001.jpg",
+      "confidence": 0.9523465037345886,
+      "bbox": {
+        "x": 488,
+        "y": 1066,
+        "width": 270,
+        "height": 330
+      },
+      "bbox_area": 89100,
+      "classification": "buck",
+      "timestamp": "2025-10-31T21:28:28+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/8f9eae6f-aa19-4553-af2d-989295812288_Sanctuary2_20251031_212828_001.jpg"
+    },
+    {
+      "detection_id": "5395ecfc-d631-42cf-9012-7310dbc34ca6",
+      "image_id": "598ac06e-de93-4004-826d-c83aceb5c77f",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20251104_181452_001.jpg",
+      "filename": "Hayfield_20251104_181452_001.jpg",
+      "confidence": 0.9521751403808594,
+      "bbox": {
+        "x": 3069,
+        "y": 779,
+        "width": 192,
+        "height": 219
+      },
+      "bbox_area": 42048,
+      "classification": "buck",
+      "timestamp": "2025-11-04T18:14:52+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/5395ecfc-d631-42cf-9012-7310dbc34ca6_Hayfield_20251104_181452_001.jpg"
+    },
+    {
+      "detection_id": "99acf766-d449-49ec-925f-2b466cff6ee0",
+      "image_id": "06604f83-505d-4cfe-8fc2-f928728b8c00",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251101_093825_001.jpg",
+      "filename": "Sanctuary2_20251101_093825_001.jpg",
+      "confidence": 0.9520475268363953,
+      "bbox": {
+        "x": 198,
+        "y": 1055,
+        "width": 585,
+        "height": 356
+      },
+      "bbox_area": 208260,
+      "classification": "buck",
+      "timestamp": "2025-11-01T09:38:25+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/99acf766-d449-49ec-925f-2b466cff6ee0_Sanctuary2_20251101_093825_001.jpg"
+    },
+    {
+      "detection_id": "bd639aca-9a25-4be4-a11d-a98f0398175c",
+      "image_id": "59fe435d-a2d8-446a-864f-93bafa525118",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251106_100409_001.jpg",
+      "filename": "Sanctuary2_20251106_100409_001.jpg",
+      "confidence": 0.9520469903945923,
+      "bbox": {
+        "x": 307,
+        "y": 1116,
+        "width": 144,
+        "height": 184
+      },
+      "bbox_area": 26496,
+      "classification": "buck",
+      "timestamp": "2025-11-06T10:04:09+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/bd639aca-9a25-4be4-a11d-a98f0398175c_Sanctuary2_20251106_100409_001.jpg"
+    },
+    {
+      "detection_id": "45de1026-4ba8-431e-9bde-755c016ea95f",
+      "image_id": "23f89643-d056-4096-a8e5-ee63338aa42e",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251105_173158_001.jpg",
+      "filename": "Sanctuary2_20251105_173158_001.jpg",
+      "confidence": 0.9518888592720032,
+      "bbox": {
+        "x": 1167,
+        "y": 1180,
+        "width": 564,
+        "height": 509
+      },
+      "bbox_area": 287076,
+      "classification": "buck",
+      "timestamp": "2025-11-05T17:31:58+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/45de1026-4ba8-431e-9bde-755c016ea95f_Sanctuary2_20251105_173158_001.jpg"
+    },
+    {
+      "detection_id": "b4a21f9d-b524-4a0f-b0cd-282bc42b191b",
+      "image_id": "1e49843f-a238-4175-9b4f-04e5ed767486",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251104_172057_001.jpg",
+      "filename": "Sanctuary2_20251104_172057_001.jpg",
+      "confidence": 0.9516595005989075,
+      "bbox": {
+        "x": 1359,
+        "y": 1116,
+        "width": 125,
+        "height": 193
+      },
+      "bbox_area": 24125,
+      "classification": "buck",
+      "timestamp": "2025-11-04T17:20:57+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/bucks/b4a21f9d-b524-4a0f-b0cd-282bc42b191b_Sanctuary2_20251104_172057_001.jpg"
+    }
+  ],
+  "does": [
+    {
+      "detection_id": "956f9555-b771-4a19-a7f0-0b6ee00fac75",
+      "image_id": "3a6a1c0a-2838-478e-b0f1-83c41211a8c4",
+      "path": "/mnt/images/270_Jason/270_JASON_02748.jpg",
+      "filename": "270_JASON_02748.jpg",
+      "confidence": 0.9768367409706116,
+      "bbox": {
+        "x": 347,
+        "y": 320,
+        "width": 134,
+        "height": 138
+      },
+      "bbox_area": 18492,
+      "classification": "doe",
+      "timestamp": "2025-11-02T03:44:54.238240+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/956f9555-b771-4a19-a7f0-0b6ee00fac75_270_JASON_02748.jpg"
+    },
+    {
+      "detection_id": "f194202e-7662-4ee3-9489-42f57274acfc",
+      "image_id": "727f1869-ebf1-46fe-a0e8-b21b370222f1",
+      "path": "/mnt/images/270_Jason/270_JASON_01814.jpg",
+      "filename": "270_JASON_01814.jpg",
+      "confidence": 0.9767972826957703,
+      "bbox": {
+        "x": 347,
+        "y": 320,
+        "width": 134,
+        "height": 138
+      },
+      "bbox_area": 18492,
+      "classification": "doe",
+      "timestamp": "2025-11-02T03:12:12.063807+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/f194202e-7662-4ee3-9489-42f57274acfc_270_JASON_01814.jpg"
+    },
+    {
+      "detection_id": "59baa870-2ca6-484a-a806-8954e95ce69d",
+      "image_id": "b3be9054-2361-415e-870e-d16e6533a98f",
+      "path": "/mnt/images/270_Jason/270_JASON_03251.jpg",
+      "filename": "270_JASON_03251.jpg",
+      "confidence": 0.9702762961387634,
+      "bbox": {
+        "x": 490,
+        "y": 320,
+        "width": 139,
+        "height": 128
+      },
+      "bbox_area": 17792,
+      "classification": "doe",
+      "timestamp": "2025-11-02T03:53:44.940602+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/59baa870-2ca6-484a-a806-8954e95ce69d_270_JASON_03251.jpg"
+    },
+    {
+      "detection_id": "3e5a1410-8f37-40ec-8b53-324c74ee0919",
+      "image_id": "4539a7cd-49ad-46c6-8ff1-e7bff448ae19",
+      "path": "/mnt/images/270_Jason/270_JASON_02317.jpg",
+      "filename": "270_JASON_02317.jpg",
+      "confidence": 0.9702557325363159,
+      "bbox": {
+        "x": 490,
+        "y": 320,
+        "width": 139,
+        "height": 128
+      },
+      "bbox_area": 17792,
+      "classification": "doe",
+      "timestamp": "2025-11-02T03:11:40.755813+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/3e5a1410-8f37-40ec-8b53-324c74ee0919_270_JASON_02317.jpg"
+    },
+    {
+      "detection_id": "f315ff4e-d995-46f8-b0f9-60916fbd0627",
+      "image_id": "f4af2b7a-7b0d-4602-92dd-701e3da4677d",
+      "path": "/mnt/images/Camphouse/CAMPHOUSE_02113.jpg",
+      "filename": "CAMPHOUSE_02113.jpg",
+      "confidence": 0.9694778919219971,
+      "bbox": {
+        "x": 277,
+        "y": 335,
+        "width": 146,
+        "height": 126
+      },
+      "bbox_area": 18396,
+      "classification": "doe",
+      "timestamp": "2022-04-21T11:58:20+00:00",
+      "location_id": "1ca641c4-4b55-4037-bca9-f7e8f67e9a9d",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/f315ff4e-d995-46f8-b0f9-60916fbd0627_CAMPHOUSE_02113.jpg"
+    },
+    {
+      "detection_id": "117eb589-8c2c-4a2a-a85a-6e8f3e4037a7",
+      "image_id": "d56e56bc-569b-4cf1-9c02-05cf52206f45",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20250910_173318_001.jpg",
+      "filename": "Hayfield_20250910_173318_001.jpg",
+      "confidence": 0.9688604474067688,
+      "bbox": {
+        "x": 2684,
+        "y": 944,
+        "width": 169,
+        "height": 205
+      },
+      "bbox_area": 34645,
+      "classification": "doe",
+      "timestamp": "2025-09-10T17:33:18+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/117eb589-8c2c-4a2a-a85a-6e8f3e4037a7_Hayfield_20250910_173318_001.jpg"
+    },
+    {
+      "detection_id": "b4e58c70-cbef-4717-87f3-e1c57edf7435",
+      "image_id": "fdf21ae4-dadc-436c-a1eb-775988dff42b",
+      "path": "/mnt/images/270_JASON/Jason1_20250922_050839_001.jpg",
+      "filename": "Jason1_20250922_050839_001.jpg",
+      "confidence": 0.9673474431037903,
+      "bbox": {
+        "x": 778,
+        "y": 1113,
+        "width": 608,
+        "height": 534
+      },
+      "bbox_area": 324672,
+      "classification": "doe",
+      "timestamp": "2025-09-22T05:08:39+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/b4e58c70-cbef-4717-87f3-e1c57edf7435_Jason1_20250922_050839_001.jpg"
+    },
+    {
+      "detection_id": "ed58d9de-5f39-42f6-85f1-76f8d1adf761",
+      "image_id": "5e30a1ba-bc06-4f61-97f3-3d27521d7c16",
+      "path": "/mnt/images/270_JASON/Jason1_20251014_213452_001.jpg",
+      "filename": "Jason1_20251014_213452_001.jpg",
+      "confidence": 0.9661539196968079,
+      "bbox": {
+        "x": 941,
+        "y": 1147,
+        "width": 519,
+        "height": 484
+      },
+      "bbox_area": 251196,
+      "classification": "doe",
+      "timestamp": "2025-10-14T21:34:52+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/ed58d9de-5f39-42f6-85f1-76f8d1adf761_Jason1_20251014_213452_001.jpg"
+    },
+    {
+      "detection_id": "116c7655-1798-4cf5-bd1f-dfabf34a6c23",
+      "image_id": "847e82ed-3102-45d5-9297-b901ef521d28",
+      "path": "/mnt/images/270_JASON/Jason1_20250926_032708_001.jpg",
+      "filename": "Jason1_20250926_032708_001.jpg",
+      "confidence": 0.9660503268241882,
+      "bbox": {
+        "x": 869,
+        "y": 965,
+        "width": 489,
+        "height": 436
+      },
+      "bbox_area": 213204,
+      "classification": "doe",
+      "timestamp": "2025-09-26T03:27:08+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/116c7655-1798-4cf5-bd1f-dfabf34a6c23_Jason1_20250926_032708_001.jpg"
+    },
+    {
+      "detection_id": "fbf9115d-5ac3-4d2f-941d-0e93bedb2a61",
+      "image_id": "94e262c4-b4cc-40ca-86d6-ce5c05965042",
+      "path": "/mnt/images/Sanctuary/SANCTUARY_11106.jpg",
+      "filename": "SANCTUARY_11106.jpg",
+      "confidence": 0.9639862179756165,
+      "bbox": {
+        "x": 235,
+        "y": 239,
+        "width": 142,
+        "height": 123
+      },
+      "bbox_area": 17466,
+      "classification": "doe",
+      "timestamp": "2024-05-16T01:27:01+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/fbf9115d-5ac3-4d2f-941d-0e93bedb2a61_SANCTUARY_11106.jpg"
+    },
+    {
+      "detection_id": "fe1c4ed0-5a79-40a9-a7ed-ea31df4546cc",
+      "image_id": "9b67d3bf-948d-4930-b38e-3b64d854ecf1",
+      "path": "/mnt/images/270_JASON/Jason1_20250922_063352_001.jpg",
+      "filename": "Jason1_20250922_063352_001.jpg",
+      "confidence": 0.9634564518928528,
+      "bbox": {
+        "x": 605,
+        "y": 1008,
+        "width": 404,
+        "height": 411
+      },
+      "bbox_area": 166044,
+      "classification": "doe",
+      "timestamp": "2025-09-22T06:33:52+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/fe1c4ed0-5a79-40a9-a7ed-ea31df4546cc_Jason1_20250922_063352_001.jpg"
+    },
+    {
+      "detection_id": "fedc164b-deb2-4236-9f2c-9b6cab594b94",
+      "image_id": "6f4409cb-47b7-43e9-b5b3-a41fab33f6fe",
+      "path": "/mnt/images/270_JASON/Jason1_20250910_033616_001.jpg",
+      "filename": "Jason1_20250910_033616_001.jpg",
+      "confidence": 0.9634126424789429,
+      "bbox": {
+        "x": 885,
+        "y": 1124,
+        "width": 420,
+        "height": 365
+      },
+      "bbox_area": 153300,
+      "classification": "doe",
+      "timestamp": "2025-09-10T03:36:16+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/does/fedc164b-deb2-4236-9f2c-9b6cab594b94_Jason1_20250910_033616_001.jpg"
+    }
+  ],
+  "mixed": [
+    {
+      "detection_id": "6bbc4938-8ebb-4f19-85f2-1a1ba9065c26",
+      "image_id": "78311d0c-e777-43ba-b743-9d66b64e6bc8",
+      "path": "/mnt/images/TinMan/TINMAN_00143.jpg",
+      "filename": "TINMAN_00143.jpg",
+      "confidence": 0.6497422456741333,
+      "bbox": {
+        "x": 515,
+        "y": 15,
+        "width": 124,
+        "height": 464
+      },
+      "bbox_area": 57536,
+      "classification": "doe",
+      "timestamp": "2022-04-21T19:43:53+00:00",
+      "location_id": "35ea7c79-2b0b-48a8-b047-87d7b17ec84d",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/6bbc4938-8ebb-4f19-85f2-1a1ba9065c26_TINMAN_00143.jpg"
+    },
+    {
+      "detection_id": "6db07dfa-ba99-452a-b688-cfa0d66f45f5",
+      "image_id": "a97c4c12-0abe-4b8d-9bdc-3a324165af50",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251102_172030_001.jpg",
+      "filename": "Sanctuary2_20251102_172030_001.jpg",
+      "confidence": 0.6496719717979431,
+      "bbox": {
+        "x": 2329,
+        "y": 1047,
+        "width": 98,
+        "height": 171
+      },
+      "bbox_area": 16758,
+      "classification": "doe",
+      "timestamp": "2025-11-02T17:20:30+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/6db07dfa-ba99-452a-b688-cfa0d66f45f5_Sanctuary2_20251102_172030_001.jpg"
+    },
+    {
+      "detection_id": "460e65f9-9140-4066-92de-8733b32ac162",
+      "image_id": "08278f77-6a40-4a8f-864f-d8881ed4c41c",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20250909_173749_001.jpg",
+      "filename": "Hayfield_20250909_173749_001.jpg",
+      "confidence": 0.6496115922927856,
+      "bbox": {
+        "x": 2042,
+        "y": 1372,
+        "width": 164,
+        "height": 195
+      },
+      "bbox_area": 31980,
+      "classification": "buck",
+      "timestamp": "2025-09-09T17:37:49+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/460e65f9-9140-4066-92de-8733b32ac162_Hayfield_20250909_173749_001.jpg"
+    },
+    {
+      "detection_id": "20c1ecef-9f20-417e-8727-f8b4af698761",
+      "image_id": "27481693-24ff-4e69-9fa6-607090413a72",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20251020_034100_001.jpg",
+      "filename": "Hayfield_20251020_034100_001.jpg",
+      "confidence": 0.6496092081069946,
+      "bbox": {
+        "x": 575,
+        "y": 1300,
+        "width": 148,
+        "height": 178
+      },
+      "bbox_area": 26344,
+      "classification": "doe",
+      "timestamp": "2025-10-20T03:41:00+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/20c1ecef-9f20-417e-8727-f8b4af698761_Hayfield_20251020_034100_001.jpg"
+    },
+    {
+      "detection_id": "e63657b5-b073-4522-8bec-e66ae1c7a639",
+      "image_id": "c5fdb5fe-e68f-417d-bde2-9d1ad34ee18d",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251102_133550_001.jpg",
+      "filename": "Sanctuary2_20251102_133550_001.jpg",
+      "confidence": 0.6495636701583862,
+      "bbox": {
+        "x": 0,
+        "y": 1193,
+        "width": 354,
+        "height": 594
+      },
+      "bbox_area": 210276,
+      "classification": "buck",
+      "timestamp": "2025-11-02T13:35:50+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/e63657b5-b073-4522-8bec-e66ae1c7a639_Sanctuary2_20251102_133550_001.jpg"
+    },
+    {
+      "detection_id": "087ea471-4dae-47df-be80-957ae9316c8b",
+      "image_id": "925a7acc-f7e2-4657-9a2d-e1f413d71a8b",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251108_170303_001.jpg",
+      "filename": "Sanctuary2_20251108_170303_001.jpg",
+      "confidence": 0.6495306491851807,
+      "bbox": {
+        "x": 1586,
+        "y": 1071,
+        "width": 452,
+        "height": 374
+      },
+      "bbox_area": 169048,
+      "classification": "buck",
+      "timestamp": "2025-11-08T17:03:03+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/087ea471-4dae-47df-be80-957ae9316c8b_Sanctuary2_20251108_170303_001.jpg"
+    },
+    {
+      "detection_id": "6cf850ab-efc9-4084-9387-09a8f4df29da",
+      "image_id": "888cc5f2-3072-4c86-9dd4-b174cb2ef5da",
+      "path": "/mnt/images/HAYFIELD/Hayfield_20251104_165329_001.jpg",
+      "filename": "Hayfield_20251104_165329_001.jpg",
+      "confidence": 0.6494555473327637,
+      "bbox": {
+        "x": 1989,
+        "y": 1167,
+        "width": 155,
+        "height": 242
+      },
+      "bbox_area": 37510,
+      "classification": "buck",
+      "timestamp": "2025-11-04T16:53:29+00:00",
+      "location_id": "5dfd8dc9-4f2d-47f2-afde-98d8819c8e52",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/6cf850ab-efc9-4084-9387-09a8f4df29da_Hayfield_20251104_165329_001.jpg"
+    },
+    {
+      "detection_id": "c0e29969-e03e-448e-bf72-3c10ef4299a2",
+      "image_id": "7f5cba07-adbf-4d71-a15e-09223ed9c870",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251101_105140_001.jpg",
+      "filename": "Sanctuary2_20251101_105140_001.jpg",
+      "confidence": 0.6490505337715149,
+      "bbox": {
+        "x": 408,
+        "y": 1026,
+        "width": 193,
+        "height": 170
+      },
+      "bbox_area": 32810,
+      "classification": "buck",
+      "timestamp": "2025-11-01T10:51:40+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/c0e29969-e03e-448e-bf72-3c10ef4299a2_Sanctuary2_20251101_105140_001.jpg"
+    },
+    {
+      "detection_id": "9593f71c-0f5a-4496-9128-28c2c448eb3b",
+      "image_id": "83dc36f2-4aa5-4aad-a571-7bf7b457123f",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251108_172038_001.jpg",
+      "filename": "Sanctuary2_20251108_172038_001.jpg",
+      "confidence": 0.6490232944488525,
+      "bbox": {
+        "x": 2062,
+        "y": 987,
+        "width": 226,
+        "height": 404
+      },
+      "bbox_area": 91304,
+      "classification": "doe",
+      "timestamp": "2025-11-08T17:20:38+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/9593f71c-0f5a-4496-9128-28c2c448eb3b_Sanctuary2_20251108_172038_001.jpg"
+    },
+    {
+      "detection_id": "f1c34bc7-67d3-4f1f-9fbb-44775c3c842c",
+      "image_id": "4458e57e-a78b-47cc-925d-9c19c8045138",
+      "path": "/mnt/images/Sanctuary/Sanctuary2_20251031_183552_001.jpg",
+      "filename": "Sanctuary2_20251031_183552_001.jpg",
+      "confidence": 0.6490107774734497,
+      "bbox": {
+        "x": 555,
+        "y": 1282,
+        "width": 118,
+        "height": 178
+      },
+      "bbox_area": 21004,
+      "classification": "buck",
+      "timestamp": "2025-10-31T18:35:52+00:00",
+      "location_id": "0b9320d4-bd89-4ead-b502-97c115ced3bb",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/f1c34bc7-67d3-4f1f-9fbb-44775c3c842c_Sanctuary2_20251031_183552_001.jpg"
+    },
+    {
+      "detection_id": "86b8e59e-7022-40ea-9324-50ccdc951732",
+      "image_id": "e096a376-3b6c-4b2e-bd53-30c5c25994d9",
+      "path": "/mnt/images/270_JASON/Jason1_20251006_054315_001.jpg",
+      "filename": "Jason1_20251006_054315_001.jpg",
+      "confidence": 0.6489192843437195,
+      "bbox": {
+        "x": 3091,
+        "y": 1029,
+        "width": 512,
+        "height": 501
+      },
+      "bbox_area": 256512,
+      "classification": "doe",
+      "timestamp": "2025-10-06T05:43:15+00:00",
+      "location_id": "aabbd864-6d07-4b54-8665-83dc06358551",
+      "annotation_path": "/app/src/models/training_data/antler_annotation_samples/mixed/86b8e59e-7022-40ea-9324-50ccdc951732_Jason1_20251006_054315_001.jpg"
+    }
+  ],
+  "statistics": {
+    "buck_count": 50,
+    "doe_count": 12,
+    "mixed_count": 11,
+    "avg_confidence": {
+      "bucks": 0.9630571365356445,
+      "does": 0.9685759494702021,
+      "mixed": 0.6493807976896112
+    }
+  }
+}

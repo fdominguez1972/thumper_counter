@@ -179,6 +179,80 @@ def list_locations(
 
 
 @router.get(
+    "/stats",
+    summary="Get statistics for all locations",
+    description="Get aggregated statistics (image count, detection count, last activity) for all locations"
+)
+def get_location_stats(db: Session = Depends(get_db)):
+    """
+    Get aggregated statistics for all locations.
+
+    Returns:
+        List of location statistics with:
+        - location_id: UUID of the location
+        - location_name: Name of the location
+        - total_images: Total images captured at this location
+        - total_detections: Total detections at this location
+        - last_activity: Timestamp of most recent image
+    """
+    try:
+        from backend.models.image import Image
+        from backend.models.detection import Detection
+        from sqlalchemy import func
+
+        # Query all locations with their stats
+        query = db.query(
+            Location.id.label('location_id'),
+            Location.name.label('location_name'),
+            func.count(Image.id).label('total_images'),
+            func.coalesce(func.sum(
+                db.query(func.count(Detection.id))
+                .filter(Detection.image_id == Image.id)
+                .correlate(Image)
+                .scalar_subquery()
+            ), 0).label('total_detections'),
+            func.max(Image.timestamp).label('last_activity')
+        ).outerjoin(
+            Image, Location.id == Image.location_id
+        ).group_by(
+            Location.id, Location.name
+        ).order_by(
+            Location.name
+        )
+
+        results = query.all()
+
+        # Convert to dictionaries
+        stats_list = []
+        for row in results:
+            # Get detection count for this location
+            detection_count = db.query(func.count(Detection.id)).join(
+                Image, Detection.image_id == Image.id
+            ).filter(
+                Image.location_id == row.location_id
+            ).scalar() or 0
+
+            stats_list.append({
+                'location_id': str(row.location_id),
+                'location_name': row.location_name,
+                'total_images': row.total_images or 0,
+                'total_detections': detection_count,
+                'last_activity': row.last_activity.isoformat() if row.last_activity else None
+            })
+
+        return stats_list
+
+    except Exception as e:
+        print(f"[ERROR] Failed to get location stats: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve location statistics: {str(e)}"
+        )
+
+
+@router.get(
     "/{location_id}",
     response_model=LocationResponse,
     summary="Get location by ID",
@@ -387,6 +461,103 @@ def update_location(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update location"
+        )
+
+
+@router.get(
+    "/{location_id}/deer",
+    summary="Get deer at location",
+    description="Get all unique deer sighted at this location with statistics"
+)
+def get_deer_at_location(
+    location_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get all deer sighted at a specific location.
+
+    Returns:
+        List of deer with:
+        - deer_id: UUID of the deer
+        - deer_name: Name of the deer (if set)
+        - sex: Buck/Doe/Fawn
+        - sighting_count: Number of times seen at this location
+        - first_seen: First sighting timestamp
+        - last_seen: Most recent sighting timestamp
+        - avg_confidence: Average detection confidence
+    """
+    try:
+        # Validate UUID
+        from uuid import UUID
+        try:
+            uuid_obj = UUID(location_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid UUID format: {location_id}"
+            )
+
+        # Check location exists
+        location = db.query(Location).filter(Location.id == uuid_obj).first()
+        if not location:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Location not found: {location_id}"
+            )
+
+        # Query deer at this location
+        from backend.models.deer import Deer
+        from backend.models.detection import Detection
+        from backend.models.image import Image
+        from sqlalchemy import func
+
+        query = db.query(
+            Deer.id.label('deer_id'),
+            Deer.name.label('deer_name'),
+            Deer.sex.label('sex'),
+            func.count(Detection.id).label('sighting_count'),
+            func.min(Image.timestamp).label('first_seen'),
+            func.max(Image.timestamp).label('last_seen'),
+            func.avg(Detection.confidence).label('avg_confidence')
+        ).join(
+            Detection, Deer.id == Detection.deer_id
+        ).join(
+            Image, Detection.image_id == Image.id
+        ).filter(
+            Image.location_id == uuid_obj,
+            Detection.deer_id.isnot(None)
+        ).group_by(
+            Deer.id, Deer.name, Deer.sex
+        ).order_by(
+            func.count(Detection.id).desc()
+        )
+
+        results = query.all()
+
+        # Convert to dictionaries
+        deer_list = []
+        for row in results:
+            deer_list.append({
+                'deer_id': str(row.deer_id),
+                'deer_name': row.deer_name,
+                'sex': row.sex.value if hasattr(row.sex, 'value') else str(row.sex),
+                'sighting_count': row.sighting_count,
+                'first_seen': row.first_seen.isoformat() if row.first_seen else None,
+                'last_seen': row.last_seen.isoformat() if row.last_seen else None,
+                'avg_confidence': float(row.avg_confidence) if row.avg_confidence else 0.0
+            })
+
+        return deer_list
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] Failed to get deer at location: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve deer at location: {str(e)}"
         )
 
 

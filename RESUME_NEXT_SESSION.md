@@ -1,3 +1,44 @@
+ # RESUME NEXT SESSION - Model Retraining in Progress
+**Created:** 2025-11-19 ~20:45
+**Status:** TRAINING RUNNING
+ 
+ Documentation
+
+  - docs/SESSION_20251116_PHASE2B_ANTLER_DETECTION.md ✓
+
+  ---
+  NEXT SESSION CHECKLIST
+
+  When you resume:
+
+  1. Check Classification Training Status
+  ls -lh src/models/runs/deer_balanced_large_20251116/weights/
+  tail -20 src/models/runs/deer_balanced_large_20251116/results.csv
+  2. If Classification Complete:
+    - Check mAP50 score (target: >0.7)
+    - Validate on test set
+    - If successful: deploy new model
+    - Start antler training
+  3. Start Antler Training:
+  bash scripts/start_antler_training.sh
+
+  ---
+  MONITORING COMMANDS
+
+  # Classification training progress
+  MSYS_NO_PATHCONV=1 docker-compose exec worker tail -50 /app/training_classification_large.log
+
+  # Check saved models
+  ls -lh src/models/runs/deer_balanced_large_20251116/weights/
+
+  # View results
+  cat src/models/runs/deer_balanced_large_20251116/results.csv | tail -10
+
+  ---
+  Current Status: Classification training running successfully with good early metrics (mAP50=0.111). Ready to close
+   session - training will continue in background.
+
+<!-- 
 # RESUME NEXT SESSION - Model Retraining in Progress
 **Created:** 2025-11-16 ~17:30
 **Status:** TRAINING RUNNING
@@ -168,4 +209,5 @@ bash scripts/monitor_training.sh
 
 **Session Saved:** All progress committed to git (branch: 001-vision-audit)
 **Training Status:** RUNNING (will complete automatically)
-**Next Step:** Validate model performance after training completes
+**Next Step:** Validate model performance after training completes 
+-->

@@ -1,0 +1,23 @@
+Antler Detection Annotation - Sample Selection
+
+Total Images: 73
+- Bucks: 50
+- Does: 12
+- Mixed: 11
+
+Quality Metrics:
+- Min Confidence: 0.65
+- Min Bbox Size: 15000 px
+- Avg Buck Confidence: 0.963
+- Avg Doe Confidence: 0.969
+
+Output Directory: /app/src/models/training_data/antler_annotation_samples
+
+Next Steps:
+1. Set up Label Studio annotation tool
+2. Import images from /app/src/models/training_data/antler_annotation_samples/bucks, does, mixed
+3. Annotate antler points (bucks) and body markings (all)
+4. Export annotations in YOLOv8-pose format
+5. Train initial antler detection model
+
+Schema: docs/ANTLER_DETECTION_ANNOTATION_SCHEMA.md

@@ -392,15 +392,28 @@ def detect_deer_task(self, image_id: str) -> Dict:
         # Sprint 6: Queue re-identification tasks for each detection
         # Chain re-ID after successful detection to build deer profiles
         reid_task_ids = []
+        antler_task_ids = []
         if detection_count > 0:
             from worker.tasks.reidentification import reidentify_deer_task
+            from worker.tasks.antler_detection import detect_antler_keypoints
 
             for detection_id in detections_created:
                 # Queue re-ID task asynchronously
                 result = reidentify_deer_task.delay(detection_id)
                 reid_task_ids.append(result.id)
 
+                # Phase 2B: Queue antler detection for bucks
+                detection_obj = db.query(Detection).filter(Detection.id == UUID(detection_id)).first()
+                if detection_obj and detection_obj.classification.lower() == 'buck':
+                    antler_result = detect_antler_keypoints.apply_async(
+                        args=[detection_id],
+                        queue='ml_processing'
+                    )
+                    antler_task_ids.append(antler_result.id)
+
             logger.info(f"[OK] Queued {len(reid_task_ids)} re-ID tasks for image {image_id}")
+            if antler_task_ids:
+                logger.info(f"[OK] Queued {len(antler_task_ids)} antler detection tasks for image {image_id}")
 
         # Calculate task duration (T011)
         task_end_time = time.time()
@@ -424,6 +437,7 @@ def detect_deer_task(self, image_id: str) -> Dict:
             "detection_count": detection_count,
             "detections": detections_created,
             "reid_tasks": reid_task_ids,  # Sprint 6: Re-ID task IDs for monitoring
+            "antler_tasks": antler_task_ids,  # Phase 2B: Antler detection task IDs
             "avg_confidence": avg_confidence,
             "duration": duration
         }

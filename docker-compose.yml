@@ -188,11 +188,29 @@ services:
     networks:
       - thumper_network
 
+  # Label Studio (Annotation Tool for Phase 2B - Antler Detection)
+  labelstudio:
+    image: heartexlabs/label-studio:latest
+    container_name: thumper_labelstudio
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+      - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/label-studio/data
+    volumes:
+      - labelstudio_data:/label-studio/data
+      - ./src/models/training_data/antler_annotation_samples:/label-studio/data/antler_samples:ro
+    networks:
+      - thumper_network
+
 volumes:
   postgres_data:
     name: thumper_postgres_data
   redis_data:
     name: thumper_redis_data
+  labelstudio_data:
+    name: thumper_labelstudio_data
 
 networks:
   thumper_network:

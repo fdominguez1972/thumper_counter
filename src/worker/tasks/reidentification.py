@@ -759,16 +759,29 @@ def get_burst_detections(db, detection: Detection) -> List[Detection]:
 
     # Collect all non-duplicate detections from burst images
     # FILTER BY CLASSIFICATION to prevent cross-sex grouping
+    # BUG FIX: Use corrected classification if available
+    detection_final_class = (
+        detection.corrected_classification
+        if detection.corrected_classification
+        else detection.classification
+    )
+
     burst_detections = []
     for img in burst_images:
         for det in img.detections:
+            # Get final classification for this detection
+            det_final_class = (
+                det.corrected_classification
+                if det.corrected_classification
+                else det.classification
+            )
             # Only include non-duplicate detections with matching classification
-            if not det.is_duplicate and det.classification == detection.classification:
+            if not det.is_duplicate and det_final_class == detection_final_class:
                 burst_detections.append(det)
 
     logger.debug(
         f"[BURST] Found {len(burst_detections)} detections in burst "
-        f"({len(burst_images)} images within {BURST_WINDOW}s, classification={detection.classification})"
+        f"({len(burst_images)} images within {BURST_WINDOW}s, classification={detection_final_class})"
     )
 
     return burst_detections
@@ -903,8 +916,15 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
             logger.error(f"[FAIL] Failed to extract features for detection {detection_id}")
             return {"status": "failed", "error": "Feature extraction failed"}
 
+        # BUG FIX: Use corrected classification for matching
+        final_classification = (
+            detection.corrected_classification
+            if detection.corrected_classification
+            else detection.classification
+        )
+
         # Feature 009: Search for matching deer using ensemble matching
-        match_result = find_matching_deer_ensemble(db, features, detection.classification, detection_id=detection_uuid)
+        match_result = find_matching_deer_ensemble(db, features, final_classification, detection_id=detection_uuid)
 
         # Generate burst_group_id for all detections in this burst
         burst_group_id = uuid.uuid4()
@@ -944,10 +964,19 @@ def reidentify_deer_task(self, detection_id: str) -> Dict:
             }
         else:
             # No match - create new deer profile with all feature vectors
+            # BUG FIX: Use corrected classification if available (user manual correction)
+            # Otherwise fall back to ML classification
+            final_classification = (
+                detection.corrected_classification
+                if detection.corrected_classification
+                else detection.classification
+            )
+
             sex_value = (
-                DeerSex.DOE if detection.classification == 'doe'
-                else DeerSex.FAWN if detection.classification == 'fawn'
-                else DeerSex.BUCK
+                DeerSex.DOE if final_classification == 'doe'
+                else DeerSex.FAWN if final_classification == 'fawn'
+                else DeerSex.BUCK if final_classification == 'buck'
+                else DeerSex.UNKNOWN
             )
 
             # Feature 009: Store all feature vectors with version tracking

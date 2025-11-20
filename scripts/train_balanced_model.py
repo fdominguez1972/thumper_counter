@@ -17,32 +17,29 @@ import torch
 import yaml
 
 # Configuration
-AUDIT_DATA = "/app/src/models/training_data/audit_corrected_20251116/data.yaml"
-ORIGINAL_DATA = "/app/src/models/training_data/corrected_final_20251111/data.yaml"
+MERGED_DATA = "/app/src/models/training_data/merged_corrected_20251116/data.yaml"
 OUTPUT_DIR = "/app/models/runs"
-MODEL_NAME = "deer_balanced_20251116"
+MODEL_NAME = "deer_merged_20251116"
 
 print("="*70)
-print("YOLOV8 BALANCED MODEL TRAINING")
+print("YOLOV8 BALANCED MODEL TRAINING - FULL DATASET")
 print("Fixing Buck Over-Classification Bias")
 print("="*70)
 print(f"GPU: {torch.cuda.get_device_name(0)}")
-print(f"Primary Data: {AUDIT_DATA}")
-print(f"Secondary Data: {ORIGINAL_DATA}")
+print(f"Training Data: {MERGED_DATA}")
 print(f"Output: {OUTPUT_DIR}/{MODEL_NAME}")
 print("="*70)
 print()
 
-# Check if audit data exists
-audit_path = Path(AUDIT_DATA)
-if not audit_path.exists():
-    print(f"[WARN] Audit data not found: {AUDIT_DATA}")
-    print("[INFO] Run export_audit_training_data.py first")
-    print("[INFO] Falling back to previous corrected dataset")
-    data_yaml = ORIGINAL_DATA
+# Check if merged data exists
+merged_path = Path(MERGED_DATA)
+if not merged_path.exists():
+    print(f"[ERROR] Merged dataset not found: {MERGED_DATA}")
+    print("[INFO] Run merge_training_datasets.py first")
+    sys.exit(1)
 else:
-    print("[OK] Using audit-corrected dataset")
-    data_yaml = AUDIT_DATA
+    print("[OK] Using merged dataset (807 images)")
+    data_yaml = MERGED_DATA
 
 # Load data config to check class distribution
 with open(data_yaml, 'r') as f:

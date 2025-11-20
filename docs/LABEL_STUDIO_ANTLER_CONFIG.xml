@@ -1,0 +1,78 @@
+<View>
+  <Image name="image" value="$image" zoom="true" zoomControl="true" rotateControl="true"/>
+
+  <!-- Deer Detection Bounding Box -->
+  <RectangleLabels name="bbox" toName="image" strokeWidth="3">
+    <Label value="buck" background="#FF0000"/>
+    <Label value="doe" background="#00FF00"/>
+    <Label value="fawn" background="#0000FF"/>
+  </RectangleLabels>
+
+  <!-- Antler Keypoints (16 points for bucks) -->
+  <KeyPointLabels name="antler_points" toName="image" strokeWidth="2" opacity="0.9">
+    <!-- Left Antler Points -->
+    <Label value="left_main_beam" background="#FF6B6B"/>
+    <Label value="left_brow_tine" background="#FF8787"/>
+    <Label value="left_g2" background="#FFA3A3"/>
+    <Label value="left_g3" background="#FFBFBF"/>
+    <Label value="left_g4" background="#FFDBDB"/>
+    <Label value="left_g5" background="#FFE8E8"/>
+    <Label value="left_g6" background="#FFF0F0"/>
+    <Label value="left_g7" background="#FFF8F8"/>
+
+    <!-- Right Antler Points -->
+    <Label value="right_main_beam" background="#4ECDC4"/>
+    <Label value="right_brow_tine" background="#6ED5CD"/>
+    <Label value="right_g2" background="#8EDDD6"/>
+    <Label value="right_g3" background="#AEE5DF"/>
+    <Label value="right_g4" background="#CEEDE8"/>
+    <Label value="right_g5" background="#DEF1EE"/>
+    <Label value="right_g6" background="#EEF5F4"/>
+    <Label value="right_g7" background="#F6F9F9"/>
+  </KeyPointLabels>
+
+  <!-- Body Markings -->
+  <RectangleLabels name="markings" toName="image" strokeWidth="2">
+    <Label value="scar" background="#FFD700"/>
+    <Label value="injury" background="#FF4500"/>
+    <Label value="white_patch" background="#FFFFFF"/>
+    <Label value="dark_patch" background="#2F4F4F"/>
+    <Label value="ear_notch" background="#FF69B4"/>
+    <Label value="ear_tag" background="#00CED1"/>
+  </RectangleLabels>
+
+  <!-- Metadata Fields -->
+  <Choices name="point_count" toName="image" choice="single" showInline="true">
+    <Choice value="4-point"/>
+    <Choice value="6-point"/>
+    <Choice value="8-point"/>
+    <Choice value="10-point"/>
+    <Choice value="12-point"/>
+    <Choice value="14+point"/>
+    <Choice value="not_applicable_doe"/>
+  </Choices>
+
+  <Choices name="symmetry" toName="image" choice="single" showInline="true">
+    <Choice value="symmetric"/>
+    <Choice value="asymmetric"/>
+    <Choice value="not_applicable"/>
+  </Choices>
+
+  <Choices name="visibility" toName="image" choice="single" showInline="true">
+    <Choice value="full_visibility"/>
+    <Choice value="partial_left"/>
+    <Choice value="partial_right"/>
+    <Choice value="both_partial"/>
+    <Choice value="obscured"/>
+  </Choices>
+
+  <Choices name="antler_config" toName="image" choice="multiple" showInline="true">
+    <Choice value="typical"/>
+    <Choice value="drop_tine"/>
+    <Choice value="split_g2"/>
+    <Choice value="palmation"/>
+    <Choice value="non_typical"/>
+  </Choices>
+
+  <TextArea name="notes" toName="image" placeholder="Additional notes (optional)" maxSubmissions="1" editable="true"/>
+</View>

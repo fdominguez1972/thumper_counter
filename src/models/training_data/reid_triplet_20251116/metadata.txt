@@ -1,0 +1,9 @@
+# Re-ID Triplet Training Dataset
+Generated: 2025-11-16
+Feature: 009-reid-enhancement / Phase 2A
+
+Training: 43 deer, 4668 crops
+Validation: 11 deer, 1592 crops
+Total: 54 deer, 6260 crops
+
+Directory: /app/src/models/training_data/reid_triplet_20251116

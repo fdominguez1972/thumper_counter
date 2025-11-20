@@ -1,0 +1,22 @@
+# Merged Training Dataset
+# Created: 2025-11-16T19:16:02.160180
+# Source datasets:
+#   - corrected_final_20251111: 779 images
+#   - audit_corrected_20251116: 28 images (vision audit corrections)
+
+path: /app/src/models/training_data/merged_corrected_20251116
+train: images/train
+val: images/val
+
+names:
+  0: buck
+  1: doe
+  2: fawn
+  3: cattle
+  4: pig
+  5: raccoon
+
+# Dataset statistics:
+#   Train: 547 images
+#   Val: 260 images
+#   Total: 807 images
