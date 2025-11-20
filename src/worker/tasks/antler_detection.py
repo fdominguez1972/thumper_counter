@@ -181,12 +181,23 @@ def batch_detect_antler_keypoints(
     db = next(get_db())
 
     try:
-        # Get buck detections to process
+        # Get buck detections that don't have antler keypoints yet
+        # Subquery: detection IDs that already have antler keypoints
+        from backend.models import AntlerKeypoint
+        detections_with_antlers = db.query(AntlerKeypoint.detection_id).distinct().subquery()
+
+        # Query for buck detections (check both classification fields)
+        from sqlalchemy import or_
         query = db.query(Detection).filter(
-            Detection.classification.in_(["buck"])
+            or_(
+                Detection.classification == 'buck',
+                Detection.corrected_classification == 'buck'
+            )
+        ).filter(
+            ~Detection.id.in_(detections_with_antlers)
         )
 
-        # Filter by IDs if provided
+        # Filter by specific IDs if provided
         if detection_ids:
             uuids = [UUID(did) for did in detection_ids]
             query = query.filter(Detection.id.in_(uuids))

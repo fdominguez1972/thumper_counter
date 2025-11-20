@@ -168,7 +168,7 @@ async def batch_detect_antlers(
     # Convert UUIDs to strings if provided
     detection_ids = [str(did) for did in request.detection_ids] if request.detection_ids else None
 
-    # Queue batch task using send_task
+    # Queue batch task using send_task (async - returns immediately)
     task = celery_app.send_task(
         'worker.tasks.antler_detection.batch_detect_antler_keypoints',
         kwargs={
@@ -178,13 +178,12 @@ async def batch_detect_antlers(
         queue='ml_processing'
     )
 
-    # Get result (this is fast, just queuing individual tasks)
-    result = task.get(timeout=30)
-
+    # Return immediately without waiting for task completion
+    # The batch task will queue individual detection tasks in the background
     return BatchAntlerDetectionResponse(
-        status=result['status'],
-        detections_queued=result['detections_queued'],
-        task_ids=result['task_ids']
+        status="queued",
+        detections_queued=request.limit,
+        task_ids=[task.id]
     )
 
 
