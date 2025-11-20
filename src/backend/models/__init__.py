@@ -20,7 +20,7 @@ from backend.models.deer import Deer, DeerSex
 # Import models with foreign key dependencies
 from backend.models.image import Image, ProcessingStatus
 from backend.models.detection import Detection
-from backend.models.antler_keypoint import AntlerKeypoint, KEYPOINT_NAMES
+from backend.models.antler_keypoint import AntlerKeypoint, AntlerProcessingLog, KEYPOINT_NAMES
 
 
 # Export all models and enums for easy access
@@ -34,6 +34,7 @@ __all__ = [
     "Deer",
     "Detection",
     "AntlerKeypoint",
+    "AntlerProcessingLog",
 
     # Enums
     "ProcessingStatus",

@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from typing import List, Dict
 
-from sqlalchemy import Column, String, Float, DateTime, Integer, ForeignKey, Index, CheckConstraint
+from sqlalchemy import Column, String, Float, DateTime, Integer, Boolean, ForeignKey, Index, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -250,5 +250,115 @@ class AntlerKeypoint(Base):
         return "tine" in self.keypoint_name or self.keypoint_name.endswith(("g2", "g3", "g4"))
 
 
+class AntlerProcessingLog(Base):
+    """
+    Tracks antler detection processing status for all detections.
+
+    Stores whether a detection has been processed for antler detection,
+    including cases where no antlers were found. This prevents reprocessing
+    and provides processing history.
+
+    Relationships:
+        - detection: The deer detection this log entry belongs to (one-to-one)
+
+    Attributes:
+        detection_id: Primary key and foreign key to Detection table
+        processed_at: When antler detection was performed
+        antlers_detected: Whether antlers were found (True) or not (False)
+        keypoints_count: Number of keypoints saved (0-16)
+        model_version: Version/name of the antler detection model used
+        processing_notes: Optional notes about processing (errors, warnings)
+    """
+    __tablename__ = "antler_processing_log"
+
+    # Primary key (also foreign key)
+    detection_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("detections.id", ondelete="CASCADE"),
+        primary_key=True,
+        comment="Detection this log entry belongs to"
+    )
+
+    # Processing metadata
+    processed_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,
+        comment="When antler detection was performed"
+    )
+
+    antlers_detected = Column(
+        Boolean,
+        nullable=False,
+        comment="Whether antlers were detected (True=yes, False=no)"
+    )
+
+    keypoints_count = Column(
+        Integer,
+        nullable=False,
+        default=0,
+        comment="Number of keypoints saved (typically 16 for success, 0 for none)"
+    )
+
+    model_version = Column(
+        String(100),
+        nullable=False,
+        comment="Version/name of the antler detection model used"
+    )
+
+    processing_notes = Column(
+        String,
+        nullable=True,
+        comment="Optional notes about processing (errors, warnings, quality issues)"
+    )
+
+    # Relationships
+    detection = relationship(
+        "Detection",
+        backref="antler_processing_log",
+        lazy="joined",
+        uselist=False
+    )
+
+    # Constraints and indexes
+    __table_args__ = (
+        CheckConstraint(
+            "keypoints_count >= 0",
+            name="valid_keypoints_count"
+        ),
+        Index("idx_antler_processing_detected", "antlers_detected"),
+        Index("idx_antler_processing_timestamp", "processed_at"),
+        Index("idx_antler_processing_model", "model_version"),
+        {
+            "comment": "Tracks antler detection processing status including 'no antlers found' cases"
+        }
+    )
+
+    def __repr__(self) -> str:
+        """String representation for debugging."""
+        return (
+            f"<AntlerProcessingLog(detection={self.detection_id}, "
+            f"antlers_detected={bool(self.antlers_detected)}, "
+            f"keypoints={self.keypoints_count}, "
+            f"processed={self.processed_at})>"
+        )
+
+    def to_dict(self) -> dict:
+        """
+        Convert model to dictionary for API responses.
+
+        Returns:
+            dict: Serializable representation of the log entry
+        """
+        return {
+            "detection_id": str(self.detection_id),
+            "processed_at": self.processed_at.isoformat() if self.processed_at else None,
+            "antlers_detected": bool(self.antlers_detected),
+            "keypoints_count": self.keypoints_count,
+            "model_version": self.model_version,
+            "processing_notes": self.processing_notes,
+        }
+
+
 # Export model and constants
-__all__ = ["AntlerKeypoint", "KEYPOINT_NAMES"]
+__all__ = ["AntlerKeypoint", "AntlerProcessingLog", "KEYPOINT_NAMES"]

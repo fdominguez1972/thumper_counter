@@ -17,7 +17,7 @@ from ultralytics import YOLO
 
 from worker.celery_app import celery_app
 from backend.core.database import get_db
-from backend.models import Detection, AntlerKeypoint
+from backend.models import Detection, AntlerKeypoint, AntlerProcessingLog
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,9 @@ ANTLER_MODEL_PATH = os.getenv(
     "/app/models/runs/antler_detection_20251116/weights/best.pt"
 )
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Extract model version from path (e.g., "antler_detection_20251116")
+MODEL_VERSION = Path(ANTLER_MODEL_PATH).parent.parent.name if ANTLER_MODEL_PATH else "unknown"
 
 # Global model instance (loaded on-demand per thread)
 _antler_model = None
@@ -142,6 +145,28 @@ def detect_antler_keypoints(self, detection_id: str) -> Dict:
                 else:
                     logger.warning(f"No antler detections in crop for {detection_id}")
 
+        # Log processing result (both success and "no antlers" cases)
+        # Delete existing log entry if reprocessing
+        db.query(AntlerProcessingLog).filter(
+            AntlerProcessingLog.detection_id == UUID(detection_id)
+        ).delete()
+
+        # Create new log entry
+        processing_log = AntlerProcessingLog(
+            detection_id=UUID(detection_id),
+            antlers_detected=keypoints_saved > 0,
+            keypoints_count=keypoints_saved,
+            model_version=MODEL_VERSION,
+            processing_notes=None if keypoints_saved > 0 else "No antlers detected in crop"
+        )
+        db.add(processing_log)
+        db.commit()
+
+        logger.debug(
+            f"Logged antler processing for {detection_id}: "
+            f"antlers_detected={keypoints_saved > 0}, keypoints={keypoints_saved}"
+        )
+
         return {
             "status": "success",
             "detection_id": detection_id,
@@ -181,20 +206,19 @@ def batch_detect_antler_keypoints(
     db = next(get_db())
 
     try:
-        # Get buck detections that don't have antler keypoints yet
-        # Subquery: detection IDs that already have antler keypoints
-        from backend.models import AntlerKeypoint
-        detections_with_antlers = db.query(AntlerKeypoint.detection_id).distinct().subquery()
+        # Get buck detections that haven't been processed yet
+        # Subquery: detection IDs that already have processing log entries
+        from sqlalchemy import or_
+        detections_processed = db.query(AntlerProcessingLog.detection_id).distinct().subquery()
 
         # Query for buck detections (check both classification fields)
-        from sqlalchemy import or_
         query = db.query(Detection).filter(
             or_(
                 Detection.classification == 'buck',
                 Detection.corrected_classification == 'buck'
             )
         ).filter(
-            ~Detection.id.in_(detections_with_antlers)
+            ~Detection.id.in_(detections_processed)
         )
 
         # Filter by specific IDs if provided

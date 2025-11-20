@@ -364,6 +364,75 @@ docker-compose exec redis redis-cli LLEN ml_processing
 
 ---
 
-**Session End:** November 20, 2025, 00:35 AM
-**Next Session:** Check antler detection completion, analyze results
-**Status:** All systems operational, processing continuing autonomously
+---
+
+## SESSION CONTINUATION - Processing Log Implementation
+
+### PROBLEM IDENTIFIED
+Antler detection was reprocessing the same bucks repeatedly because:
+- System only saved keypoints when antlers were DETECTED
+- No database record for "processed but no antlers found" cases
+- Batch query couldn't distinguish "not processed" from "no antlers detected"
+- Result: 1,710 bucks with no antlers kept getting requeued
+
+### SOLUTION IMPLEMENTED (Option 3)
+Created dedicated processing log table to track all processing attempts:
+
+**New Table: antler_processing_log**
+- detection_id (PK, FK to detections)
+- processed_at (timestamp)
+- antlers_detected (boolean)
+- keypoints_count (integer)
+- model_version (varchar)
+- processing_notes (text)
+
+### FILES MODIFIED
+
+**Database:**
+- migrations/021_antler_processing_log.sql (new table)
+- migrations/021_backfill_antler_processing_log.sql (backfill existing)
+
+**Models:**
+- src/backend/models/antler_keypoint.py
+  - Added AntlerProcessingLog model
+  - Uses Boolean for antlers_detected field
+- src/backend/models/__init__.py
+  - Export AntlerProcessingLog
+
+**Worker:**
+- src/worker/tasks/antler_detection.py
+  - Import AntlerProcessingLog
+  - Extract MODEL_VERSION from path
+  - Log all processing results (success and "no antlers")
+  - Updated batch query to check processing log instead of keypoints table
+
+### RESULTS
+
+**Database State After Implementation:**
+```
+Total bucks: 3,771
+Processed: 2,076+
+  - With antlers detected: 2,061 (54.7%)
+  - No antlers detected: 15+ (0.4%)
+Remaining unprocessed: 1,695-
+```
+
+**Verification:**
+- [OK] Batch API no longer reprocesses same bucks
+- [OK] Processing log tracks both success and "no antlers" cases
+- [OK] Query correctly excludes already-processed detections
+- [OK] Fast API response (0.009s)
+- [OK] Backfilled 2,061 existing results
+
+### BENEFITS
+1. Single source of truth for processing status
+2. Prevents infinite reprocessing loops
+3. Tracks model version for reprocessing scenarios
+4. Supports processing notes for debugging
+5. Clean separation: keypoints table = actual data, log table = processing state
+
+---
+
+**Session End:** November 20, 2025, 08:45 AM (continued)
+**Next Session:** Continue processing remaining 1,695 bucks, verify completion
+**Status:** All systems operational, processing log implemented and tested
