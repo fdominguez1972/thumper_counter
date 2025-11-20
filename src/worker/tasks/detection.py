@@ -51,9 +51,27 @@ IOU_THRESHOLD = float(os.getenv('DETECTION_IOU', 0.45))
 MAX_DETECTIONS = int(os.getenv('MAX_DETECTIONS', 20))
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Model paths
+# Model paths (Updated: Simplified buck/doe model - Nov 11, 2025)
 MODEL_DIR = Path(os.getenv('MODEL_DIR', 'src/models'))
-YOLO_MODEL_PATH = MODEL_DIR / 'yolov8n_deer.pt'
+YOLO_MODEL_PATH = MODEL_DIR / 'yolov8n_deer.pt'  # Production model (6-class simplified)
+
+# Class mapping from simplified buck/doe model
+# Model trained on 2,027 manually corrected images
+# Classes: cattle, pig, raccoon, doe, unknown, buck
+CLASS_NAMES = {
+    0: "cattle",     # Not deer
+    1: "pig",        # Feral hog (not deer)
+    2: "raccoon",    # Not deer
+    3: "doe",        # Female deer
+    4: "unknown",    # Unknown sex (including fawns)
+    5: "buck"        # Male deer (all ages combined)
+}
+
+# Deer-specific classes for filtering
+DEER_CLASSES = {3, 4, 5}  # doe, unknown, buck
+
+# Deduplication settings (Sprint 8)
+DEDUP_IOU_THRESHOLD = float(os.getenv('DEDUP_IOU_THRESHOLD', 0.5))  # 50% overlap = duplicate
 
 
 # Global model cache for worker process (T010)
@@ -108,6 +126,73 @@ def get_detection_model():
     return _detection_model
 
 
+def deduplicate_within_image(db, image_id: UUID) -> int:
+    """
+    Mark duplicate detections within a single image.
+
+    When YOLOv8 detects the same deer multiple times with overlapping bboxes,
+    keep only the highest confidence detection and mark others as duplicates.
+
+    Args:
+        db: Database session
+        image_id: UUID of image to deduplicate
+
+    Returns:
+        int: Number of detections marked as duplicates
+
+    Algorithm:
+        1. Get all detections for image, sorted by confidence descending
+        2. For each detection, check IoU with higher-confidence detections
+        3. If IoU > threshold, mark as duplicate
+        4. Skip re-ID processing for duplicates
+    """
+    # Get all detections for this image, sorted by confidence descending
+    detections = (
+        db.query(Detection)
+        .filter(Detection.image_id == image_id)
+        .order_by(Detection.confidence.desc())
+        .all()
+    )
+
+    if len(detections) <= 1:
+        return 0  # No duplicates possible with 0 or 1 detection
+
+    duplicate_count = 0
+
+    # Keep track of non-duplicate (keeper) detections
+    keepers = []
+
+    for detection in detections:
+        # Check if this detection overlaps significantly with any keeper
+        is_duplicate = False
+
+        for keeper in keepers:
+            iou = detection.iou(keeper)
+
+            if iou > DEDUP_IOU_THRESHOLD:
+                # Significant overlap with higher-confidence detection
+                detection.is_duplicate = True
+                is_duplicate = True
+                duplicate_count += 1
+                logger.debug(
+                    f"[DEDUP] Marking detection {detection.id} as duplicate "
+                    f"(IoU={iou:.3f} with {keeper.id})"
+                )
+                break
+
+        if not is_duplicate:
+            # This is a unique detection, add to keepers
+            keepers.append(detection)
+
+    if duplicate_count > 0:
+        logger.info(
+            f"[DEDUP] Marked {duplicate_count} of {len(detections)} detections "
+            f"as duplicates (kept {len(keepers)} unique)"
+        )
+
+    return duplicate_count
+
+
 @app.task(bind=True, name='worker.tasks.detection.detect_deer_task')
 def detect_deer_task(self, image_id: str) -> Dict:
     """
@@ -155,6 +240,30 @@ def detect_deer_task(self, image_id: str) -> Dict:
         if not image:
             logger.error(f"[FAIL] Image not found in database: {image_id}")
             return {"status": "error", "error": "Image not found"}
+
+        # Check if already processed (deduplication - Sprint 9 fix)
+        if image.processing_status == ProcessingStatus.COMPLETED:
+            logger.info(f"[SKIP] Image already processed: {image_id} ({image.filename})")
+            return {
+                "status": "skipped",
+                "reason": "already_processed",
+                "image_id": image_id,
+                "detection_count": 0,
+                "detections": [],
+                "reid_tasks": []
+            }
+
+        # Check if currently being processed by another worker
+        if image.processing_status == ProcessingStatus.PROCESSING:
+            logger.warning(f"[SKIP] Image already being processed: {image_id} ({image.filename})")
+            return {
+                "status": "skipped",
+                "reason": "already_processing",
+                "image_id": image_id,
+                "detection_count": 0,
+                "detections": [],
+                "reid_tasks": []
+            }
 
         # Log task start (T011 - FR-005: log with image_id)
         logger.info(f"[INFO] Starting detection for image {image_id} ({image.filename})")
@@ -210,9 +319,12 @@ def detect_deer_task(self, image_id: str) -> Dict:
             boxes = result.boxes
 
             if boxes is not None and len(boxes) > 0:
-                logger.info(f"[INFO] Found {len(boxes)} detections in {image.filename}")
+                logger.info(f"[INFO] Found {len(boxes)} total detections in {image.filename}")
 
-                # Create Detection record for each bbox (T008 - FR-003)
+                # Sprint 8: Batch create Detection records for better performance
+                # WHY: bulk_save_objects is faster than individual db.add() calls
+                detections_to_create = []
+
                 for i, box in enumerate(boxes):
                     # Get bbox coordinates (x1, y1, x2, y2 format from YOLO)
                     xyxy = box.xyxy[0].cpu().numpy()  # [x1, y1, x2, y2]
@@ -230,26 +342,78 @@ def detect_deer_task(self, image_id: str) -> Dict:
                     confidence = float(box.conf[0])
                     class_id = int(box.cls[0])
 
-                    # Create Detection record
+                    # Get class name from model (Sprint 4: Multi-class classification)
+                    class_name = CLASS_NAMES.get(class_id, "unknown")
+
+                    # Only create Detection records for deer (Sprint 4)
+                    # Skip non-deer detections (UTV, person, etc.)
+                    if class_id not in DEER_CLASSES:
+                        logger.debug(f"[INFO] Skipping non-deer detection: {class_name}")
+                        continue
+
+                    # Create Detection object (don't add yet)
                     detection = Detection(
                         image_id=image.id,
                         bbox=bbox_dict,
                         confidence=confidence,
-                        classification="unknown",  # Will be set by classification stage
+                        classification=class_name,  # Sprint 4: Set sex/age classification
                         deer_id=None  # Will be set by re-ID stage
                     )
 
-                    db.add(detection)
+                    detections_to_create.append(detection)
                     detection_count += 1
-                    detections_created.append(str(detection.id))
 
-                logger.info(f"[OK] Created {detection_count} Detection records for {image_id}")
+                # Bulk insert all detections in one operation (Sprint 8 optimization)
+                if detections_to_create:
+                    db.bulk_save_objects(detections_to_create, return_defaults=True)
+                    db.flush()  # Assign IDs to all detections
+
+                # Deduplicate within-image detections (Sprint 8: Deduplication)
+                # Mark overlapping detections as duplicates, keep highest confidence
+                if detection_count > 1:
+                    logger.info(f"[INFO] Checking for duplicate detections (found {detection_count})")
+                    deduplicate_within_image(db, image.id)
+                    db.flush()  # Flush duplicate flags
+
+                # Collect non-duplicate detection IDs for re-ID processing
+                # Skip duplicates to avoid creating redundant deer profiles
+                for detection in db.query(Detection).filter(Detection.image_id == image.id).all():
+                    if not detection.is_duplicate and str(detection.id) not in detections_created:
+                        detections_created.append(str(detection.id))
+
+                logger.info(f"[OK] Created {detection_count} deer Detection records for {image_id}")
             else:
-                logger.info(f"[INFO] No detections found in {image.filename}")
+                logger.info(f"[INFO] No deer detections found in {image.filename}")
 
         # Update image status to COMPLETED (T008 - FR-004 state transition)
         image.mark_completed()
         db.commit()
+
+        # Sprint 6: Queue re-identification tasks for each detection
+        # Chain re-ID after successful detection to build deer profiles
+        reid_task_ids = []
+        antler_task_ids = []
+        if detection_count > 0:
+            from worker.tasks.reidentification import reidentify_deer_task
+            from worker.tasks.antler_detection import detect_antler_keypoints
+
+            for detection_id in detections_created:
+                # Queue re-ID task asynchronously
+                result = reidentify_deer_task.delay(detection_id)
+                reid_task_ids.append(result.id)
+
+                # Phase 2B: Queue antler detection for bucks
+                detection_obj = db.query(Detection).filter(Detection.id == UUID(detection_id)).first()
+                if detection_obj and detection_obj.classification.lower() == 'buck':
+                    antler_result = detect_antler_keypoints.apply_async(
+                        args=[detection_id],
+                        queue='ml_processing'
+                    )
+                    antler_task_ids.append(antler_result.id)
+
+            logger.info(f"[OK] Queued {len(reid_task_ids)} re-ID tasks for image {image_id}")
+            if antler_task_ids:
+                logger.info(f"[OK] Queued {len(antler_task_ids)} antler detection tasks for image {image_id}")
 
         # Calculate task duration (T011)
         task_end_time = time.time()
@@ -272,6 +436,8 @@ def detect_deer_task(self, image_id: str) -> Dict:
             "image_id": image_id,
             "detection_count": detection_count,
             "detections": detections_created,
+            "reid_tasks": reid_task_ids,  # Sprint 6: Re-ID task IDs for monitoring
+            "antler_tasks": antler_task_ids,  # Phase 2B: Antler detection task IDs
             "avg_confidence": avg_confidence,
             "duration": duration
         }

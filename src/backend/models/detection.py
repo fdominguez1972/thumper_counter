@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, Dict, Tuple
 
-from sqlalchemy import Column, String, Float, DateTime, JSON, ForeignKey, Index
+from sqlalchemy import Column, String, Float, DateTime, JSON, ForeignKey, Index, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -90,6 +90,63 @@ class Detection(Base):
         comment="Sex classification (buck/doe/fawn/unknown)"
     )
 
+    # Deduplication fields
+    is_duplicate = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        index=True,
+        comment="True if this detection overlaps significantly with another in same image"
+    )
+
+    burst_group_id = Column(
+        UUID(as_uuid=True),
+        nullable=True,
+        index=True,
+        comment="Groups detections from same photo burst/event (same timestamp + location)"
+    )
+
+    # User correction/review fields
+    is_reviewed = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        index=True,
+        comment="True if a user has reviewed and verified this detection"
+    )
+
+    is_valid = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        index=True,
+        comment="False if detection is unusable (rear-end, wrong species, poor quality, etc.)"
+    )
+
+    corrected_classification = Column(
+        String(20),
+        nullable=True,
+        comment="User-corrected classification if ML was wrong (buck/doe/fawn/unknown)"
+    )
+
+    correction_notes = Column(
+        String,
+        nullable=True,
+        comment="User notes explaining correction or why detection is invalid"
+    )
+
+    reviewed_by = Column(
+        String(100),
+        nullable=True,
+        comment="Username or identifier of who reviewed this detection"
+    )
+
+    reviewed_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Timestamp when detection was reviewed"
+    )
+
     # Metadata
     created_at = Column(
         DateTime(timezone=True),
@@ -141,6 +198,12 @@ class Detection(Base):
             "bbox": self.bbox,
             "confidence": self.confidence,
             "classification": self.classification,
+            "is_reviewed": self.is_reviewed,
+            "is_valid": self.is_valid,
+            "corrected_classification": self.corrected_classification,
+            "correction_notes": self.correction_notes,
+            "reviewed_by": self.reviewed_by,
+            "reviewed_at": self.reviewed_at.isoformat() if self.reviewed_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 

@@ -10,9 +10,10 @@ import uuid
 from datetime import datetime
 from typing import Optional, List
 
-from sqlalchemy import Column, String, Float, Integer, DateTime, Enum, Index
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy import Column, String, Float, Integer, DateTime, Enum, Index, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 
 from backend.core.database import Base
 
@@ -28,6 +29,21 @@ class DeerSex(enum.Enum):
     DOE = "doe"            # Female deer
     FAWN = "fawn"          # Young deer (sex not yet determinable)
     UNKNOWN = "unknown"    # Sex could not be determined
+
+
+# Aliases for API compatibility (Sprint 3)
+Sex = DeerSex  # API uses Sex, model uses DeerSex
+
+
+class DeerStatus(enum.Enum):
+    """
+    Status of deer (alive/deceased/unknown).
+
+    Used for population tracking and management.
+    """
+    ALIVE = "alive"
+    DECEASED = "deceased"
+    UNKNOWN = "unknown"
 
 
 class Deer(Base):
@@ -78,11 +94,48 @@ class Deer(Base):
 
     # Classification
     sex = Column(
-        Enum(DeerSex),
+        Enum(DeerSex, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=DeerSex.UNKNOWN,
         index=True,
         comment="Sex classification from ML model"
+    )
+
+    # Additional management fields (Sprint 3)
+    status = Column(
+        Enum(DeerStatus, values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+        default=DeerStatus.ALIVE,
+        index=True,
+        comment="Current status (alive, deceased, unknown)"
+    )
+
+    species = Column(
+        String(100),
+        nullable=False,
+        default="white_tailed_deer",
+        comment="Species identifier (white_tailed_deer, mule_deer, etc.)"
+    )
+
+    notes = Column(
+        String(1000),
+        nullable=True,
+        comment="Additional notes and observations"
+    )
+
+    # Timestamps (Sprint 3)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,
+        comment="When this deer record was created"
+    )
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        onupdate=datetime.utcnow,
+        comment="When this deer record was last updated"
     )
 
     # Temporal tracking
@@ -100,11 +153,31 @@ class Deer(Base):
         comment="Timestamp of most recent detection"
     )
 
-    # Re-identification features
+    # Re-identification features (Sprint 5: Using pgvector for efficient similarity search)
     feature_vector = Column(
-        ARRAY(Float),
+        Vector(512),  # ResNet50 outputs 512-dim embeddings
+        nullable=True,  # Optional for manually created profiles
+        comment="ML embedding for re-identification (ResNet50 output, 512 dimensions)"
+    )
+
+    # Feature 009: Enhanced Re-ID with multi-scale and ensemble embeddings
+    feature_vector_multiscale = Column(
+        Vector(512),  # Multi-scale ResNet50 (layer2 + layer3 + layer4 + avgpool)
+        nullable=True,
+        comment="Multi-scale ResNet50 embedding combining texture, shapes, parts, and semantics. 512 dimensions, L2 normalized. Feature 009-reid-enhancement."
+    )
+
+    feature_vector_efficientnet = Column(
+        Vector(512),  # EfficientNet-B0 for ensemble learning
+        nullable=True,
+        comment="EfficientNet-B0 embedding for ensemble learning. Captures complementary features using compound scaling architecture. 512 dimensions, L2 normalized. Feature 009-reid-enhancement."
+    )
+
+    embedding_version = Column(
+        String(20),
         nullable=False,
-        comment="ML embedding for re-identification (ResNet50 output, 2048 dimensions)"
+        default='v1_resnet50',
+        comment="Version identifier for embedding extraction. Values: v1_resnet50 (original), v2_multiscale (multi-scale only), v3_ensemble (multi-scale + EfficientNet). Feature 009-reid-enhancement."
     )
 
     confidence = Column(
@@ -122,6 +195,14 @@ class Deer(Base):
         comment="Total number of detections matched to this deer"
     )
 
+    # Best photo reference (Sprint 7: UI image display)
+    best_photo_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("images.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="Reference to the best quality photo of this deer"
+    )
+
     # Relationships
     detections = relationship(
         "Detection",
@@ -129,10 +210,23 @@ class Deer(Base):
         lazy="dynamic"
     )
 
+    best_photo = relationship(
+        "Image",
+        foreign_keys=[best_photo_id],
+        lazy="joined"
+    )
+
     # Indexes for common queries
     __table_args__ = (
         Index("ix_deer_last_seen_sex", "last_seen", "sex"),
         Index("ix_deer_sighting_count", "sighting_count"),
+        # HNSW index for fast vector similarity search (Sprint 5)
+        # Uses cosine distance for re-identification matching
+        Index("ix_deer_feature_vector_hnsw", "feature_vector", postgresql_using="hnsw", postgresql_ops={"feature_vector": "vector_cosine_ops"}),
+        # Feature 009: HNSW indexes for enhanced Re-ID embeddings
+        Index("ix_deer_feature_vector_multiscale_hnsw", "feature_vector_multiscale", postgresql_using="hnsw", postgresql_ops={"feature_vector_multiscale": "vector_cosine_ops"}),
+        Index("ix_deer_feature_vector_efficientnet_hnsw", "feature_vector_efficientnet", postgresql_using="hnsw", postgresql_ops={"feature_vector_efficientnet": "vector_cosine_ops"}),
+        Index("ix_deer_embedding_version", "embedding_version"),
         {"comment": "Individual deer profiles with re-identification tracking"}
     )
 
@@ -342,5 +436,5 @@ class Deer(Base):
         ]
 
 
-# Export model and enum
-__all__ = ["Deer", "DeerSex"]
+# Export model and enums
+__all__ = ["Deer", "DeerSex", "Sex", "DeerStatus"]

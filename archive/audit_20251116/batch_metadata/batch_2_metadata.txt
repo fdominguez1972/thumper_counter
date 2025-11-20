@@ -1,0 +1,21 @@
+ 8c7d8495-faf5-49da-8a85-6621d70319f5 | HAYFIELD_07511.jpg                 | buck           | 0.5009 | fb85517f-9d50-400e-96dc-690fc72171da
+ 76c641bc-1ee6-465f-a52a-7c132dad1653 | SANCTUARY_05355.jpg                | doe            | 0.5009 | 92bfc409-e303-4680-ae23-97a0e0506dfa
+ 04ced0cc-6a90-4630-9299-19836f80cfc4 | Hayfield_20250910_184443_001.jpg   | buck           | 0.5010 | cc143c1d-04c9-4eb6-a8d1-072c72d58bd9
+ 50f5908d-d2ac-4695-8391-d6231f14b7a8 | Jason1_20250930_084404_001.jpg     | doe            | 0.5010 | f6167206-b212-41b7-a222-7370da3c1427
+ bf32fca9-ca86-4f38-b8ad-a90c163e0401 | Hayfield_20251020_073510_001.jpg   | buck           | 0.5011 | 39facc44-dfa6-4887-bc28-91f49de0b8cf
+ 885664ee-7e07-4eb4-9435-6cd7fa46a564 | Sanctuary2_20251101_103312_001.jpg | doe            | 0.5011 | 12d04d04-4576-47cf-85d8-e8abe1cdcfb0
+ 38622bcb-9474-41db-bea1-d5f0f93b8ef1 | Sanctuary2_20251104_164008_001.jpg | buck           | 0.5012 | a2a87d11-ffb2-4cb1-be73-fc32a79e340c
+ 0945e839-da66-4f1d-bfd1-d353d76798cf | Hayfield_20251029_073217_001.jpg   | buck           | 0.5013 | 6689745a-192d-4692-821b-e216f7f453cc
+ 02250f52-76ea-42a8-8be5-72353f759fd9 | Jason1_20250915_030941_001.jpg     | doe            | 0.5013 | ad878ecc-b5b3-4edf-9e5b-bf8160353eb8
+ cfa2951a-94fb-4a7a-9a66-a1e279dcdc16 | SANCTUARY_04224.jpg                | doe            | 0.5015 | e6e29cb5-2323-4554-9c9b-bc0285766bd3
+ a9dbedf5-fdcc-4357-9eb1-764ee7437749 | Sanctuary2_20251109_071535_001.jpg | buck           | 0.5015 | 33b18b94-cd3f-4661-8e51-4e7931913f68
+ 8107e9ff-868c-45bd-a680-15c71ef818e2 | SANCTUARY_09669.jpg                | doe            | 0.5016 | e3ea5ec2-e2d0-433c-a5e3-0ad2eae552ec
+ 4106f732-c1e2-497c-b4fb-509b99a11cc9 | Sanctuary2_20251108_171300_001.jpg | doe            | 0.5018 | 47b1518f-2a08-419b-af83-31dfc788416a
+ 2c4c02fb-a5c7-441c-a7e2-33ef77b86370 | SANCTUARY_09631.jpg                | doe            | 0.5019 | c64d3332-f48b-4827-ac4f-0945396c52f3
+ ff48e9db-83c3-47a6-b6b7-c1fd862129a9 | HAYFIELD_09229.jpg                 | doe            | 0.5019 | 91d48244-f46c-4c94-8bff-de4ff0fe3b5c
+ af7715de-3d1e-4dcd-84aa-c071207119b3 | Sanctuary2_20251104_164454_001.jpg | buck           | 0.5020 | 8d911fa5-ee69-405e-a951-88e1860ed8c0
+ e1ec0d82-4639-4acb-b1a4-0de2406a1908 | Sanctuary2_20251101_164028_001.jpg | buck           | 0.5021 | 24635734-93b8-4cbf-90e5-ab07820e0263
+ ccfd4bbf-bc5b-4afe-b06e-f63244bf86ed | TINMAN_00116.jpg                   | doe            | 0.5021 | 446b6e8d-9fef-4169-a1ae-2dad082e4b86
+ 9bfa654c-6414-4300-9cc7-18c6076e1c13 | SANCTUARY_02832.jpg                | doe            | 0.5021 | 8a98237a-6578-477c-a13f-14a90d85aa4f
+ 97a78597-0b6e-4b85-8ee4-e86df7e685d2 | Sanctuary2_20251103_095644_001.jpg | buck           | 0.5022 | 329449c7-c621-44c7-af2b-6d4713e1e1bb
+

@@ -1,0 +1,25 @@
+# Corrected Training Data (Simplified Buck Classification)
+# Exported: 2025-11-11T19:43:07.846618
+# Total images: 2039
+# Note: All buck age classes (young, mid, mature) are combined into 'buck'
+
+path: /app/src/models/training_data/corrected_simplified_20251111
+train: images/train
+val: images/val
+
+names:
+  0: cattle
+  1: pig
+  2: raccoon
+  3: doe
+  4: fawn
+  5: buck
+
+# Class distribution:
+#   doe: 854
+#   buck: 193
+#   cattle: 549
+#   pig: 196
+#   raccoon: 106
+#   unknown: 21
+#   fawn: 11

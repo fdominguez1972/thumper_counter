@@ -66,6 +66,13 @@ data/
 *.mp4
 *.avi
 
+# Trail Camera Image Storage (exclude large image directories)
+/mnt/i/Hopkins_Ranch_Trail_Cam_Pics/
+/mnt/i/Hopkins_Ranch_Trail_Cam_Dumps/
+
+# CIFS mount point for original trail camera images
+cifs/
+
 # Database
 *.db
 *.sqlite
@@ -86,3 +93,4 @@ cache/
 
 # Claude Code local settings
 .claude/
+front_end_thoughts.txt

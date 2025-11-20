@@ -1,0 +1,46 @@
+# Antler Detection Dataset - Phase 2B
+# Converted from Label Studio annotations
+# Date: 2025-11-16
+
+path: /app/src/models/training_data/antler_yolo_20251116
+train: images/train
+val: images/val
+
+# Classes
+nc: 3
+names:
+  0: buck
+  1: doe
+  2: fawn
+
+# Keypoints (16 antler points - bucks only)
+kpt_shape: [16, 3]  # 16 keypoints, 3 values each (x, y, visibility)
+
+# Keypoint names (for reference)
+keypoint_names:
+  - left_main_beam
+  - left_brow_tine
+  - left_g2
+  - left_g3
+  - left_g4
+  - left_tip
+  - left_bez_tine
+  - left_royal_tine
+  - right_main_beam
+  - right_brow_tine
+  - right_g2
+  - right_g3
+  - right_g4
+  - right_tip
+  - right_bez_tine
+  - right_royal_tine
+
+# Dataset statistics
+train_images: 58
+val_images: 15
+total_images: 73
+
+# Annotation source
+source: Label Studio (manual annotation)
+annotator: User
+export_date: 2025-11-16

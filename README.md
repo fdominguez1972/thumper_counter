@@ -2,28 +2,37 @@
 
 **Automated trail camera analysis system for wildlife monitoring at Hopkins Ranch**
 
-[![Phase](https://img.shields.io/badge/Phase-1%20MVP%20Complete-success)](https://github.com/fdominguez1972/thumper_counter)
-[![Pipeline](https://img.shields.io/badge/Detection-87%25%20Confidence-blue)](https://github.com/fdominguez1972/thumper_counter)
+[![Phase](https://img.shields.io/badge/Project-95%25%20Complete-success)](https://github.com/fdominguez1972/thumper_counter)
+[![Pipeline](https://img.shields.io/badge/Detection-Active-blue)](https://github.com/fdominguez1972/thumper_counter)
+[![Processing](https://img.shields.io/badge/Images-58.8K%20%2F%2059.2K-green)](https://github.com/fdominguez1972/thumper_counter)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)](https://github.com/fdominguez1972/thumper_counter)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python)](https://github.com/fdominguez1972/thumper_counter)
 
-> **Status:** Phase 1 MVP complete (55% overall). YOLOv8 detection pipeline operational with end-to-end database integration. Currently detecting deer at 87% confidence in 0.4s per image (CPU mode).
+> **Status:** Sprints 1-12 complete (95% overall). Full ML pipeline operational: GPU-accelerated multi-class detection (0.04s/image), enhanced multi-scale Re-ID with ensemble scoring, React Material-UI dashboard, bulk ZIP upload, detection correction UI. Processing: 58,753 of 59,187 images (99.3%), 11,578 detections, 172 deer profiles tracked.
 
 ## Overview
 
 Thumper Counter automatically processes trail camera images to detect, classify, and track individual deer across time. Built using a spec-driven methodology with Docker containerization and ML pipeline optimization.
 
 **Current Capabilities:**
-- ✅ Upload images via REST API with EXIF extraction
-- ✅ YOLOv8 deer detection with bounding boxes
-- ✅ Database storage with processing status tracking
-- ✅ Celery task queue with Redis backend
-- ⏳ Batch processing (Phase 2)
-- ⏳ Sex classification (Phase 3)
-- ⏳ Individual re-identification (Phase 3)
-- ⏳ React frontend dashboard (Phase 4)
+- ✅ Upload images via REST API with EXIF/filename timestamp extraction
+- ✅ Bulk ZIP archive upload with automatic extraction
+- ✅ GPU-accelerated YOLOv8 multi-class detection (0.04s/image, RTX 4080 Super)
+- ✅ Enhanced multi-scale Re-ID (ResNet50 + EfficientNet-B0 ensemble)
+- ✅ Sex/age classification (buck, doe, fawn, mature, mid, young)
+- ✅ Automatic individual deer tracking with similarity scoring
+- ✅ Database storage with PostgreSQL + pgvector extension (HNSW indexing)
+- ✅ Celery task queue with Redis backend (32 worker threads)
+- ✅ Batch processing API with real-time progress monitoring
+- ✅ Automated queue monitoring and replenishment
+- ✅ React Material-UI frontend dashboard
+- ✅ Detection bounding box visualization with toggle
+- ✅ Single and batch detection correction UI
+- ✅ Deer profile timeline and location movement analytics
+- ✅ Seasonal analysis and PDF/ZIP export generation
+- ⏳ Re-ID model fine-tuning with triplet loss (planned)
 
-**Dataset:** 35,234+ images from 7 camera locations at Hopkins Ranch, Texas
+**Dataset:** 59,187 images from 6 active camera locations at Hopkins Ranch, Texas
 
 ## Quick Start
 
@@ -167,19 +176,34 @@ See [NEXT_STEPS.md](NEXT_STEPS.md) for detailed development instructions includi
 - Batch processing implementation
 - Testing procedures
 
-### Current Sprint (Sprint 3)
+### Recent Features (Sprints 9-12)
 
-**Focus:** GPU enablement + Batch processing
+**Feature 009 - Enhanced Re-ID (Complete)**
+- Multi-scale ResNet50 feature extraction (layer2, layer3, layer4, avgpool)
+- EfficientNet-B0 ensemble scoring (architectural diversity)
+- CUDA device optimization (fixed critical device mismatch bug)
+- Threshold tuning from 0.60 to 0.50 (reduced profile explosion 364x)
+- Automated queue monitoring and replenishment
+- See: `specs/009-reid-enhancement/` and `specs/011-reid-cuda-optimization/`
 
-**High Priority Tasks:**
-1. Enable GPU support (fix CUDA multiprocessing)
-2. Create batch processing endpoint (POST /api/processing/batch)
-3. Add progress monitoring (GET /api/processing/status)
+**Feature 011 - Bounding Box Visualization (Complete)**
+- Canvas-based detection overlay rendering
+- Toggle visibility with eye icon
+- Color-coded classifications (buck=blue, doe=pink, fawn=orange)
+- Green checkmark for reviewed detections
+- Click-to-zoom functionality preserved
 
-**Performance Targets:**
-- Detection speed: 0.05s per image (GPU, 8x improvement)
-- Throughput: 1200 images/minute
-- Batch: Process 1000 images in <1 minute
+**Feature 012 - Bulk Image Upload (Complete)**
+- ZIP archive extraction support (up to 2GB files)
+- Individual and batch file uploads
+- Location selection with automatic organization
+- EXIF timestamp extraction
+- Progress tracking and validation
+
+**Current Focus (Sprint 13)**
+1. Re-ID model fine-tuning with triplet loss
+2. Production monitoring and alerting
+3. Performance optimization (database write bottleneck)
 
 ### Testing
 
@@ -199,41 +223,79 @@ curl -X POST http://localhost:8001/api/images \
 ## API Endpoints
 
 ### Images
-- `POST /api/images` - Upload images with optional immediate processing
-- `GET /api/images` - List images with filtering (status, location, date)
-- `GET /api/images/{id}` - Get specific image details
+- `POST /api/images` - Upload images or ZIP archives with location assignment
+- `GET /api/images` - List images with filtering (status, location, date, classification)
+- `GET /api/images/{id}` - Get image details with detections and bounding boxes
 
 ### Locations
 - `POST /api/locations` - Create camera location
-- `GET /api/locations` - List all locations
+- `GET /api/locations` - List all locations with statistics
 - `GET /api/locations/{id}` - Get location details
 - `PUT /api/locations/{id}` - Update location
 - `DELETE /api/locations/{id}` - Delete location
 
-### Processing (Phase 2 - Coming Soon)
-- `POST /api/processing/batch` - Queue batch of images
-- `GET /api/processing/status` - Get processing statistics
+### Processing
+- `POST /api/processing/batch` - Queue batch of images for detection
+- `GET /api/processing/status` - Get real-time processing statistics
 
-### Deer (Phase 3 - Coming Soon)
-- `POST /api/deer` - Create deer profile
-- `GET /api/deer` - List deer with filters
-- `GET /api/deer/{id}` - Get deer details with sightings
+### Deer
+- `POST /api/deer` - Create deer profile (manual)
+- `GET /api/deer` - List deer with filters (sex, status, location)
+- `GET /api/deer/{id}` - Get deer profile with sighting history
+- `GET /api/deer/{id}/timeline` - Activity timeline (hourly/daily/weekly/monthly)
+- `GET /api/deer/{id}/locations` - Movement patterns across locations
+- `PUT /api/deer/{id}` - Update deer profile (name, status, notes)
+- `DELETE /api/deer/{id}` - Delete deer profile
+
+### Detections
+- `GET /api/detections` - List all detections with filtering
+- `PATCH /api/detections/{id}/correct` - Correct single detection classification
+- `PATCH /api/detections/batch/correct` - Batch correction (up to 1000 detections)
+
+### Seasonal Analysis
+- `GET /api/seasonal/images` - Filter images by season/year
+- `GET /api/seasonal/detections` - Filter detections by season/year
+- `GET /api/reports/seasonal/activity` - Aggregate seasonal activity statistics
+- `GET /api/reports/seasonal/comparison` - Compare multiple seasonal periods
+
+### Exports
+- `POST /api/exports/pdf` - Generate PDF activity report
+- `POST /api/exports/zip` - Create ZIP archive with detection crops
+- `GET /api/exports/{job_id}` - Poll export job status
+- `GET /api/static/exports/{filename}` - Download generated files
+- `DELETE /api/exports/{job_id}` - Cancel/delete export job
+
+### Statistics
+- `GET /api/stats/dashboard` - Dashboard metrics and population stats
+- `GET /api/deer/stats/species` - Species-level statistics
 
 Full API documentation available at: http://localhost:8001/docs
 
 ## Performance Metrics
 
-### Current (Phase 1 - CPU Mode)
-- **Detection Speed:** 0.4s per image
-- **Throughput:** ~150 images/minute
-- **Accuracy:** 87% average confidence
-- **Database:** 35,234+ images ready for processing
+### Current System (November 2025)
+- **Detection Speed:** 0.04s per image (GPU inference, YOLOv8n)
+- **Re-ID Speed:** 5.57ms per detection (GPU ensemble: ResNet50 + EfficientNet-B0)
+- **Throughput:** 840 images/minute (14 images/second with 32 worker threads)
+- **Processing Status:** 58,753 of 59,187 images complete (99.3%)
+- **Detections:** 11,578 total detections identified
+- **Deer Profiles:** 172 unique individuals tracked
+- **Re-ID Assignment Rate:** 60.1% (6,956 detections assigned to profiles)
+- **GPU:** RTX 4080 Super (16GB VRAM, 3.15GB used, 31% utilization)
 
-### Target (Phase 2 - GPU Mode)
-- **Detection Speed:** 0.05s per image (8x faster)
-- **Throughput:** ~1200 images/minute
-- **Batch Processing:** 35k images in ~30 minutes
-- **With 4 workers:** ~7-8 minutes
+### Re-ID System Performance
+- **Ensemble Scoring:** 0.6 x ResNet50 + 0.4 x EfficientNet-B0
+- **Similarity Threshold:** 0.50 (optimized from 0.60 after threshold analysis)
+- **Profile Reduction:** 364x improvement (7,242 → 172 profiles after CUDA fix)
+- **Sex Distribution:** 76.7% does, 23.3% bucks (matches detection data)
+- **Feature Extraction:** Multi-scale (layer2, layer3, layer4, avgpool) + EfficientNet
+- **Vector Search:** pgvector HNSW indexing (~3ms query time)
+
+### Bottleneck Analysis
+- GPU inference: 0.04s (optimal, no contention at 32 threads)
+- Re-ID inference: 5.57ms (GPU-accelerated, ensemble model)
+- Database writes: 70% of processing time
+- Primary bottleneck: PostgreSQL transaction commits (not ML inference)
 
 ## Troubleshooting
 
@@ -305,6 +367,6 @@ MIT License - See [LICENSE](LICENSE) for details
 
 ---
 
-**Last Updated:** November 5, 2025
-**Version:** 1.0.0 (Phase 1 MVP Complete)
-**Status:** Active Development - Sprint 3
+**Last Updated:** November 15, 2025
+**Version:** 2.0.0 (Enhanced Re-ID System Operational)
+**Status:** Active Development - Sprint 13 (95% Complete)

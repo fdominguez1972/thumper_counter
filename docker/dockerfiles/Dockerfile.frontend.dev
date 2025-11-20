@@ -1,0 +1,21 @@
+# Frontend Development Dockerfile for Thumper Counter Dashboard
+# Uses Node 20 for Vite compatibility
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY frontend/ ./
+
+# Expose Vite dev server port
+EXPOSE 3000
+
+# Start Vite dev server
+CMD ["npm", "run", "dev", "--", "--host"]

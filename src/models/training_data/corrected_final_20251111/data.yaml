@@ -1,0 +1,26 @@
+# Corrected Training Data (Simplified for Male/Female Counting)
+# Exported: 2025-11-11T20:03:12.943595
+# Total images: 2145
+# Note: All buck age classes (young, mid, mature) combined into 'buck'
+# Note: Fawn maps to 'unknown' since it contains both male and female
+
+path: /app/src/models/training_data/corrected_final_20251111
+train: images/train
+val: images/val
+
+names:
+  0: cattle
+  1: pig
+  2: raccoon
+  3: doe
+  4: unknown
+  5: buck
+
+# Class distribution:
+#   doe: 874
+#   buck: 236
+#   cattle: 576
+#   raccoon: 112
+#   pig: 197
+#   unknown: 21
+#   fawn: 11

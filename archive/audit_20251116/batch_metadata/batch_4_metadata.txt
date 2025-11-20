@@ -1,0 +1,27 @@
+BATCH 4 METADATA
+Generated: 2025-11-16 12:55:11
+Total Images: 20
+Downloaded: 20
+
+IMAGES TO REVIEW:
+
+061|adb9a81b-3e39-4c27-ac8b-c37289a054ba|CAMPHOUSE_02956.jpg|doe|0.5033|audit_batch_4_images\061_CAMPHOUSE_02956.jpg
+062|2ac3cbe4-ca34-43da-a2e5-66fda8a20ce1|CAMPHOUSE_03187.jpg|doe|0.5035|audit_batch_4_images\062_CAMPHOUSE_03187.jpg
+063|6d909440-4502-4b3b-8c44-aa7cd408ceb1|Sanctuary2_20251108_173213_001.jpg|buck|0.5035|audit_batch_4_images\063_Sanctuary2_20251108_173213_001.jpg
+064|f40fb252-10be-467f-a681-d0f77c93ffd6|HAYFIELD_09582.jpg|buck|0.5036|audit_batch_4_images\064_HAYFIELD_09582.jpg
+065|a28c3bc4-07de-4eca-be92-c26b74352ee3|HAYFIELD_07934.jpg|doe|0.5036|audit_batch_4_images\065_HAYFIELD_07934.jpg
+066|26e25389-65c7-4193-b1d1-32e719db8b1c|Sanctuary2_20251101_110905_001.jpg|buck|0.5037|audit_batch_4_images\066_Sanctuary2_20251101_110905_001.jpg
+067|33d86a56-b928-4aa6-a28d-be4d13ed7282|Hayfield_20250918_075928_001.jpg|buck|0.5037|audit_batch_4_images\067_Hayfield_20250918_075928_001.jpg
+068|49430f45-c915-4f12-ab41-3c3e9f2b67fa|Sanctuary2_20251101_165327_001.jpg|buck|0.5037|audit_batch_4_images\068_Sanctuary2_20251101_165327_001.jpg
+069|851d4bfc-af53-42cf-9424-8c1355c1a424|Sanctuary2_20251106_090419_001.jpg|buck|0.5037|audit_batch_4_images\069_Sanctuary2_20251106_090419_001.jpg
+070|73ddc214-96bd-4c6d-a431-19a03a291de7|Sanctuary2_20251103_210552_001.jpg|buck|0.5037|audit_batch_4_images\070_Sanctuary2_20251103_210552_001.jpg
+071|29c2c135-4b07-4719-a049-db459b8d7970|Hayfield_20251030_172333_001.jpg|doe|0.5038|audit_batch_4_images\071_Hayfield_20251030_172333_001.jpg
+072|7f54eb1c-b555-4fdf-9a70-b34dcf5ea24b|Sanctuary2_20251102_170510_001.jpg|buck|0.5038|audit_batch_4_images\072_Sanctuary2_20251102_170510_001.jpg
+073|5a73a1db-93cb-4f5c-a710-a00b2a207e96|Jason1_20251010_014512_001.jpg|doe|0.5040|audit_batch_4_images\073_Jason1_20251010_014512_001.jpg
+074|4ff4d91b-a79d-4081-acc0-cee02c994f73|Jason1_20251009_202123_001.jpg|buck|0.5041|audit_batch_4_images\074_Jason1_20251009_202123_001.jpg
+075|6dcf2949-c1b1-4acd-9a72-45cdd97a582d|Sanctuary2_20251031_194058_001.jpg|doe|0.5042|audit_batch_4_images\075_Sanctuary2_20251031_194058_001.jpg
+076|45f790a8-024e-45df-8e48-c70359186549|Sanctuary2_20251101_102202_001.jpg|buck|0.5042|audit_batch_4_images\076_Sanctuary2_20251101_102202_001.jpg
+077|e231603b-1d12-4504-8b76-fc0edd372b54|Sanctuary2_20251102_173105_001.jpg|buck|0.5043|audit_batch_4_images\077_Sanctuary2_20251102_173105_001.jpg
+078|c607e4db-3068-4608-a74d-9181c4228865|Hayfield_20251014_172146_001.jpg|buck|0.5043|audit_batch_4_images\078_Hayfield_20251014_172146_001.jpg
+079|4c9cb3a9-1f50-458e-aa15-cfa038d574da|Hayfield_20250914_080518_001.jpg|buck|0.5044|audit_batch_4_images\079_Hayfield_20250914_080518_001.jpg
+080|21f73e7f-f5fe-4d2b-998e-a1e52c0ab3f7|Sanctuary2_20251104_170520_001.jpg|doe|0.5044|audit_batch_4_images\080_Sanctuary2_20251104_170520_001.jpg

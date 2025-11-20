@@ -1,0 +1,25 @@
+{
+  "batch": 9,
+  "total_reviewed": 20,
+  "corrections": [
+    {"detection_id": "9fe76278-e6cc-4b54-b09d-108bfb380c60", "current": "doe", "correct": "uncertain", "reason": "No deer visible in field image"},
+    {"detection_id": "e10d0053-1adf-4f32-b2cb-2b2228eb633f", "current": "doe", "correct": "uncertain", "reason": "Deer too far/dark to determine sex"},
+    {"detection_id": "9e9b1367-3015-4c6e-80ca-2a23a0208470", "current": "buck", "correct": "doe", "reason": "Multiple does, no antlers visible"},
+    {"detection_id": "f52e5bbd-0bd4-4023-a400-1e30d41c569b", "current": "buck", "correct": "doe", "reason": "Single deer, no antlers visible"},
+    {"detection_id": "f8ab3d3a-b700-49e5-9b02-9cd1296d872c", "current": "doe", "correct": "uncertain", "reason": "Too dark/distant to confirm"},
+    {"detection_id": "5e20a301-f3c3-498d-acd0-61d9228648c0", "current": "buck", "correct": "doe", "reason": "Multiple deer, no clear antlers"},
+    {"detection_id": "4a669416-97aa-44a5-a15e-a577ba7ed393", "current": "doe", "correct": "cattle", "reason": "Cattle visible, not deer"},
+    {"detection_id": "a2b50165-291c-4ff4-bdcd-7c53e348bd4c", "current": "buck", "correct": "doe", "reason": "Multiple does feeding, no antlers"},
+    {"detection_id": "6a09a1e7-e79d-4917-b39c-92ca367ae0a8", "current": "doe", "correct": "uncertain", "reason": "Too dark/distant"},
+    {"detection_id": "b558e497-e1bf-4c71-8b09-7d47d7cc12d7", "current": "buck", "correct": "doe", "reason": "Deer on left, no antlers visible"},
+    {"detection_id": "261da657-6c75-477c-a48c-7c3a1308aad2", "current": "doe", "correct": "uncertain", "reason": "Too distant to confirm"},
+    {"detection_id": "f1fdd001-cfc5-4b56-9aeb-402f4a80bb64", "current": "doe", "correct": "uncertain", "reason": "Too dark to confirm"}
+  ],
+  "summary": {
+    "correct": 5,
+    "wrong_buck_to_doe": 5,
+    "wrong_doe_to_cattle": 1,
+    "uncertain": 7,
+    "accuracy": "25.0%"
+  }
+}

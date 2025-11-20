@@ -20,7 +20,27 @@ from backend.core.database import (
     get_db_info,
     engine
 )
-from backend.api import locations, images
+from backend.api import locations, images, processing, deer, static, detections, seasonal, reports, exports, antler_keypoints
+
+# Celery app for sending tasks from backend
+# WHY: Backend cannot import worker modules directly, use send_task() instead
+import os
+import redis
+from backend.core.celery import celery_app
+
+REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
+REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+REDIS_DB = int(os.getenv('REDIS_DB', 0))
+REDIS_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+
+# Redis client for job status tracking
+# WHY: Export job status needs persistent storage with TTL
+redis_client = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    db=REDIS_DB,
+    decode_responses=True  # Return strings instead of bytes
+)
 
 
 # Lifespan context manager for startup/shutdown events
@@ -103,6 +123,14 @@ app.add_middleware(
 # Include API routers
 app.include_router(locations.router)
 app.include_router(images.router)
+app.include_router(processing.router)
+app.include_router(deer.router)
+app.include_router(detections.router)
+app.include_router(seasonal.router)  # Feature 008: Rut season analysis
+app.include_router(reports.router)   # Feature 008: Seasonal reports
+app.include_router(exports.router)   # Feature 008: PDF and ZIP exports
+app.include_router(antler_keypoints.router, prefix="/api", tags=["Antler Keypoints"])  # Phase 2B: Antler detection
+app.include_router(static.router)
 
 
 # Health check endpoint
@@ -182,6 +210,9 @@ async def root() -> Dict[str, Any]:
             "locations": "/api/locations",
             "deer": "/api/deer",
             "detections": "/api/detections",
+            "seasonal": "/api/seasonal",
+            "reports": "/api/reports",
+            "exports": "/api/exports",
         }
     }
 

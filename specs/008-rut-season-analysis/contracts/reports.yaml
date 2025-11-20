@@ -1,0 +1,585 @@
+# API Contract: Seasonal Reports
+# Feature: 008-rut-season-analysis
+# Purpose: Aggregated statistical reports and period comparisons
+
+openapi: 3.0.3
+info:
+  title: Seasonal Reports API
+  description: Generate aggregated statistical reports for wildlife activity analysis
+  version: 1.0.0
+
+paths:
+  /api/seasonal/reports/activity:
+    get:
+      summary: Generate seasonal activity report
+      description: |
+        Aggregate detection statistics by time period (month/week/day).
+        Returns detection counts, average confidence scores, sex ratios,
+        and statistical comparisons vs baseline (non-seasonal) periods.
+
+        Useful for identifying peak activity periods, seasonal patterns,
+        and validating model performance across different seasons.
+      operationId: getSeasonalActivityReport
+      tags:
+        - Seasonal Reports
+      parameters:
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2024-09-01"
+          description: Report start date (YYYY-MM-DD)
+
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2025-01-31"
+          description: Report end date (YYYY-MM-DD)
+
+        - name: group_by
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [month, week, day]
+            default: month
+            example: month
+          description: |
+            Aggregation granularity:
+            - month: Group by calendar month
+            - week: Group by ISO week (Monday-Sunday)
+            - day: Group by calendar day
+
+        - name: classifications
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [doe, fawn, mature, mid, young, cattle, pig, raccoon]
+            example: ["doe", "mature", "mid", "young"]
+          description: |
+            Filter to specific classifications. If omitted, includes all deer classes.
+            Use for focused analysis (e.g., buck-only report).
+
+        - name: location_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Limit report to specific camera location
+
+        - name: include_comparison
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: |
+            Include statistical comparison to baseline (non-seasonal) period.
+            Baseline defined as: all months NOT in specified date range.
+
+      responses:
+        '200':
+          description: Activity report generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - periods
+                  - summary
+                  - generated_at
+                  - date_range
+                properties:
+                  periods:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PeriodStats'
+                    description: Time series data (one object per period)
+
+                  summary:
+                    type: object
+                    required:
+                      - total_detections
+                      - total_bucks
+                      - total_does
+                      - total_fawns
+                      - overall_sex_ratio
+                    properties:
+                      total_detections:
+                        type: integer
+                        example: 8543
+                      total_bucks:
+                        type: integer
+                        example: 3214
+                        description: Sum of mature + mid + young detections
+                      total_does:
+                        type: integer
+                        example: 4129
+                      total_fawns:
+                        type: integer
+                        example: 1200
+                      overall_sex_ratio:
+                        type: number
+                        format: float
+                        example: 0.78
+                        description: Bucks per doe (total_bucks / total_does)
+                      peak_activity_period:
+                        type: string
+                        example: "November 2024"
+                        description: Period with highest detection count
+                      avg_detections_per_period:
+                        type: number
+                        format: float
+                        example: 1708.6
+
+                  comparisons:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comparison'
+                    description: |
+                      Statistical comparisons (only included if include_comparison=true).
+                      Compares seasonal period to baseline (non-seasonal).
+
+                  generated_at:
+                    type: string
+                    format: date-time
+                    example: "2025-11-08T12:34:56Z"
+
+                  date_range:
+                    type: object
+                    required:
+                      - start
+                      - end
+                    properties:
+                      start:
+                        type: string
+                        format: date
+                      end:
+                        type: string
+                        format: date
+                      label:
+                        type: string
+                        example: "Rut Season 2024"
+
+              examples:
+                rut_season_monthly:
+                  summary: Rut season 2024 monthly activity report
+                  value:
+                    periods:
+                      - period_label: "September 2024"
+                        period_start: "2024-09-01T00:00:00Z"
+                        period_end: "2024-09-30T23:59:59Z"
+                        detection_counts_by_classification:
+                          mature: 123
+                          mid: 45
+                          young: 67
+                          doe: 234
+                          fawn: 12
+                        avg_confidence_by_classification:
+                          mature: 0.76
+                          mid: 0.72
+                          young: 0.68
+                          doe: 0.81
+                          fawn: 0.59
+                        sex_ratio: 1.00
+                        total_images: 987
+                        total_detections: 481
+                      - period_label: "November 2024"
+                        period_start: "2024-11-01T00:00:00Z"
+                        period_end: "2024-11-30T23:59:59Z"
+                        detection_counts_by_classification:
+                          mature: 356
+                          mid: 189
+                          young: 245
+                          doe: 412
+                          fawn: 23
+                        avg_confidence_by_classification:
+                          mature: 0.78
+                          mid: 0.74
+                          young: 0.71
+                          doe: 0.82
+                          fawn: 0.61
+                        sex_ratio: 1.92
+                        total_images: 1523
+                        total_detections: 1225
+                    summary:
+                      total_detections: 8543
+                      total_bucks: 3214
+                      total_does: 4129
+                      total_fawns: 1200
+                      overall_sex_ratio: 0.78
+                      peak_activity_period: "November 2024"
+                      avg_detections_per_period: 1708.6
+                    comparisons:
+                      - comparison_type: "rut_vs_non_rut"
+                        baseline_value: 1245
+                        current_value: 3214
+                        percent_change: 158.0
+                        statistical_significance: "p < 0.001"
+                        interpretation: "Mature buck detections increased 158% during rut season"
+                    generated_at: "2025-11-08T12:34:56Z"
+                    date_range:
+                      start: "2024-09-01"
+                      end: "2025-01-31"
+                      label: "Rut Season 2024"
+
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: Server error during report generation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/seasonal/reports/comparison:
+    post:
+      summary: Compare multiple time periods side-by-side
+      description: |
+        Generate comparison report for 2-5 user-defined time periods.
+        Returns statistics for each period plus computed differences and highlights.
+
+        Use cases:
+        - Compare Sept vs Nov vs Jan (identify peak rut month)
+        - Compare 2024 rut season vs 2023 rut season (year-over-year)
+        - Compare same location across different months
+      operationId: compareSeasonalPeriods
+      tags:
+        - Seasonal Reports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - periods
+              properties:
+                periods:
+                  type: array
+                  minItems: 2
+                  maxItems: 5
+                  items:
+                    type: object
+                    required:
+                      - start_date
+                      - end_date
+                      - label
+                    properties:
+                      start_date:
+                        type: string
+                        format: date
+                      end_date:
+                        type: string
+                        format: date
+                      label:
+                        type: string
+                        example: "September 2024"
+                classifications:
+                  type: array
+                  items:
+                    type: string
+                    enum: [doe, fawn, mature, mid, young, cattle, pig, raccoon]
+                  description: Filter to specific classifications (applies to all periods)
+                location_id:
+                  type: string
+                  format: uuid
+                  description: Limit to specific location (applies to all periods)
+
+            examples:
+              rut_season_months:
+                summary: Compare rut season months (Sept, Nov, Jan)
+                value:
+                  periods:
+                    - start_date: "2024-09-01"
+                      end_date: "2024-09-30"
+                      label: "September 2024"
+                    - start_date: "2024-11-01"
+                      end_date: "2024-11-30"
+                      label: "November 2024"
+                    - start_date: "2025-01-01"
+                      end_date: "2025-01-31"
+                      label: "January 2025"
+                  classifications: ["mature", "mid", "young"]
+
+      responses:
+        '200':
+          description: Comparison report generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - period_stats
+                  - differences
+                  - highlights
+                  - generated_at
+                properties:
+                  period_stats:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - label
+                        - start_date
+                        - end_date
+                        - stats
+                      properties:
+                        label:
+                          type: string
+                        start_date:
+                          type: string
+                          format: date
+                        end_date:
+                          type: string
+                          format: date
+                        stats:
+                          $ref: '#/components/schemas/PeriodStats'
+
+                  differences:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - metric
+                        - period_1_label
+                        - period_2_label
+                        - period_1_value
+                        - period_2_value
+                        - absolute_change
+                        - percent_change
+                        - interpretation
+                      properties:
+                        metric:
+                          type: string
+                          example: "mature_buck_detections"
+                        period_1_label:
+                          type: string
+                          example: "September 2024"
+                        period_2_label:
+                          type: string
+                          example: "November 2024"
+                        period_1_value:
+                          type: number
+                        period_2_value:
+                          type: number
+                        absolute_change:
+                          type: number
+                          example: 233
+                        percent_change:
+                          type: number
+                          format: float
+                          example: 189.4
+                        interpretation:
+                          type: string
+                          example: "November shows 189% increase in mature buck detections vs September"
+
+                  highlights:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - "Peak rut activity observed in November (356 mature buck detections)"
+                      - "Sex ratio shifted from 1.00 (Sept) to 1.92 (Nov) - more bucks visible"
+                      - "Average confidence remained consistent across periods (0.76-0.78)"
+
+                  generated_at:
+                    type: string
+                    format: date-time
+
+              examples:
+                three_period_comparison:
+                  summary: September vs November vs January comparison
+                  value:
+                    period_stats:
+                      - label: "September 2024"
+                        start_date: "2024-09-01"
+                        end_date: "2024-09-30"
+                        stats:
+                          period_label: "September 2024"
+                          period_start: "2024-09-01T00:00:00Z"
+                          period_end: "2024-09-30T23:59:59Z"
+                          detection_counts_by_classification:
+                            mature: 123
+                            mid: 45
+                            young: 67
+                          avg_confidence_by_classification:
+                            mature: 0.76
+                            mid: 0.72
+                            young: 0.68
+                          sex_ratio: 1.00
+                          total_images: 987
+                          total_detections: 235
+                      - label: "November 2024"
+                        start_date: "2024-11-01"
+                        end_date: "2024-11-30"
+                        stats:
+                          period_label: "November 2024"
+                          period_start: "2024-11-01T00:00:00Z"
+                          period_end: "2024-11-30T23:59:59Z"
+                          detection_counts_by_classification:
+                            mature: 356
+                            mid: 189
+                            young: 245
+                          avg_confidence_by_classification:
+                            mature: 0.78
+                            mid: 0.74
+                            young: 0.71
+                          sex_ratio: 1.92
+                          total_images: 1523
+                          total_detections: 790
+                    differences:
+                      - metric: "mature_buck_detections"
+                        period_1_label: "September 2024"
+                        period_2_label: "November 2024"
+                        period_1_value: 123
+                        period_2_value: 356
+                        absolute_change: 233
+                        percent_change: 189.4
+                        interpretation: "November shows 189% increase in mature buck detections vs September"
+                      - metric: "sex_ratio"
+                        period_1_label: "September 2024"
+                        period_2_label: "November 2024"
+                        period_1_value: 1.00
+                        period_2_value: 1.92
+                        absolute_change: 0.92
+                        percent_change: 92.0
+                        interpretation: "Sex ratio increased 92% in November (more bucks per doe)"
+                    highlights:
+                      - "Peak rut activity observed in November (356 mature buck detections)"
+                      - "Sex ratio shifted from 1.00 (Sept) to 1.92 (Nov) - significantly more bucks visible"
+                      - "Average confidence remained consistent (0.76 Sept, 0.78 Nov)"
+                      - "Post-rut decline visible in January (123 mature bucks, back to September levels)"
+                    generated_at: "2025-11-08T12:45:00Z"
+
+        '400':
+          description: Invalid request (too few/many periods, bad dates)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    PeriodStats:
+      type: object
+      required:
+        - period_label
+        - period_start
+        - period_end
+        - detection_counts_by_classification
+        - avg_confidence_by_classification
+        - total_images
+        - total_detections
+      properties:
+        period_label:
+          type: string
+          example: "November 2024"
+          description: Human-readable period identifier
+        period_start:
+          type: string
+          format: date-time
+          description: Period start timestamp (UTC)
+        period_end:
+          type: string
+          format: date-time
+          description: Period end timestamp (UTC)
+        detection_counts_by_classification:
+          type: object
+          additionalProperties:
+            type: integer
+          example:
+            mature: 356
+            mid: 189
+            young: 245
+            doe: 412
+            fawn: 23
+          description: Detection count per classification
+        avg_confidence_by_classification:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          example:
+            mature: 0.78
+            mid: 0.74
+            young: 0.71
+          description: Average confidence score per classification
+        sex_ratio:
+          type: number
+          format: float
+          nullable: true
+          example: 1.92
+          description: Bucks per doe (null if no doe detections)
+        total_images:
+          type: integer
+          example: 1523
+          description: Images captured in this period
+        total_detections:
+          type: integer
+          example: 1225
+          description: Total detections in this period
+
+    Comparison:
+      type: object
+      required:
+        - comparison_type
+        - baseline_value
+        - current_value
+        - percent_change
+      properties:
+        comparison_type:
+          type: string
+          example: "rut_vs_non_rut"
+          description: Type of comparison
+        baseline_value:
+          type: number
+          description: Baseline period metric value
+        current_value:
+          type: number
+          description: Current period metric value
+        percent_change:
+          type: number
+          format: float
+          description: Percent change from baseline ((current - baseline) / baseline * 100)
+        statistical_significance:
+          type: string
+          example: "p < 0.001"
+          description: Statistical test result (if applicable)
+        interpretation:
+          type: string
+          example: "Mature buck detections increased 158% during rut season"
+          description: Plain language summary
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
+        code:
+          type: string

@@ -3,7 +3,7 @@ services:
   # Note: Using existing database container on host
   # If you want a separate database, change port mapping to "5433:5432"
   db:
-    image: postgres:15-alpine
+    image: ankane/pgvector:v0.5.1
     container_name: thumper_db
     restart: unless-stopped
     environment:
@@ -66,17 +66,23 @@ services:
       BATCH_SIZE: ${BATCH_SIZE:-16}
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
-      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.7}
-      REID_THRESHOLD: ${REID_THRESHOLD:-0.85}
+      CONFIDENCE_THRESHOLD: 0.4  # Lowered for trail cameras - better detection rate
+      REID_THRESHOLD: ${REID_THRESHOLD:-0.50}  # Optimized from 0.60 (analysis: 64.5x profile creation)
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
+      # Feature 009: Enhanced Re-ID Configuration
+      USE_ENHANCED_REID: ${USE_ENHANCED_REID:-true}
+      ENSEMBLE_WEIGHT_RESNET: ${ENSEMBLE_WEIGHT_RESNET:-0.6}
+      ENSEMBLE_WEIGHT_EFFICIENTNET: ${ENSEMBLE_WEIGHT_EFFICIENTNET:-0.4}
     ports:
       - "8001:8000"  # Using port 8001 to avoid conflict
     volumes:
       - ./src:/app/src
       - ./tests:/app/tests
       - ./scripts:/app/scripts
-      - /mnt/i/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
+      - I:/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
       - ./data/uploads:/mnt/uploads
+      - ./data/thumbnails:/mnt/thumbnails
+      - ./data/exports:/mnt/exports
     depends_on:
       db:
         condition: service_healthy
@@ -114,17 +120,24 @@ services:
       BATCH_SIZE: ${BATCH_SIZE:-16}
       NUM_WORKERS: ${NUM_WORKERS:-4}
       # ML Config
-      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.7}
-      REID_THRESHOLD: ${REID_THRESHOLD:-0.85}
+      CONFIDENCE_THRESHOLD: 0.4  # Lowered for trail cameras - better detection rate
+      REID_THRESHOLD: ${REID_THRESHOLD:-0.50}  # Optimized from 0.60 (analysis: 64.5x profile creation)
       IOU_THRESHOLD: ${IOU_THRESHOLD:-0.45}
+      # Feature 009: Enhanced Re-ID Configuration
+      USE_ENHANCED_REID: ${USE_ENHANCED_REID:-true}
+      ENSEMBLE_WEIGHT_RESNET: ${ENSEMBLE_WEIGHT_RESNET:-0.6}
+      ENSEMBLE_WEIGHT_EFFICIENTNET: ${ENSEMBLE_WEIGHT_EFFICIENTNET:-0.4}
       # GPU enabled via model preloading in celery_app.py (Sprint 3)
       # Model is loaded before worker forks, avoiding CUDA fork() issues
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
-      - /mnt/i/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
+      - I:/Hopkins_Ranch_Trail_Cam_Pics:/mnt/images:ro
       - ./data/uploads:/mnt/uploads
       - ./src/models:/app/models
+      - ./src/worker/models:/app/src/worker/models  # Worker-specific model architectures (Feature 009)
+      - /mnt/i/deer_tracker/models:/mnt/training_data:ro
+      - ./data/exports:/mnt/exports
     depends_on:
       db:
         condition: service_healthy
@@ -134,6 +147,7 @@ services:
       - thumper_network
     # GPU support for ML processing (RTX 4080 Super with 16GB VRAM)
     runtime: nvidia
+    shm_size: '8gb'  # Shared memory for DataLoader workers
     deploy:
       resources:
         reservations:
@@ -157,11 +171,46 @@ services:
     networks:
       - thumper_network
 
+  # Frontend (React Dashboard)
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/dockerfiles/Dockerfile.frontend.dev
+    container_name: thumper_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Anonymous volume prevents local mount from overwriting built node_modules
+    depends_on:
+      - backend
+    networks:
+      - thumper_network
+
+  # Label Studio (Annotation Tool for Phase 2B - Antler Detection)
+  labelstudio:
+    image: heartexlabs/label-studio:latest
+    container_name: thumper_labelstudio
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+      - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/label-studio/data
+    volumes:
+      - labelstudio_data:/label-studio/data
+      - ./src/models/training_data/antler_annotation_samples:/label-studio/data/antler_samples:ro
+    networks:
+      - thumper_network
+
 volumes:
   postgres_data:
     name: thumper_postgres_data
   redis_data:
     name: thumper_redis_data
+  labelstudio_data:
+    name: thumper_labelstudio_data
 
 networks:
   thumper_network:

@@ -1,0 +1,300 @@
+openapi: 3.0.3
+info:
+  title: Export Request Validation API
+  description: |
+    Comprehensive validation for export request parameters before queueing worker tasks.
+    Fixes CRITICAL-3: Invalid requests causing silent worker failures.
+  version: 1.0.0
+  contact:
+    name: Thumper Counter API
+    url: https://github.com/fdominguez1972/thumper_counter
+
+servers:
+  - url: http://localhost:8001/api
+    description: Local development server
+
+paths:
+  /exports/pdf:
+    post:
+      summary: Create PDF export job
+      description: |
+        Queue PDF report generation for specified date range.
+
+        **New validation (fixes CRITICAL-3)**:
+        - VR-001: start_date must be before end_date
+        - VR-002: Date range cannot exceed 365 days
+        - VR-003: group_by must be "day", "week", or "month"
+        - VR-004: start_date cannot be in the future
+
+        **Validation happens BEFORE worker task is queued** (prevents silent failures).
+      operationId: createPdfExport
+      tags:
+        - exports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PDFExportRequest'
+            examples:
+              valid_request:
+                summary: Valid request (passes all validation)
+                value:
+                  start_date: "2023-09-01"
+                  end_date: "2024-01-31"
+                  group_by: "month"
+              invalid_date_order:
+                summary: Invalid - start after end (VR-001)
+                value:
+                  start_date: "2024-12-31"
+                  end_date: "2024-01-01"
+                  group_by: "day"
+              invalid_range_too_large:
+                summary: Invalid - range exceeds 365 days (VR-002)
+                value:
+                  start_date: "2020-01-01"
+                  end_date: "2025-01-01"
+                  group_by: "week"
+              invalid_group_by:
+                summary: Invalid - group_by not in allowed values (VR-003)
+                value:
+                  start_date: "2024-01-01"
+                  end_date: "2024-06-01"
+                  group_by: "hour"
+              invalid_future_date:
+                summary: Invalid - start_date in future (VR-004)
+                value:
+                  start_date: "2026-01-01"
+                  end_date: "2026-12-31"
+                  group_by: "month"
+      responses:
+        '202':
+          description: Request accepted, export job queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJobCreated'
+              example:
+                job_id: "a3f5b2c1-4d6e-8f9a-0b1c-2d3e4f5a6b7c"
+                status: "processing"
+        '400':
+          description: Validation failed (one of VR-001 through VR-004)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              examples:
+                vr_001:
+                  summary: VR-001 failure (date order)
+                  value:
+                    detail: "start_date must be before end_date"
+                vr_002:
+                  summary: VR-002 failure (range too large)
+                  value:
+                    detail: "Date range cannot exceed 1 year"
+                vr_003:
+                  summary: VR-003 failure (invalid group_by)
+                  value:
+                    detail: "group_by must be one of: day, week, month"
+                vr_004:
+                  summary: VR-004 failure (future date)
+                  value:
+                    detail: "start_date cannot be in the future"
+        '422':
+          description: Unprocessable entity (type validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                detail: [
+                  {
+                    "loc": ["body", "start_date"],
+                    "msg": "invalid date format",
+                    "type": "value_error.date"
+                  }
+                ]
+
+  /exports/zip:
+    post:
+      summary: Create ZIP export job
+      description: |
+        Queue ZIP archive creation for detection crops in specified date range.
+
+        **New validation (fixes CRITICAL-3)**:
+        - VR-001: start_date must be before end_date
+        - VR-002: Date range cannot exceed 365 days
+        - VR-003: group_by must be "day", "week", or "month"
+        - VR-004: start_date cannot be in the future
+
+        **Validation happens BEFORE worker task is queued** (prevents silent failures).
+      operationId: createZipExport
+      tags:
+        - exports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZIPExportRequest'
+            example:
+              start_date: "2023-09-01"
+              end_date: "2024-01-31"
+              group_by: "month"
+      responses:
+        '202':
+          description: Request accepted, export job queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJobCreated'
+              example:
+                job_id: "b4f6c3d2-5e7f-9g0a-1c2d-3e4f5a6b7c8d"
+                status: "processing"
+        '400':
+          description: Validation failed (same rules as PDF endpoint)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '422':
+          description: Unprocessable entity (type validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+components:
+  schemas:
+    PDFExportRequest:
+      type: object
+      description: |
+        Request body for PDF export. All fields validated before queueing worker task.
+      required:
+        - start_date
+        - end_date
+        - group_by
+      properties:
+        start_date:
+          type: string
+          format: date
+          description: Start of date range (inclusive), ISO 8601 format
+          example: "2023-09-01"
+        end_date:
+          type: string
+          format: date
+          description: End of date range (inclusive), ISO 8601 format
+          example: "2024-01-31"
+        group_by:
+          type: string
+          enum: [day, week, month]
+          description: Aggregation granularity for report data
+          example: "month"
+      additionalProperties: false
+
+    ZIPExportRequest:
+      type: object
+      description: |
+        Request body for ZIP export. Identical validation rules as PDFExportRequest.
+      required:
+        - start_date
+        - end_date
+        - group_by
+      properties:
+        start_date:
+          type: string
+          format: date
+          description: Start of date range (inclusive), ISO 8601 format
+          example: "2023-09-01"
+        end_date:
+          type: string
+          format: date
+          description: End of date range (inclusive), ISO 8601 format
+          example: "2024-01-31"
+        group_by:
+          type: string
+          enum: [day, week, month]
+          description: Aggregation granularity (affects directory structure in ZIP)
+          example: "month"
+      additionalProperties: false
+
+    ExportJobCreated:
+      type: object
+      description: Response after successfully queueing export job
+      required:
+        - job_id
+        - status
+      properties:
+        job_id:
+          type: string
+          format: uuid
+          description: Celery task ID (use this to poll status via GET /exports/{type}/{job_id})
+          example: "a3f5b2c1-4d6e-8f9a-0b1c-2d3e4f5a6b7c"
+        status:
+          type: string
+          enum: [processing]
+          description: Initial status (always "processing" when job is first created)
+          example: "processing"
+
+    ValidationError:
+      type: object
+      description: Error response for validation failures
+      required:
+        - detail
+      properties:
+        detail:
+          oneOf:
+            - type: string
+              description: Simple error message for custom validation rules (VR-001 to VR-004)
+              example: "start_date must be before end_date"
+            - type: array
+              description: Detailed validation errors from Pydantic (422 responses)
+              items:
+                type: object
+                properties:
+                  loc:
+                    type: array
+                    items:
+                      type: string
+                    description: Location of error in request body
+                    example: ["body", "start_date"]
+                  msg:
+                    type: string
+                    description: Error message
+                    example: "invalid date format"
+                  type:
+                    type: string
+                    description: Error type code
+                    example: "value_error.date"
+
+  examples:
+    ValidationRuleExamples:
+      summary: Validation Rule Examples
+      description: |
+        **VR-001: Date Order**
+        - Valid: start_date=2024-01-01, end_date=2024-12-31
+        - Invalid: start_date=2024-12-31, end_date=2024-01-01
+        - Error: "start_date must be before end_date"
+
+        **VR-002: Date Range Limit**
+        - Valid: range of 365 days or less
+        - Invalid: start_date=2020-01-01, end_date=2025-01-01 (1827 days)
+        - Error: "Date range cannot exceed 1 year"
+
+        **VR-003: Group By Values**
+        - Valid: "day", "week", "month"
+        - Invalid: "hour", "year", "daily", etc.
+        - Error: "group_by must be one of: day, week, month"
+
+        **VR-004: Future Dates**
+        - Valid: start_date <= today()
+        - Invalid: start_date=2026-01-01 (assuming current date is 2025-11-12)
+        - Error: "start_date cannot be in the future"
+
+tags:
+  - name: exports
+    description: Export request validation
+
+externalDocs:
+  description: Validation rules documentation
+  url: ../data-model.md#export-request-validation

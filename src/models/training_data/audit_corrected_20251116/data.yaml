@@ -1,0 +1,21 @@
+# Audit-Corrected Training Data
+# Exported: 2025-11-16T16:57:24.904091
+# Total detections: 207
+# Source: Manual vision audit (96.8% accuracy)
+
+path: /app/src/models/training_data/audit_corrected_20251116
+train: images/train
+val: images/val
+
+names:
+  0: buck
+  1: doe
+  2: fawn
+  3: cattle
+  4: pig
+  5: raccoon
+
+# Class distribution:
+#   buck: 165
+#   cattle: 1
+#   doe: 41

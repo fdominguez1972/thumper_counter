@@ -1,0 +1,24 @@
+                  id                  |              filename              | classification | round  |                  id                  
+--------------------------------------+------------------------------------+----------------+--------+--------------------------------------
+ 271bc5cb-c63b-4424-b0a9-0fff0a54b676 | Sanctuary2_20251101_152634_001.jpg | buck           | 0.5023 | 6877ebe6-3627-4af7-b6fd-b077c3502020
+ c9efaeb3-d3e9-4e37-b156-97a4fc91b663 | Hayfield_20251023_005408_001.jpg   | buck           | 0.5023 | 1338468b-e635-4fda-a579-30cdb82d81a7
+ 9d63ce87-8e47-4517-80c1-ecd40798fc73 | Sanctuary2_20251101_164821_001.jpg | buck           | 0.5024 | a4bedb12-00db-4ce0-8958-554b35edcb38
+ 067d763b-2d73-4cb4-b356-5cae7d6a4c3b | CAMPHOUSE_00599.jpg                | doe            | 0.5025 | fcf0e213-692a-436e-a815-3d20bd9e7267
+ 09b3d982-dd05-4b9a-b786-3a7adb675c27 | SANCTUARY_04909.jpg                | buck           | 0.5027 | 89a60f50-e901-4012-b9e9-e644b2e41fca
+ 6fe889e2-2e0f-4df9-adce-60411229fc6e | 270_JASON_00512.jpg                | doe            | 0.5027 | ca69cf7f-f33f-40f8-8515-ccd4dac4471c
+ 0538dec4-f590-4911-ba7c-9a28173ff7c1 | Jason1_20251014_103314_001.jpg     | buck           | 0.5027 | 026666fa-f939-4279-b1f4-e75f543cbee3
+ 4c595d04-2e1e-4751-9761-ce1f2d571535 | Sanctuary2_20251106_091044_001.jpg | buck           | 0.5028 | 91764ed6-3a84-4bce-b728-75677f12249e
+ d62f10fe-efb5-4414-9e06-777b3535beb6 | HAYFIELD_08395.jpg                 | doe            | 0.5028 | 0342223c-1534-4b2b-a67e-0d23b6f9a0e2
+ ff967eb3-77a8-4dae-bded-7dee9d011860 | HAYFIELD_06921.jpg                 | doe            | 0.5028 | 8c03d227-9a9b-490a-864a-023bbdc00f14
+ 224db80c-990e-4a73-b751-87973020b710 | Sanctuary2_20251104_164255_001.jpg | buck           | 0.5028 | b986b44d-ff34-4267-b645-e7d3a1e0e7d5
+ ff030ff7-1548-41c3-92bb-2b48f32d874f | HAYFIELD_01795.jpg                 | doe            | 0.5029 | fdba1942-e459-48bb-98ef-3104f8b4113a
+ f9295f25-d583-4469-b614-0714ff64bc6a | Sanctuary2_20251103_202857_001.jpg | doe            | 0.5030 | b64612cc-57db-4bdb-bc69-98104c4d1254
+ 1cdbc0bc-f762-463c-94d3-c6e1895cddc5 | HAYFIELD_08767.jpg                 | doe            | 0.5030 | c1a857d1-dcc5-4069-8075-4ec798bf2ce6
+ 804ec335-28f6-4c73-893a-d631073c5b6a | Hayfield_20250914_181704_001.jpg   | doe            | 0.5030 | 096cd749-b40c-4057-ac1b-04925940eed7
+ f5e026c0-60c8-44bb-94b4-cf906d7f3578 | SANCTUARY_05773.jpg                | doe            | 0.5030 | e6e2ed34-4e8e-4e5f-a0fb-1bb249e4c023
+ 0a738667-8847-4de3-889b-7fe2a3c3ee47 | SANCTUARY_05598.jpg                | doe            | 0.5031 | cd329433-8872-4b27-9594-4b4d67814fb9
+ 9ea7f37c-38e0-4997-a896-2f9b1e9a9493 | Sanctuary2_20251108_172855_001.jpg | buck           | 0.5032 | 24eaf4c0-97a0-4153-b075-67cf20adaf18
+ cbbcfe0e-7b98-410a-a2a2-cb9f24f5c519 | CAMPHOUSE_03634.jpg                | doe            | 0.5032 | e8b0e0db-eb78-40d2-94cf-7fc8f5b9c177
+ 6ac7f466-c13e-44ab-bf82-85a91e408590 | HAYFIELD_10357.jpg                 | doe            | 0.5033 | c3678e0b-48bd-42d0-81f6-f68f70d6c532
+(20 rows)
+

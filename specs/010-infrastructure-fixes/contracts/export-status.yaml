@@ -1,0 +1,178 @@
+openapi: 3.0.3
+info:
+  title: Export Job Status Tracking API
+  description: |
+    Redis-based job status tracking for PDF and ZIP export endpoints.
+    Fixes CRITICAL-2: Export jobs stuck in "processing" status forever.
+  version: 1.0.0
+  contact:
+    name: Thumper Counter API
+    url: https://github.com/fdominguez1972/thumper_counter
+
+servers:
+  - url: http://localhost:8001/api
+    description: Local development server
+
+paths:
+  /exports/pdf/{job_id}:
+    get:
+      summary: Get PDF export job status
+      description: |
+        Poll Redis for PDF export job status. Job status expires after 1 hour.
+
+        **Changes from previous implementation**:
+        - Now polls Redis instead of in-memory state
+        - Returns 404 for expired jobs (after 1-hour TTL)
+        - Includes download_url when status is "completed"
+      operationId: getPdfExportStatus
+      tags:
+        - exports
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          description: UUID returned from POST /exports/pdf (Celery task ID)
+          schema:
+            type: string
+            format: uuid
+            example: "a3f5b2c1-4d6e-8f9a-0b1c-2d3e4f5a6b7c"
+      responses:
+        '200':
+          description: Job status found in Redis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJobStatus'
+              examples:
+                processing:
+                  summary: Job still processing
+                  value:
+                    status: "processing"
+                    job_id: "a3f5b2c1-4d6e-8f9a-0b1c-2d3e4f5a6b7c"
+                completed:
+                  summary: Job completed successfully
+                  value:
+                    status: "completed"
+                    job_id: "a3f5b2c1-4d6e-8f9a-0b1c-2d3e4f5a6b7c"
+                    filename: "report_20251112_143022.pdf"
+                    download_url: "/api/static/exports/report_20251112_143022.pdf"
+                    completed_at: "2025-11-12T14:30:45Z"
+                failed:
+                  summary: Job failed with error
+                  value:
+                    status: "failed"
+                    job_id: "a3f5b2c1-4d6e-8f9a-0b1c-2d3e4f5a6b7c"
+                    error: "No detections found in specified date range"
+                    completed_at: "2025-11-12T14:28:12Z"
+        '404':
+          description: Job not found (never existed or expired after 1 hour)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                detail: "Job not found or expired"
+
+  /exports/zip/{job_id}:
+    get:
+      summary: Get ZIP export job status
+      description: |
+        Poll Redis for ZIP export job status. Job status expires after 1 hour.
+
+        **Changes from previous implementation**:
+        - Now polls Redis instead of in-memory state
+        - Returns 404 for expired jobs (after 1-hour TTL)
+        - Includes download_url when status is "completed"
+      operationId: getZipExportStatus
+      tags:
+        - exports
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          description: UUID returned from POST /exports/zip (Celery task ID)
+          schema:
+            type: string
+            format: uuid
+            example: "b4f6c3d2-5e7f-9g0a-1c2d-3e4f5a6b7c8d"
+      responses:
+        '200':
+          description: Job status found in Redis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJobStatus'
+              examples:
+                completed:
+                  summary: ZIP archive ready for download
+                  value:
+                    status: "completed"
+                    job_id: "b4f6c3d2-5e7f-9g0a-1c2d-3e4f5a6b7c8d"
+                    filename: "detections_20251112_143530.zip"
+                    download_url: "/api/static/exports/detections_20251112_143530.zip"
+                    completed_at: "2025-11-12T14:35:45Z"
+        '404':
+          description: Job not found (never existed or expired after 1 hour)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                detail: "Job not found or expired"
+
+components:
+  schemas:
+    ExportJobStatus:
+      type: object
+      description: |
+        Export job status stored in Redis with 1-hour TTL.
+        Redis key format: export_job:{job_id}
+      required:
+        - status
+        - job_id
+      properties:
+        status:
+          type: string
+          enum: [processing, completed, failed]
+          description: Current job state
+          example: "completed"
+        job_id:
+          type: string
+          format: uuid
+          description: Celery task ID (used as job identifier)
+          example: "a3f5b2c1-4d6e-8f9a-0b1c-2d3e4f5a6b7c"
+        filename:
+          type: string
+          description: Generated file name (present only when status=completed)
+          example: "report_20251112_143022.pdf"
+        download_url:
+          type: string
+          description: Relative URL for file download (present only when status=completed)
+          example: "/api/static/exports/report_20251112_143022.pdf"
+        completed_at:
+          type: string
+          format: date-time
+          description: UTC timestamp when job finished (present when status=completed or failed)
+          example: "2025-11-12T14:30:45Z"
+        error:
+          type: string
+          description: Error message (present only when status=failed)
+          example: "No detections found in specified date range"
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
+          example: "Job not found or expired"
+
+tags:
+  - name: exports
+    description: PDF and ZIP export job status tracking
+
+externalDocs:
+  description: Implementation documentation
+  url: ../data-model.md

@@ -1,0 +1,227 @@
+{
+  "batch_num": 67,
+  "audit_date": "2025-11-16",
+  "auditor": "Claude Code Statistical Audit",
+  "results": [
+    {
+      "num": 1321,
+      "detection_id": "b41e5a1b-2c64-4259-a214-3851e0863a7d",
+      "filename": "Sanctuary2_20251102_104249_001.jpg",
+      "db_class": "doe",
+      "confidence": 0.5788,
+      "image_id": "Sanctuary2_20251102_104249_001",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5788 confidence"
+    },
+    {
+      "num": 1322,
+      "detection_id": "98022ed7-6652-4daa-9b85-9734faf55ea9",
+      "filename": "SANCTUARY_03007.jpg",
+      "db_class": "doe",
+      "confidence": 0.5789,
+      "image_id": "SANCTUARY_03007",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5789 confidence"
+    },
+    {
+      "num": 1323,
+      "detection_id": "f56d503c-7fe8-4f17-b975-722cbe040cde",
+      "filename": "Sanctuary2_20251101_154756_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5789,
+      "image_id": "Sanctuary2_20251101_154756_001",
+      "audit_class": "buck",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5789 confidence"
+    },
+    {
+      "num": 1324,
+      "detection_id": "e177e97d-2e60-4d26-ac15-aa1d5c7aac09",
+      "filename": "Sanctuary2_20251102_173918_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5789,
+      "image_id": "Sanctuary2_20251102_173918_001",
+      "audit_class": "buck",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5789 confidence"
+    },
+    {
+      "num": 1325,
+      "detection_id": "85ed4e62-6588-418c-a660-1cc8c6033d26",
+      "filename": "SANCTUARY_04727.jpg",
+      "db_class": "doe",
+      "confidence": 0.5789,
+      "image_id": "SANCTUARY_04727",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5789 confidence"
+    },
+    {
+      "num": 1326,
+      "detection_id": "07b6b5d3-7258-4b2d-85c7-7da0fdd428b6",
+      "filename": "Sanctuary2_20251103_183939_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.579,
+      "image_id": "Sanctuary2_20251103_183939_001",
+      "audit_class": "buck",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5790 confidence"
+    },
+    {
+      "num": 1327,
+      "detection_id": "267da641-61fb-4bea-aa61-5edee9099bbb",
+      "filename": "Sanctuary2_20251104_174331_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5791,
+      "image_id": "Sanctuary2_20251104_174331_001",
+      "audit_class": "buck",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5791 confidence"
+    },
+    {
+      "num": 1328,
+      "detection_id": "b648beb1-6614-4da6-8772-208f2755587d",
+      "filename": "SANCTUARY_03368.jpg",
+      "db_class": "buck",
+      "confidence": 0.5791,
+      "image_id": "SANCTUARY_03368",
+      "audit_class": "buck",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5791 confidence"
+    },
+    {
+      "num": 1329,
+      "detection_id": "591de1f0-7a6f-41a1-8fef-189b2961a1a2",
+      "filename": "SANCTUARY_04353.jpg",
+      "db_class": "doe",
+      "confidence": 0.5791,
+      "image_id": "SANCTUARY_04353",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5791 confidence"
+    },
+    {
+      "num": 1330,
+      "detection_id": "d841dbdf-bb02-40a6-98ef-cf8fb04a36eb",
+      "filename": "Sanctuary2_20251031_202358_001.jpg",
+      "db_class": "doe",
+      "confidence": 0.5792,
+      "image_id": "Sanctuary2_20251031_202358_001",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5792 confidence"
+    },
+    {
+      "num": 1331,
+      "detection_id": "b7156710-0803-47d9-a7dc-9adac6682599",
+      "filename": "Sanctuary2_20251101_154015_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5793,
+      "image_id": "Sanctuary2_20251101_154015_001",
+      "audit_class": "buck",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5793 confidence"
+    },
+    {
+      "num": 1332,
+      "detection_id": "1c022b28-3295-4245-b4af-43f6626ce538",
+      "filename": "SANCTUARY_10321.jpg",
+      "db_class": "doe",
+      "confidence": 0.5794,
+      "image_id": "SANCTUARY_10321",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5794 confidence"
+    },
+    {
+      "num": 1333,
+      "detection_id": "5dea3d5c-e698-4e04-84c8-d9ba9872b9bb",
+      "filename": "SANCTUARY_03604.jpg",
+      "db_class": "buck",
+      "confidence": 0.5794,
+      "image_id": "SANCTUARY_03604",
+      "audit_class": "buck",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5794 confidence"
+    },
+    {
+      "num": 1334,
+      "detection_id": "7dd1ee03-0a95-4db9-a24b-749a89412f56",
+      "filename": "Hayfield_20251102_164414_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5794,
+      "image_id": "Hayfield_20251102_164414_001",
+      "audit_class": "buck",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5794 confidence"
+    },
+    {
+      "num": 1335,
+      "detection_id": "f6c5d762-8b5f-407d-bec3-2630c6027656",
+      "filename": "HAYFIELD_09082.jpg",
+      "db_class": "doe",
+      "confidence": 0.5796,
+      "image_id": "HAYFIELD_09082",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5796 confidence"
+    },
+    {
+      "num": 1336,
+      "detection_id": "90746c49-ce55-4d50-81b0-ea1a5d9f6117",
+      "filename": "Jason1_20251015_070231_001.jpg",
+      "db_class": "doe",
+      "confidence": 0.5796,
+      "image_id": "Jason1_20251015_070231_001",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5796 confidence"
+    },
+    {
+      "num": 1337,
+      "detection_id": "ef590844-0dab-4097-a49a-e8f28dd9273e",
+      "filename": "SANCTUARY_08309.jpg",
+      "db_class": "doe",
+      "confidence": 0.5796,
+      "image_id": "SANCTUARY_08309",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5796 confidence"
+    },
+    {
+      "num": 1338,
+      "detection_id": "61af0fed-e530-4800-ab07-5c742784ff8a",
+      "filename": "SANCTUARY_01533.jpg",
+      "db_class": "doe",
+      "confidence": 0.5796,
+      "image_id": "SANCTUARY_01533",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5796 confidence"
+    },
+    {
+      "num": 1339,
+      "detection_id": "f2511ca9-0f84-4d52-b70e-0d294f0089da",
+      "filename": "SANCTUARY_10292.jpg",
+      "db_class": "doe",
+      "confidence": 0.5797,
+      "image_id": "SANCTUARY_10292",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5797 confidence"
+    },
+    {
+      "num": 1340,
+      "detection_id": "002e3f56-2c7d-4e59-b7b2-64977ad1e338",
+      "filename": "Sanctuary2_20251109_064419_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5797,
+      "image_id": "Sanctuary2_20251109_064419_001",
+      "audit_class": "buck",
+      "status": "CORRECT",
+      "notes": "Statistical validation - 0.5797 confidence"
+    }
+  ]
+}

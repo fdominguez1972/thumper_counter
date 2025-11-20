@@ -33,6 +33,6 @@ ENV PYTHONPATH=/app/src
 
 # Run Celery worker with threads pool for GPU support (Sprint 3)
 # WHY threads pool: Avoids CUDA fork() issues while staying CUDA-compatible
-# Concurrency=1: YOLO model inference is not thread-safe, use single thread
-# GPU handles parallelism internally (batch processing, CUDA streams)
-CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info", "--pool=threads", "--concurrency=1"]
+# Concurrency=64: Maximizes GPU utilization on RTX 4080 Super (16GB VRAM)
+# Previous: 32 threads @ 71% GPU, 4.4GB VRAM - GPU underutilized
+CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info", "--pool=threads", "--concurrency=64"]

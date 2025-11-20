@@ -1,0 +1,227 @@
+{
+  "batch_num": 5,
+  "audit_date": "2025-11-16",
+  "auditor": "Claude Code Vision Analysis",
+  "results": [
+    {
+      "num": 81,
+      "detection_id": "1fdd8444-0f4f-4fc2-bc1d-062fa5d9bab2",
+      "filename": "Sanctuary2_20251105_162347_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5046,
+      "image_id": "a76f86c6-99c7-4dd1-8c93-fe1a06414685",
+      "audit_class": "doe",
+      "status": "INCORRECT",
+      "notes": "Clear image, multiple deer at feeder, all are does (no antlers)"
+    },
+    {
+      "num": 82,
+      "detection_id": "a76f86c6-99c7-4dd1-8c93-fe1a06414685",
+      "filename": "Sanctuary2_20251108_172750_001.jpg",
+      "db_class": "doe",
+      "confidence": 0.5046,
+      "image_id": "a76f86c6-99c7-4dd1-8c93-fe1a06414685",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Clear image, multiple deer at feeder, all are does"
+    },
+    {
+      "num": 83,
+      "detection_id": "9c8db883-c966-468a-a949-dd41ae326930",
+      "filename": "Hayfield_20250915_085120_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5046,
+      "image_id": "9c8db883-c966-468a-a949-dd41ae326930",
+      "audit_class": "doe",
+      "status": "INCORRECT",
+      "notes": "Clear morning image, deer grazing, no antlers visible = doe"
+    },
+    {
+      "num": 84,
+      "detection_id": "a82ffed4-4c1c-45c3-9e93-6e9c54e0c14a",
+      "filename": "Sanctuary2_20251031_185455_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5047,
+      "image_id": "a82ffed4-4c1c-45c3-9e93-6e9c54e0c14a",
+      "audit_class": "doe",
+      "status": "INCORRECT",
+      "notes": "Clear dusk image, deer at feeder, no antlers = doe"
+    },
+    {
+      "num": 85,
+      "detection_id": "cb823ecb-603b-4896-b95b-809f2cee3dfb",
+      "filename": "Hayfield_20251101_093118_001.jpg",
+      "db_class": "doe",
+      "confidence": 0.5048,
+      "image_id": "cb823ecb-603b-4896-b95b-809f2cee3dfb",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Clear daytime image, deer in field, no antlers = doe"
+    },
+    {
+      "num": 86,
+      "detection_id": "7f02f298-edaf-4aae-92d7-c308fc62408b",
+      "filename": "SANCTUARY_06124.jpg",
+      "db_class": "doe",
+      "confidence": 0.5049,
+      "image_id": "7f02f298-edaf-4aae-92d7-c308fc62408b",
+      "audit_class": "uncertain",
+      "status": "UNCERTAIN",
+      "notes": "Night IR image, deer distant, too grainy to confidently determine"
+    },
+    {
+      "num": 87,
+      "detection_id": "0a217184-8ecc-40ba-aef2-9fa4983cabde",
+      "filename": "Sanctuary2_20251101_174834_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5049,
+      "image_id": "0a217184-8ecc-40ba-aef2-9fa4983cabde",
+      "audit_class": "doe",
+      "status": "INCORRECT",
+      "notes": "Clear dusk image, multiple deer at feeder, all are does (no antlers)"
+    },
+    {
+      "num": 88,
+      "detection_id": "7b03c491-b681-4d94-aa71-1d40ad971e56",
+      "filename": "Sanctuary2_20251104_160627_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5049,
+      "image_id": "7b03c491-b681-4d94-aa71-1d40ad971e56",
+      "audit_class": "doe",
+      "status": "INCORRECT",
+      "notes": "Clear image, multiple deer at feeder, all are does (no antlers)"
+    },
+    {
+      "num": 89,
+      "detection_id": "fd73ce29-cc53-47fc-8906-c49d5d11e913",
+      "filename": "HAYFIELD_11236.jpg",
+      "db_class": "doe",
+      "confidence": 0.5049,
+      "image_id": "fd73ce29-cc53-47fc-8906-c49d5d11e913",
+      "audit_class": "uncertain",
+      "status": "UNCERTAIN",
+      "notes": "Night IR image, no deer visible in frame or too dark to determine"
+    },
+    {
+      "num": 90,
+      "detection_id": "f2330acd-fa16-4a33-acea-015b0f273f1a",
+      "filename": "Sanctuary2_20251102_173314_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.505,
+      "image_id": "f2330acd-fa16-4a33-acea-015b0f273f1a",
+      "audit_class": "doe",
+      "status": "INCORRECT",
+      "notes": "Clear dusk image, multiple deer at feeder, all are does (no antlers)"
+    },
+    {
+      "num": 91,
+      "detection_id": "bab4fc49-ace9-43c4-87f6-046ce2b5b944",
+      "filename": "SANCTUARY_07772.jpg",
+      "db_class": "doe",
+      "confidence": 0.505,
+      "image_id": "bab4fc49-ace9-43c4-87f6-046ce2b5b944",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Night IR but clear enough, deer grazing, no antlers = doe"
+    },
+    {
+      "num": 92,
+      "detection_id": "d860eab7-753c-4c97-8e89-2dde7f0d943b",
+      "filename": "SANCTUARY_05274.jpg",
+      "db_class": "doe",
+      "confidence": 0.505,
+      "image_id": "d860eab7-753c-4c97-8e89-2dde7f0d943b",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Night IR image, two deer at feeder, both appear to be does (no antlers visible)"
+    },
+    {
+      "num": 93,
+      "detection_id": "d8ac6737-c3d4-46ef-931b-1bd3575725ce",
+      "filename": "Sanctuary2_20251105_153554_001.jpg",
+      "db_class": "doe",
+      "confidence": 0.505,
+      "image_id": "d8ac6737-c3d4-46ef-931b-1bd3575725ce",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Clear daylight image, multiple deer at feeder, all are does (no antlers)"
+    },
+    {
+      "num": 94,
+      "detection_id": "3397cece-aff1-4fa7-904d-6a05082a86bc",
+      "filename": "Sanctuary2_20251104_174343_001.jpg",
+      "db_class": "buck",
+      "confidence": 0.5051,
+      "image_id": "3397cece-aff1-4fa7-904d-6a05082a86bc",
+      "audit_class": "doe",
+      "status": "INCORRECT",
+      "notes": "Clear dusk image, multiple deer visible, all are does (no antlers)"
+    },
+    {
+      "num": 95,
+      "detection_id": "3424b089-c979-4be7-b160-7f116047b8de",
+      "filename": "HAYFIELD_09841.jpg",
+      "db_class": "buck",
+      "confidence": 0.5051,
+      "image_id": "3424b089-c979-4be7-b160-7f116047b8de",
+      "audit_class": "uncertain",
+      "status": "UNCERTAIN",
+      "notes": "Foggy/hazy early morning, deer distant and obscured, cannot confidently determine"
+    },
+    {
+      "num": 96,
+      "detection_id": "21b0bdd3-8377-4a1f-b520-5abf791dd86a",
+      "filename": "HAYFIELD_01888.jpg",
+      "db_class": "doe",
+      "confidence": 0.5051,
+      "image_id": "21b0bdd3-8377-4a1f-b520-5abf791dd86a",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Clear early morning image, deer at feeder, no antlers = doe"
+    },
+    {
+      "num": 97,
+      "detection_id": "7953991c-3ab2-44d7-af8c-39a8e84b5a39",
+      "filename": "Sanctuary2_20251106_131118_001.jpg",
+      "db_class": "doe",
+      "confidence": 0.5051,
+      "image_id": "7953991c-3ab2-44d7-af8c-39a8e84b5a39",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Clear daylight image, deer at feeder, no antlers = doe"
+    },
+    {
+      "num": 98,
+      "detection_id": "418eafa2-1166-4598-bf43-56a54b0e6b64",
+      "filename": "HAYFIELD_11905.jpg",
+      "db_class": "doe",
+      "confidence": 0.5051,
+      "image_id": "418eafa2-1166-4598-bf43-56a54b0e6b64",
+      "audit_class": "uncertain",
+      "status": "UNCERTAIN",
+      "notes": "Dense fog/mist, dawn/dusk lighting, no deer clearly visible or too obscured to determine"
+    },
+    {
+      "num": 99,
+      "detection_id": "9febcf0d-3023-498a-b557-6d177e8e79c6",
+      "filename": "SANCTUARY_04842.jpg",
+      "db_class": "doe",
+      "confidence": 0.5051,
+      "image_id": "9febcf0d-3023-498a-b557-6d177e8e79c6",
+      "audit_class": "doe",
+      "status": "CORRECT",
+      "notes": "Night IR but clear, two deer at feeder, both are does (no antlers)"
+    },
+    {
+      "num": 100,
+      "detection_id": "0216efab-045f-421e-bd7c-5a3076f09562",
+      "filename": "270_JASON_00664.jpg",
+      "db_class": "doe",
+      "confidence": 0.5052,
+      "image_id": "0216efab-045f-421e-bd7c-5a3076f09562",
+      "audit_class": "uncertain",
+      "status": "UNCERTAIN",
+      "notes": "Night IR, no deer visible in frame, just empty field"
+    }
+  ]
+}

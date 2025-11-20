@@ -1,0 +1,26 @@
+# Corrected Training Data
+# Exported: 2025-11-11T18:11:47.156890
+# Total images: 1873
+
+path: /app/src/models/training_data/corrected_20251111
+train: images/train
+val: images/val
+
+names:
+  0: cattle
+  1: pig
+  2: raccoon
+  3: doe
+  4: fawn
+  5: mature
+  6: mid
+  10: young
+
+# Class distribution:
+#   doe: 832
+#   buck: 113
+#   cattle: 497
+#   pig: 196
+#   raccoon: 103
+#   unknown: 21
+#   fawn: 10

@@ -29,13 +29,14 @@ POSTGRES_DB = os.getenv("POSTGRES_DB", "deer_tracking")
 # SSL mode for production (disable for local development)
 POSTGRES_SSL_MODE = os.getenv("POSTGRES_SSL_MODE", "prefer")
 
-# Connection pooling configuration
+# Connection pooling configuration (Sprint 8: Optimized for write-heavy workload)
 # Per system.spec: max 100 connections
-# Reserve capacity for workers and monitoring tools
-POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "20"))
-MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "30"))
-POOL_TIMEOUT = int(os.getenv("DB_POOL_TIMEOUT", "30"))
-POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "3600"))
+# With GPU worker + re-ID chaining, we need more pool capacity
+# Pool breakdown: Backend (30) + Worker (40) + Monitoring (10) + Overhead (20) = 100
+POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "40"))  # Increased from 20
+MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "40"))  # Increased from 30
+POOL_TIMEOUT = int(os.getenv("DB_POOL_TIMEOUT", "60"))  # Increased from 30
+POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "1800"))  # Reduced from 3600 (30min)
 
 # Construct database URL
 # Format: postgresql://user:password@host:port/database

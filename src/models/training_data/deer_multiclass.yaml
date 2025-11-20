@@ -1,0 +1,55 @@
+# YOLOv8 Training Configuration for Multi-Class Deer Detection
+# Dataset: Roboflow Whitetail Deer v46 (Buck Classes)
+# Created: 2025-11-06
+# Sprint 4: Sex/Age Classification
+
+# Dataset paths (container mount)
+path: /mnt/training_data/Whitetail Deer.v46-buck_classes_v046.yolov8
+train: train/images
+val: valid/images
+test: test/images
+
+# Number of classes
+nc: 11
+
+# Class names (11 total)
+names:
+  0: UTV
+  1: cow
+  2: coyote
+  3: doe          # Female deer
+  4: fawn         # Baby deer (sex unknown)
+  5: mature       # Mature buck (large antlers)
+  6: mid          # Mid-age buck (medium antlers)
+  7: person
+  8: raccoon
+  9: turkey
+  10: young       # Young buck (small/spike antlers)
+
+# Dataset metadata
+roboflow:
+  workspace: buckvsdoe
+  project: whitetail-deer
+  version: 46
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/buckvsdoe/whitetail-deer/dataset/46
+
+# Training statistics
+# Total images: 15,574
+# Train: 13,615 images (16,696 annotations)
+# Valid: 1,612 images (1,923 annotations)
+# Test: 347 images (421 annotations)
+#
+# Deer class distribution (training set):
+# - doe: 2,900 annotations (17.4%)
+# - fawn: 737 annotations (4.4%)
+# - mature: 2,113 annotations (12.7%)
+# - mid: 2,978 annotations (17.8%)
+# - young: 2,413 annotations (14.5%)
+
+# Sex/Age Mapping for Post-Processing:
+# doe -> female
+# fawn -> unknown (too young to determine)
+# mature -> male (mature buck)
+# mid -> male (mid-age buck)
+# young -> male (young buck)
