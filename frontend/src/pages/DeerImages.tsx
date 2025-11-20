@@ -60,6 +60,12 @@ interface Image {
   is_valid: boolean;
   corrected_classification?: string;
   correction_notes?: string;
+  bbox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
   detections?: Detection[];
 }
 
@@ -415,6 +421,7 @@ export default function DeerImages() {
                   confidence: selectedImage.confidence,
                   is_valid: selectedImage.is_valid,
                   is_reviewed: selectedImage.is_reviewed,
+                  bbox: selectedImage.bbox,
                 }]}
                 alt={`Sighting ${selectedIndex! + 1}`}
                 onClick={() => window.open(`/api/static/images/${selectedImage.id}`, '_blank')}

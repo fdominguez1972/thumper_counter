@@ -609,7 +609,8 @@ def get_deer_images(
             Detection.is_reviewed,
             Detection.is_valid,
             Detection.corrected_classification,
-            Detection.correction_notes
+            Detection.correction_notes,
+            Detection.bbox
         )
         .join(Detection, Image.id == Detection.image_id)
         .join(Location, Image.location_id == Location.id)
@@ -632,6 +633,7 @@ def get_deer_images(
             "is_valid": row.is_valid,
             "corrected_classification": row.corrected_classification,
             "correction_notes": row.correction_notes,
+            "bbox": row.bbox,
         }
         for row in images_data
     ]
